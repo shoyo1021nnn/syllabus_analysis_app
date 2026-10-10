@@ -1,0 +1,260 @@
+import {
+  MetricType,
+  NormalizationType,
+  SimilarityCandidate,
+  SimilarityScoreItem,
+  SkillDefinition,
+  VectorTarget,
+} from '@/types/database';
+
+// ==========================================
+// 1. スキル定義・ラベル定数
+// ==========================================
+
+export const KNOWLEDGE_SKILLS: SkillDefinition[] = [
+  { code: 'A-1', category: 'knowledge', nameJa: '教育学', nameEn: 'Education' },
+  { code: 'A-2', category: 'knowledge', nameJa: '人文学', nameEn: 'Humanities' },
+  { code: 'A-3', category: 'knowledge', nameJa: '芸術', nameEn: 'Arts' },
+  { code: 'A-4', category: 'knowledge', nameJa: '社会科学・ジャーナリズム・情報学', nameEn: 'Social Sciences, Journalism & Informatics' },
+  { code: 'A-5', category: 'knowledge', nameJa: 'ビジネス・管理・法律', nameEn: 'Business, Administration & Law' },
+  { code: 'A-6', category: 'knowledge', nameJa: '自然科学・数学・統計学', nameEn: 'Natural Sciences, Math & Statistics' },
+  { code: 'A-7', category: 'knowledge', nameJa: '情報通信技術(ICT)', nameEn: 'ICT' },
+  { code: 'A-8', category: 'knowledge', nameJa: '技術・製造・建築', nameEn: 'Engineering, Manufacturing & Construction' },
+  { code: 'A-9', category: 'knowledge', nameJa: 'ハードウェア操作・マテリアルハンドリング', nameEn: 'Hardware Operation & Material Handling' },
+  { code: 'A-10', category: 'knowledge', nameJa: '農業・林業・水産業・獣医学', nameEn: 'Agriculture, Forestry, Fisheries & Veterinary' },
+  { code: 'A-11', category: 'knowledge', nameJa: '保健・福祉', nameEn: 'Health & Welfare' },
+  { code: 'A-12', category: 'knowledge', nameJa: 'サービス', nameEn: 'Services' },
+];
+
+export const GENERAL_SKILLS: SkillDefinition[] = [
+  { code: 'B-1', category: 'general', nameJa: '共同作業・コミュニケーション力', nameEn: 'Teamwork & Communication' },
+  { code: 'B-2', category: 'general', nameJa: '批判的・論理的思考力', nameEn: 'Critical & Logical Thinking' },
+  { code: 'B-3', category: 'general', nameJa: '言語運用・グローバル力', nameEn: 'Language & Global Competence' },
+  { code: 'B-4', category: 'general', nameJa: '倫理観', nameEn: 'Ethics' },
+  { code: 'B-5', category: 'general', nameJa: '自己管理能力・自律的成長', nameEn: 'Self-Management & Autonomous Growth' },
+  { code: 'B-6', category: 'general', nameJa: '問題解決力', nameEn: 'Problem Solving' },
+  { code: 'B-7', category: 'general', nameJa: '状況適応力', nameEn: 'Adaptability' },
+  { code: 'B-8', category: 'general', nameJa: '創造性', nameEn: 'Creativity' },
+  { code: 'B-9', category: 'general', nameJa: '表現力', nameEn: 'Expressiveness & Presentation' },
+  { code: 'B-10', category: 'general', nameJa: '情報処理能力・デジタルリテラシー', nameEn: 'Info Processing & Digital Literacy' },
+  { code: 'B-11', category: 'general', nameJa: 'コンピュータ活用能力', nameEn: 'Computer skills' },
+  { code: 'B-12', category: 'general', nameJa: 'リーダーシップ・マネジメントスキル', nameEn: 'Leadership & Management' },
+];
+
+export const ALL_SKILLS: SkillDefinition[] = [...KNOWLEDGE_SKILLS, ...GENERAL_SKILLS];
+
+// ==========================================
+// 2. 基本ベクトル演算
+// ==========================================
+
+/** 内積 (Dot Product) */
+export function dotProduct(a: number[], b: number[]): number {
+  const len = Math.min(a.length, b.length);
+  let sum = 0;
+  for (let i = 0; i < len; i++) {
+    sum += a[i] * b[i];
+  }
+  return sum;
+}
+
+/** L2ノルム（ユークリッドノルム） */
+export function vectorNorm(a: number[]): number {
+  let sumSq = 0;
+  for (let i = 0; i < a.length; i++) {
+    sumSq += a[i] * a[i];
+  }
+  return Math.sqrt(sumSq);
+}
+
+/** L1ノルム（マンハッタンノルム） */
+export function vectorL1Norm(a: number[]): number {
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    sum += Math.abs(a[i]);
+  }
+  return sum;
+}
+
+/** コサイン類似度 (Cosine Similarity) */
+export function cosineSimilarity(a: number[], b: number[]): number {
+  const normA = vectorNorm(a);
+  const normB = vectorNorm(b);
+  if (normA === 0 || normB === 0) return 0;
+  const dot = dotProduct(a, b);
+  const sim = dot / (normA * normB);
+  // 浮動小数点誤差による [-1, 1] 外れを防ぐ
+  return Math.max(-1, Math.min(1, sim));
+}
+
+/** ユークリッド距離 (Euclidean Distance) */
+export function euclideanDistance(a: number[], b: number[]): number {
+  const len = Math.min(a.length, b.length);
+  let sumSq = 0;
+  for (let i = 0; i < len; i++) {
+    const diff = a[i] - b[i];
+    sumSq += diff * diff;
+  }
+  return Math.sqrt(sumSq);
+}
+
+/** 谷本係数 (Tanimoto Coefficient) */
+export function tanimotoCoefficient(a: number[], b: number[], eps: number = 1e-9): number {
+  const dot = dotProduct(a, b);
+  const normASq = a.reduce((sum, v) => sum + v * v, 0);
+  const normBSq = b.reduce((sum, v) => sum + v * v, 0);
+  const denom = normASq + normBSq - dot + eps;
+  if (denom <= 0) return 0;
+  return dot / denom;
+}
+
+/** L1正規化 (総和が1になるように変換) */
+export function normalizeL1(v: number[]): number[] {
+  const norm = vectorL1Norm(v);
+  if (norm === 0) return [...v];
+  return v.map((x) => x / norm);
+}
+
+/** L2正規化 (ベクトルの長さが1になるように変換) */
+export function normalizeL2(v: number[]): number[] {
+  const norm = vectorNorm(v);
+  if (norm === 0) return [...v];
+  return v.map((x) => x / norm);
+}
+
+/** ベクトル結合 (12D + 12D -> 24D) */
+export function combineVectors(knowledge: number[], general: number[]): number[] {
+  return [...knowledge, ...general];
+}
+
+/** 指定の正規化を適用 */
+export function applyNormalization(v: number[], normType: NormalizationType): number[] {
+  if (normType === 'l1') return normalizeL1(v);
+  if (normType === 'l2') return normalizeL2(v);
+  return [...v];
+}
+
+// ==========================================
+// 3. 類似度ランキング算出
+// ==========================================
+
+export interface RankingOptions {
+  excludeSelfId?: string;
+  topN?: number;
+  normalization?: NormalizationType;
+}
+
+/**
+ * 基準ベクトルと候補群の類似度を計算し、ランキング順にソートして返す
+ */
+export function calculateSimilarityRanking(
+  targetVector: number[],
+  candidates: SimilarityCandidate[],
+  metric: MetricType = 'cosine',
+  options: RankingOptions = {}
+): SimilarityScoreItem[] {
+  const { excludeSelfId, topN, normalization = 'none' } = options;
+
+  const normalizedTarget = applyNormalization(targetVector, normalization);
+
+  const scored: Array<{
+    id: string;
+    label: string;
+    university_name: string;
+    faculty_name?: string;
+    department_name?: string;
+    score: number;
+  }> = [];
+
+  for (const item of candidates) {
+    if (excludeSelfId && item.id === excludeSelfId) {
+      continue;
+    }
+
+    const normalizedCandidate = applyNormalization(item.vector, normalization);
+    let score = 0;
+
+    switch (metric) {
+      case 'cosine':
+        score = cosineSimilarity(normalizedTarget, normalizedCandidate);
+        break;
+      case 'dot':
+        score = dotProduct(normalizedTarget, normalizedCandidate);
+        break;
+      case 'euclidean':
+        score = euclideanDistance(normalizedTarget, normalizedCandidate);
+        break;
+      case 'tanimoto':
+        score = tanimotoCoefficient(normalizedTarget, normalizedCandidate);
+        break;
+    }
+
+    scored.push({
+      id: item.id,
+      label: item.label,
+      university_name: item.university_name,
+      faculty_name: item.faculty_name,
+      department_name: item.department_name,
+      score,
+    });
+  }
+
+  // ソート: ユークリッド距離は小さいほど近い（昇順）、それ以外は大きいほど類似（降順）
+  if (metric === 'euclidean') {
+    scored.sort((a, b) => a.score - b.score);
+  } else {
+    scored.sort((a, b) => b.score - a.score);
+  }
+
+  // topN で絞り込み
+  const limited = topN ? scored.slice(0, topN) : scored;
+
+  return limited.map((item, index) => ({
+    ...item,
+    rank: index + 1,
+  }));
+}
+
+// ==========================================
+// 4. ECharts レーダーチャート用データ整形
+// ==========================================
+
+export interface RadarIndicator {
+  name: string;
+  max?: number;
+}
+
+/**
+ * レーダーチャート用の軸（インジケーター）リストを生成
+ */
+export function getRadarIndicators(
+  target: VectorTarget,
+  options?: { max?: number; language?: 'ja' | 'en' | 'both' }
+): RadarIndicator[] {
+  const { max, language = 'both' } = options || {};
+
+  let skills: SkillDefinition[] = [];
+  if (target === 'knowledge') {
+    skills = KNOWLEDGE_SKILLS;
+  } else if (target === 'general') {
+    skills = GENERAL_SKILLS;
+  } else {
+    skills = ALL_SKILLS;
+  }
+
+  return skills.map((skill) => {
+    let name = '';
+    if (language === 'ja') {
+      name = `${skill.code} ${skill.nameJa}`;
+    } else if (language === 'en') {
+      name = `${skill.code}: ${skill.nameEn}`;
+    } else {
+      // 短縮表示
+      name = `${skill.code}\n${skill.nameJa}`;
+    }
+
+    return {
+      name,
+      ...(max !== undefined ? { max } : {}),
+    };
+  });
+}

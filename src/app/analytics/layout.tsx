@@ -3,6 +3,7 @@
 import { Panel, Group, Separator } from "react-resizable-panels";
 import { GripVertical } from "lucide-react";
 import { Suspense } from "react";
+import Link from "next/link";
 import { AgentPanel } from "@/components/AgentPanel";
 
 export default function AnalyticsLayout({
@@ -13,10 +14,20 @@ export default function AnalyticsLayout({
     return (
         <div className="h-screen w-full bg-background flex flex-col">
             {/* グローバルヘッダー */}
-            <header className="h-14 border-b border-panel-border bg-panel flex items-center px-6 shadow-sm z-10">
-                <h1 className="text-xl font-bold font-sans bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">
-                    Syllabus Analysis App
-                </h1>
+            <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-sm z-10">
+                <Link href="/analytics" className="flex items-center space-x-2 group">
+                    <h1 className="text-xl font-bold font-sans bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 group-hover:opacity-85 transition">
+                        Syllabus Analysis App
+                    </h1>
+                </Link>
+                <div className="flex items-center space-x-3 text-xs text-slate-500">
+                    <Link
+                        href="/analytics"
+                        className="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+                    >
+                        分析メニュー
+                    </Link>
+                </div>
             </header>
 
             <main className="flex-1 overflow-hidden">
