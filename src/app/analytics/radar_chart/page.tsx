@@ -20,6 +20,7 @@ import {
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
 import BackButton from '@/components/BackButton';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
   Radar as RadarIcon, 
   Layers, 
@@ -95,6 +96,7 @@ function RadarChartContent() {
   const searchParams = useSearchParams();
   const queryDept = searchParams.get('dept');
   const queryUniv = searchParams.get('univ');
+  const { setAnalyticsContext } = useAnalyticsContext();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -284,6 +286,64 @@ function RadarChartContent() {
   const primaryTopG = useMemo(() => getTopSkills(primaryGVec, GENERAL_SKILLS), [primaryGVec]);
   const compareTopK = useMemo(() => getTopSkills(compareKVec, KNOWLEDGE_SKILLS), [compareKVec]);
   const compareTopG = useMemo(() => getTopSkills(compareGVec, GENERAL_SKILLS), [compareGVec]);
+
+  // AIエージェントへの画面コンテキスト共有
+  useEffect(() => {
+    if (!primaryRecord) return;
+
+    const primaryName = formatLabel(primaryRecord);
+    const compareName = isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord.id
+      ? formatLabel(compareRecord)
+      : null;
+
+    const presets: string[] = [];
+    if (compareName) {
+      presets.push(`「${primaryName}」と「${compareName}」の最大の違いは何ですか？`);
+      presets.push(`2つの学科で共通している強みスキルを分析して`);
+    } else {
+      presets.push(`「${primaryName}」のスキルバランスの特徴と強みを要約して`);
+      presets.push(`「${primaryName}」で不足しているスキル領域を補う科目の提案をして`);
+    }
+    presets.push(`知識スキル(A群)と汎用スキル(B群)のバランスについての教育的評価は？`);
+    presets.push(`カリキュラム改善のための具体的なアクションプランは？`);
+
+    setAnalyticsContext({
+      pageTitle: 'スキルレーダーチャート',
+      primaryTarget: primaryName,
+      compareTarget: compareName || undefined,
+      summaryText: `${primaryName} のシラバススキル分析（${compareName ? `vs ${compareName}` : '単体表示'}）`,
+      details: {
+        viewMode,
+        primary: {
+          name: primaryName,
+          subjectCount: primaryRecord.subject_count,
+          topKnowledge: primaryTopK.map((s) => `${s.name}: ${s.val}%`),
+          topGeneral: primaryTopG.map((s) => `${s.name}: ${s.val}%`),
+        },
+        ...(compareName && compareRecord
+          ? {
+              compare: {
+                name: compareName,
+                subjectCount: compareRecord.subject_count,
+                topKnowledge: compareTopK.map((s) => `${s.name}: ${s.val}%`),
+                topGeneral: compareTopG.map((s) => `${s.name}: ${s.val}%`),
+              },
+            }
+          : {}),
+      },
+      presetQuestions: presets,
+    });
+  }, [
+    primaryRecord,
+    compareRecord,
+    isCompareEnabled,
+    viewMode,
+    primaryTopK,
+    primaryTopG,
+    compareTopK,
+    compareTopG,
+    setAnalyticsContext,
+  ]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">

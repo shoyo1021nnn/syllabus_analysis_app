@@ -13,6 +13,7 @@
     "@ai-sdk/react": "^4.0.139",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "ai": "^7.0.136",
     "clsx": "^2.1.1",
     "echarts": "^6.1.0",
@@ -21,7 +22,10 @@
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.14.3",
+    "react-syntax-highlighter": "^16.1.2",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {

@@ -1,6 +1,26 @@
+"use client";
+
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 
 export default function AnalyticsIndexPage() {
+  const { setAnalyticsContext } = useAnalyticsContext();
+
+  useEffect(() => {
+    setAnalyticsContext({
+      pageTitle: '分析メニュー',
+      primaryTarget: undefined,
+      compareTarget: undefined,
+      summaryText: 'シラバス分析ダッシュボードのトップメニュー',
+      presetQuestions: [
+        'CurricuLensでできる分析の種類と特徴を教えて',
+        '自学科のカリキュラムを見直すにはどの分析から始めるべき？',
+        'シラバスから抽出される24のスキル体系とは何ですか？',
+      ],
+    });
+  }, [setAnalyticsContext]);
+
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow-sm border border-border">
       <h2 className="text-2xl font-bold mb-4">分析メニュー</h2>

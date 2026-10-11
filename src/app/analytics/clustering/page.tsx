@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { ClusteringPoint, ClusteringRun } from '@/types/database';
 import ClusterScatterPlot from '@/components/charts/ClusterScatterPlot';
 import BackButton from '@/components/BackButton';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
   Network, 
   Layers, 
@@ -65,6 +66,7 @@ const MOCK_POINTS: Record<string, ClusteringPoint[]> = {
 };
 
 export default function ClusteringPage() {
+  const { setAnalyticsContext } = useAnalyticsContext();
   const [runs, setRuns] = useState<ClusteringRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string>('');
   const [points, setPoints] = useState<ClusteringPoint[]>([]);
@@ -154,6 +156,47 @@ export default function ClusteringPage() {
   const activeRun = useMemo(() => {
     return runs.find((r) => r.id === selectedRunId) || runs[0];
   }, [runs, selectedRunId]);
+
+  // AIエージェントへの画面コンテキスト共有
+  useEffect(() => {
+    const selectedTargetName = selectedPoint
+      ? `【${selectedPoint.university_name}】${selectedPoint.department_name}`
+      : undefined;
+
+    const presets: string[] = [];
+    if (selectedPoint) {
+      presets.push(`「${selectedTargetName}」がクラスタ${selectedPoint.cluster_id}に分類された要因・特徴は？`);
+      presets.push(`「${selectedTargetName}」と同じクラスタに属する他学科との類似点は？`);
+    } else {
+      presets.push(`クラスタ数（k=${activeRun?.k || 3}）における各グループの教育的特徴を教えて`);
+      presets.push(`分布図の中で特異な位置にある外れ値学科はありますか？`);
+    }
+    presets.push(`PC1（第1主成分）とPC2（第2主成分）が表すスキルの意味は何ですか？`);
+    presets.push(`シルエットスコア（${activeRun?.silhouette_score?.toFixed(3) || '-'}）から見る分類妥当性の評価は？`);
+
+    setAnalyticsContext({
+      pageTitle: 'K-means クラスタリング',
+      primaryTarget: selectedTargetName,
+      summaryText: `k=${activeRun?.k || 3} による学科スキルクラスタリング分析（総学科数: ${points.length}件）`,
+      details: {
+        k: activeRun?.k,
+        silhouetteScore: activeRun?.silhouette_score,
+        pc1Ratio: activeRun?.pc1_ratio,
+        pc2Ratio: activeRun?.pc2_ratio,
+        totalPoints: points.length,
+        selectedPoint: selectedPoint
+          ? {
+              university: selectedPoint.university_name,
+              department: selectedPoint.department_name,
+              clusterId: selectedPoint.cluster_id,
+              pcaX: selectedPoint.pca_x,
+              pcaY: selectedPoint.pca_y,
+            }
+          : null,
+      },
+      presetQuestions: presets,
+    });
+  }, [activeRun, selectedPoint, points.length, setAnalyticsContext]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">

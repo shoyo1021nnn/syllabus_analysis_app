@@ -19,6 +19,7 @@ import {
 } from '@/lib/vectorUtils';
 import SimilarityRanking from '@/components/charts/SimilarityRanking';
 import BackButton from '@/components/BackButton';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
   Users, 
   CheckCircle2, 
@@ -131,6 +132,7 @@ type TargetFilter = 'all' | 'same' | 'diff';
 function SimilarityPageContent() {
   const searchParams = useSearchParams();
   const queryDept = searchParams.get('dept');
+  const { setAnalyticsContext } = useAnalyticsContext();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -263,6 +265,54 @@ function SimilarityPageContent() {
       topN: 20, // 上位20件を計算・取得
     });
   }, [targetRecord, candidates, metric, vectorTarget]);
+
+  // AIエージェントへの画面コンテキスト共有
+  useEffect(() => {
+    if (!targetRecord) return;
+
+    const targetLabel = formatLabel(targetRecord);
+    const top1 = rankingResults[0];
+    const top2 = rankingResults[1];
+
+    const metricNameMap: Record<string, string> = {
+      cosine: 'コサイン類似度',
+      dot: '内積',
+      euclidean: 'ユークリッド距離',
+      tanimoto: '谷本係数',
+    };
+    const currentMetricName = metricNameMap[metric] || metric;
+
+    const presets: string[] = [];
+    if (top1) {
+      presets.push(`「${targetLabel}」と第1位の「${top1.label}」（スコア: ${top1.score.toFixed(3)}）の共通点は？`);
+      if (top2) {
+        presets.push(`上位2学科（${top1.label}、${top2.label}）と「${targetLabel}」のカリキュラム傾向を比較して`);
+      }
+    }
+    presets.push(`計算指標（${currentMetricName}）から見たこのランキングの特徴と教育的示唆は？`);
+    presets.push(`「${targetLabel}」と類似度が低い学科との違いや差別化ポイントは？`);
+
+    setAnalyticsContext({
+      pageTitle: '類似度計算ランキング',
+      primaryTarget: targetLabel,
+      summaryText: `基準対象: ${targetLabel}（計算指標: ${currentMetricName}、対象スキル: ${vectorTarget}）`,
+      details: {
+        target: {
+          label: targetLabel,
+          university: targetRecord.university_name,
+          subjectCount: targetRecord.subject_count,
+        },
+        metric: currentMetricName,
+        vectorTarget,
+        topRankings: rankingResults.slice(0, 5).map((r) => ({
+          rank: r.rank,
+          label: r.label,
+          score: Number(r.score.toFixed(4)),
+        })),
+      },
+      presetQuestions: presets,
+    });
+  }, [targetRecord, rankingResults, metric, vectorTarget, setAnalyticsContext]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">

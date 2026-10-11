@@ -5,6 +5,7 @@ import { GripVertical } from "lucide-react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { AgentPanel } from "@/components/AgentPanel";
+import { AnalyticsProvider } from "@/context/AnalyticsContext";
 
 export default function AnalyticsLayout({
     children,
@@ -12,7 +13,8 @@ export default function AnalyticsLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="h-screen w-full bg-background flex flex-col">
+        <AnalyticsProvider>
+            <div className="h-screen w-full bg-background flex flex-col">
             {/* グローバルヘッダー */}
             <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-sm z-10">
                 <Link href="/analytics" className="flex items-center space-x-2 group">
@@ -67,5 +69,6 @@ export default function AnalyticsLayout({
                 </Group>
             </main>
         </div>
+        </AnalyticsProvider>
     );
 }
