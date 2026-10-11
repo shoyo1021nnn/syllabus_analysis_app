@@ -55,7 +55,7 @@ export default function RadarChart({
           let rows = `<div style="font-weight: 700; color: #0f172a; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">${name}</div>`;
           rows += `<div style="max-height: 240px; overflow-y: auto; font-size: 11px; line-height: 1.5;">`;
           indicators.forEach((ind, idx) => {
-            const val = values[idx] !== undefined ? values[idx].toFixed(2) : '-';
+            const val = values[idx] !== undefined ? `${values[idx].toFixed(2)}%` : '-';
             // 改行を取り除いて表示
             const cleanName = ind.name.replace(/\n/g, ' ');
             rows += `
@@ -77,14 +77,15 @@ export default function RadarChart({
       },
       radar: {
         indicator: indicators,
-        center: ['50%', title ? '54%' : '50%'],
-        radius: '68%',
+        center: ['50%', title ? '52%' : '50%'],
+        radius: '55%',
         splitNumber: 4,
         shape: 'polygon',
         axisName: {
           color: '#475569',
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: 500,
+          lineHeight: 14,
           formatter: (value: string) => value,
         },
         splitArea: {

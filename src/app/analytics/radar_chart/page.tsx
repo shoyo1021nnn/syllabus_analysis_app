@@ -90,7 +90,6 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 ];
 
 type ViewMode = 'split' | 'combined' | 'knowledge' | 'general';
-type NormMode = 'raw' | 'l1';
 
 function RadarChartContent() {
   const searchParams = useSearchParams();
@@ -109,7 +108,6 @@ function RadarChartContent() {
 
   // 表示モード & 正規化
   const [viewMode, setViewMode] = useState<ViewMode>('split');
-  const [normMode, setNormMode] = useState<NormMode>('raw');
 
   // 1. データ取得
   useEffect(() => {
@@ -193,29 +191,31 @@ function RadarChartContent() {
     return `【${rec.university_name}】`;
   };
 
-  // ベクトル抽出と正規化
-  const getProcessedVector = (vec: number[] = []) => {
-    if (normMode === 'l1') {
-      const normed = normalizeL1(vec);
-      // パーセンテージ表示用 (0〜100%)
-      return normed.map((v) => Number((v * 100).toFixed(2)));
-    }
-    return vec.map((v) => Number(v.toFixed(2)));
-  };
+  // L1正規化 (総和=100%) を必ず適用するヘルパー
+  const toPercent = (vec: number[] = []) =>
+    normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
   // 各種インジケーター (軸)
-  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge'), []);
-  const generalIndicators = useMemo(() => getRadarIndicators('general'), []);
-  const combinedIndicators = useMemo(() => getRadarIndicators('all'), []);
+  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100 }), []);
+  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100 }), []);
+  const combinedIndicators = useMemo(() => getRadarIndicators('all', { max: 100 }), []);
 
   // シリーズデータの生成
-  const primaryKVec = useMemo(() => getProcessedVector(primaryRecord?.knowledge_vector), [primaryRecord, normMode]);
-  const primaryGVec = useMemo(() => getProcessedVector(primaryRecord?.general_vector), [primaryRecord, normMode]);
-  const primaryAllVec = useMemo(() => combineVectors(primaryKVec, primaryGVec), [primaryKVec, primaryGVec]);
+  // 分割表示: 知識12次元・汎用12次元をそれぞれL1正規化 (各総和100%)
+  // 統合表示: 24次元全体でL1正規化 (総和100%)
+  const primaryKVec = useMemo(() => toPercent(primaryRecord?.knowledge_vector), [primaryRecord]);
+  const primaryGVec = useMemo(() => toPercent(primaryRecord?.general_vector), [primaryRecord]);
+  const primaryAllVec = useMemo(
+    () => toPercent(combineVectors(primaryRecord?.knowledge_vector || [], primaryRecord?.general_vector || [])),
+    [primaryRecord]
+  );
 
-  const compareKVec = useMemo(() => getProcessedVector(compareRecord?.knowledge_vector), [compareRecord, normMode]);
-  const compareGVec = useMemo(() => getProcessedVector(compareRecord?.general_vector), [compareRecord, normMode]);
-  const compareAllVec = useMemo(() => combineVectors(compareKVec, compareGVec), [compareKVec, compareGVec]);
+  const compareKVec = useMemo(() => toPercent(compareRecord?.knowledge_vector), [compareRecord]);
+  const compareGVec = useMemo(() => toPercent(compareRecord?.general_vector), [compareRecord]);
+  const compareAllVec = useMemo(
+    () => toPercent(combineVectors(compareRecord?.knowledge_vector || [], compareRecord?.general_vector || [])),
+    [compareRecord]
+  );
 
   // EChartsへ渡すシリーズ配列
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
@@ -280,10 +280,10 @@ function RadarChartContent() {
       .slice(0, 3);
   };
 
-  const primaryTopK = useMemo(() => getTopSkills(primaryRecord?.knowledge_vector, KNOWLEDGE_SKILLS), [primaryRecord]);
-  const primaryTopG = useMemo(() => getTopSkills(primaryRecord?.general_vector, GENERAL_SKILLS), [primaryRecord]);
-  const compareTopK = useMemo(() => getTopSkills(compareRecord?.knowledge_vector, KNOWLEDGE_SKILLS), [compareRecord]);
-  const compareTopG = useMemo(() => getTopSkills(compareRecord?.general_vector, GENERAL_SKILLS), [compareRecord]);
+  const primaryTopK = useMemo(() => getTopSkills(primaryKVec, KNOWLEDGE_SKILLS), [primaryKVec]);
+  const primaryTopG = useMemo(() => getTopSkills(primaryGVec, GENERAL_SKILLS), [primaryGVec]);
+  const compareTopK = useMemo(() => getTopSkills(compareKVec, KNOWLEDGE_SKILLS), [compareKVec]);
+  const compareTopG = useMemo(() => getTopSkills(compareGVec, GENERAL_SKILLS), [compareGVec]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -358,17 +358,11 @@ function RadarChartContent() {
               </select>
             </div>
 
-            {/* 正規化 */}
+            {/* 正規化 (L1正規化に固定) */}
             <div className="flex items-center space-x-1.5">
-              <span className="text-xs font-semibold text-slate-600">値の形式:</span>
-              <select
-                value={normMode}
-                onChange={(e) => setNormMode(e.target.value as NormMode)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="raw">元の値 (科目スコア)</option>
-                <option value="l1">割合 (L1正規化: 構成比 %)</option>
-              </select>
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                ✓ L1正規化適用（スキル構成比 %）
+              </span>
             </div>
           </div>
         </div>
@@ -524,7 +518,7 @@ function RadarChartContent() {
                 {primaryTopK.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-blue-600">{s.val.toFixed(1)}</span>
+                    <span className="font-semibold text-blue-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
@@ -536,7 +530,7 @@ function RadarChartContent() {
                 {primaryTopG.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-blue-600">{s.val.toFixed(1)}</span>
+                    <span className="font-semibold text-blue-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
@@ -559,7 +553,7 @@ function RadarChartContent() {
                 {compareTopK.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-rose-600">{s.val.toFixed(1)}</span>
+                    <span className="font-semibold text-rose-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
@@ -571,7 +565,7 @@ function RadarChartContent() {
                 {compareTopG.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-rose-600">{s.val.toFixed(1)}</span>
+                    <span className="font-semibold text-rose-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
