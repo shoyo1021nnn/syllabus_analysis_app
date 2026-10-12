@@ -94,8 +94,14 @@ type ViewMode = 'split' | 'combined' | 'knowledge' | 'general';
 
 function RadarChartContent() {
   const searchParams = useSearchParams();
+  const queryPrimaryId = searchParams.get('primaryId');
+  const queryCompareId = searchParams.get('compareId');
   const queryDept = searchParams.get('dept');
   const queryUniv = searchParams.get('univ');
+  const queryPrimaryDept = searchParams.get('primaryDept');
+  const queryPrimaryUniv = searchParams.get('primaryUniv');
+  const queryCompareDept = searchParams.get('compareDept');
+  const queryCompareUniv = searchParams.get('compareUniv');
   const { setAnalyticsContext } = useAnalyticsContext();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
@@ -153,26 +159,50 @@ function RadarChartContent() {
   useEffect(() => {
     if (dataList.length === 0) return;
 
-    // クエリパラメータに合致する対象を探す
-    let matchedId = '';
-    if (queryDept) {
-      const found = dataList.find(
-        (item: any) =>
-          item.department_name === queryDept ||
-          item.faculty_name === queryDept ||
-          item.university_name === queryDept
-      );
-      if (found) matchedId = found.id;
+    // 1. 基準対象 (primary) の決定
+    let targetPrimaryId = '';
+    if (queryPrimaryId && dataList.some((d) => d.id === queryPrimaryId)) {
+      targetPrimaryId = queryPrimaryId;
+    } else {
+      const pDept = queryPrimaryDept || queryDept;
+      const pUniv = queryPrimaryUniv || queryUniv;
+      if (pDept) {
+        const found = dataList.find((item: any) => {
+          const matchDept = item.department_name === pDept || item.faculty_name === pDept || item.university_name === pDept;
+          if (pUniv) return matchDept && item.university_name === pUniv;
+          return matchDept;
+        });
+        if (found) targetPrimaryId = found.id;
+      }
+    }
+    const finalPrimaryId = targetPrimaryId || dataList[0].id;
+    setPrimaryId(finalPrimaryId);
+
+    // 2. 比較対象 (compare) の決定
+    let targetCompareId = '';
+    if (queryCompareId && dataList.some((d) => d.id === queryCompareId)) {
+      targetCompareId = queryCompareId;
+      setIsCompareEnabled(true);
+    } else if (queryCompareDept) {
+      const found = dataList.find((item: any) => {
+        const matchDept = item.department_name === queryCompareDept || item.faculty_name === queryCompareDept || item.university_name === queryCompareDept;
+        if (queryCompareUniv) return matchDept && item.university_name === queryCompareUniv;
+        return matchDept;
+      });
+      if (found) {
+        targetCompareId = found.id;
+        setIsCompareEnabled(true);
+      }
     }
 
-    const defaultPrimary = matchedId || dataList[0].id;
-    setPrimaryId(defaultPrimary);
-
-    // 比較対象は異なる大学のものを優先して初期選択
-    const currentPrimary = dataList.find((d) => d.id === defaultPrimary);
-    const diffUniv = dataList.find((d) => d.university_name !== currentPrimary?.university_name);
-    setCompareId(diffUniv ? diffUniv.id : dataList[1]?.id || dataList[0].id);
-  }, [dataList, queryDept, queryUniv]);
+    if (!targetCompareId) {
+      // 比較対象がクエリにない場合は、基準と異なる大学のものを優先して初期選択
+      const currentPrimary = dataList.find((d) => d.id === finalPrimaryId);
+      const diffUniv = dataList.find((d) => d.university_name !== currentPrimary?.university_name);
+      targetCompareId = diffUniv ? diffUniv.id : dataList[1]?.id || dataList[0].id;
+    }
+    setCompareId(targetCompareId);
+  }, [dataList, queryPrimaryId, queryCompareId, queryDept, queryUniv, queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv]);
 
   // 現在選択されているレコード
   const primaryRecord = useMemo(() => {

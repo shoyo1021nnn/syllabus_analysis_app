@@ -1,35 +1,59 @@
 "use client";
 
 import { Panel, Group, Separator } from "react-resizable-panels";
-import { GripVertical } from "lucide-react";
+import { GripVertical, LayoutDashboard, Network, GitCompare, Radar } from "lucide-react";
 import { Suspense } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AgentPanel } from "@/components/AgentPanel";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
+
+const NAV_TABS = [
+    { href: '/analytics', label: '分析メニュー', icon: LayoutDashboard, exact: true },
+    { href: '/analytics/clustering', label: 'クラスタリング', icon: Network },
+    { href: '/analytics/similarity', label: '類似度ランキング', icon: GitCompare },
+    { href: '/analytics/radar_chart', label: 'スキルレーダー', icon: Radar },
+];
 
 export default function AnalyticsLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const pathname = usePathname();
+
     return (
         <AnalyticsProvider>
             <div className="h-screen w-full bg-background flex flex-col">
             {/* グローバルヘッダー */}
-            <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-sm z-10">
-                <Link href="/analytics" className="flex items-center space-x-2 group">
+            <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-sm z-10 shrink-0">
+                <Link href="/analytics" className="flex items-center space-x-2 group shrink-0">
                     <h1 className="text-xl font-bold font-sans bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600 group-hover:opacity-85 transition">
                         Syllabus Analysis App
                     </h1>
                 </Link>
-                <div className="flex items-center space-x-3 text-xs text-slate-500">
-                    <Link
-                        href="/analytics"
-                        className="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
-                    >
-                        分析メニュー
-                    </Link>
-                </div>
+
+                {/* ナビゲーションタブ */}
+                <nav className="flex items-center gap-2 overflow-x-auto py-1">
+                    {NAV_TABS.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = tab.exact ? pathname === tab.href : pathname?.startsWith(tab.href);
+                        return (
+                            <Link
+                                key={tab.href}
+                                href={tab.href}
+                                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 ${
+                                    isActive
+                                        ? 'bg-blue-50 text-blue-700 font-bold border-2 border-blue-600 shadow-xs ring-2 ring-blue-500/10'
+                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-blue-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
+                                }`}
+                            >
+                                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`} />
+                                <span>{tab.label}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
             </header>
 
             <main className="flex-1 overflow-hidden">

@@ -132,6 +132,7 @@ type TargetFilter = 'all' | 'same' | 'diff';
 function SimilarityPageContent() {
   const searchParams = useSearchParams();
   const queryDept = searchParams.get('dept');
+  const queryUniv = searchParams.get('univ');
   const { setAnalyticsContext } = useAnalyticsContext();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
@@ -191,17 +192,19 @@ function SimilarityPageContent() {
 
     let matchedId = '';
     if (queryDept) {
-      const found = dataList.find(
-        (item: any) =>
+      const found = dataList.find((item: any) => {
+        const matchDept =
           item.department_name === queryDept ||
           item.faculty_name === queryDept ||
-          item.university_name === queryDept
-      );
+          item.university_name === queryDept;
+        if (queryUniv) return matchDept && item.university_name === queryUniv;
+        return matchDept;
+      });
       if (found) matchedId = found.id;
     }
 
     setTargetId(matchedId || dataList[0].id);
-  }, [dataList, queryDept]);
+  }, [dataList, queryDept, queryUniv]);
 
   // 現在選択されている基準レコード
   const targetRecord = useMemo(() => {
@@ -531,10 +534,11 @@ function SimilarityPageContent() {
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <Link
-                        href={`/analytics/radar_chart?dept=${encodeURIComponent(targetDeptName)}`}
-                        className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                        href={`/analytics/radar_chart?primaryId=${targetRecord.id}&compareId=${item.id}`}
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition shadow-xs border border-blue-200/60"
+                        title="この学科と基準学科をレーダーチャートで直接対比"
                       >
-                        <Radar className="w-3.5 h-3.5" />
+                        <Radar className="w-3.5 h-3.5 text-blue-600" />
                         <span>レーダーで比較</span>
                       </Link>
                     </td>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from '@ai-sdk/react';
-import { Send, User, Bot, Sparkles, Layers } from 'lucide-react';
+import { Send, User, Bot, Sparkles, Layers, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
@@ -37,7 +37,7 @@ export function AgentPanel() {
     const { contextData } = useAnalyticsContext();
 
     // Vercel AI SDK仕様の useChat
-    const { messages, sendMessage, status } = useChat();
+    const { messages, sendMessage, status, setMessages } = useChat();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isLoading = status === 'submitted' || status === 'streaming';
 
@@ -79,8 +79,8 @@ export function AgentPanel() {
 
     return (
         <div className="flex flex-col h-full bg-panel">
-            {/* === 画面連動コンテキスト表示バッジ === */}
-            {(contextData.pageTitle || contextData.primaryTarget) && (
+            {/* === 画面連動コンテキスト表示バッジ & リセットボタン === */}
+            {(contextData.pageTitle || contextData.primaryTarget || messages.length > 0) && (
                 <div className="px-3.5 py-2 bg-blue-50/90 dark:bg-slate-800/80 border-b border-blue-100 dark:border-slate-700/60 flex items-center justify-between text-xs transition-all">
                     <div className="flex items-center gap-1.5 min-w-0 text-blue-800 dark:text-blue-300">
                         <Sparkles className="w-3.5 h-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
@@ -91,9 +91,22 @@ export function AgentPanel() {
                             </span>
                         )}
                     </div>
-                    <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200 shrink-0">
-                        連動中
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {messages.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={() => setMessages([])}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs cursor-pointer"
+                                title="会話履歴をクリアして新しい質問を始める"
+                            >
+                                <RotateCcw className="w-3 h-3 text-slate-500" />
+                                <span>リセット</span>
+                            </button>
+                        )}
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200">
+                            連動中
+                        </span>
+                    </div>
                 </div>
             )}
 

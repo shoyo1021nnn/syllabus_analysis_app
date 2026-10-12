@@ -345,15 +345,15 @@ export default function ClusteringPage() {
             {/* クイックアクション */}
             <div className="flex items-center space-x-2 pt-2 sm:pt-0">
               <Link
-                href={`/analytics/radar_chart?dept=${encodeURIComponent(selectedPoint.department_name)}`}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
+                href={`/analytics/radar_chart?dept=${encodeURIComponent(selectedPoint.department_name)}&univ=${encodeURIComponent(selectedPoint.university_name)}`}
+                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition shadow-xs border border-slate-200"
               >
                 <Radar className="w-3.5 h-3.5 text-blue-600" />
                 <span>スキルレーダーで見る</span>
               </Link>
               <Link
-                href={`/analytics/similarity?dept=${encodeURIComponent(selectedPoint.department_name)}`}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                href={`/analytics/similarity?dept=${encodeURIComponent(selectedPoint.department_name)}&univ=${encodeURIComponent(selectedPoint.university_name)}`}
+                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition shadow-xs border border-blue-200"
               >
                 <Users className="w-3.5 h-3.5 text-blue-600" />
                 <span>類似学科を探す</span>
