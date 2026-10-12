@@ -274,18 +274,24 @@ function RadarChartContent() {
     return list;
   }, [primaryRecord, compareRecord, primaryAllVec, compareAllVec, isCompareEnabled]);
 
-  // Top3スキル算出ヘルパー
-  const getTopSkills = (vec: number[] = [], skills: typeof KNOWLEDGE_SKILLS) => {
+  // Topスキル算出ヘルパー
+  const getTopSkills = (vec: number[] = [], skills: typeof KNOWLEDGE_SKILLS, count = 3) => {
     return vec
       .map((val, idx) => ({ name: skills[idx]?.nameJa || '', val }))
       .sort((a, b) => b.val - a.val)
-      .slice(0, 3);
+      .slice(0, count);
   };
 
-  const primaryTopK = useMemo(() => getTopSkills(primaryKVec, KNOWLEDGE_SKILLS), [primaryKVec]);
-  const primaryTopG = useMemo(() => getTopSkills(primaryGVec, GENERAL_SKILLS), [primaryGVec]);
-  const compareTopK = useMemo(() => getTopSkills(compareKVec, KNOWLEDGE_SKILLS), [compareKVec]);
-  const compareTopG = useMemo(() => getTopSkills(compareGVec, GENERAL_SKILLS), [compareGVec]);
+  const primaryTopK = useMemo(() => getTopSkills(primaryKVec, KNOWLEDGE_SKILLS, 3), [primaryKVec]);
+  const primaryTopG = useMemo(() => getTopSkills(primaryGVec, GENERAL_SKILLS, 3), [primaryGVec]);
+  const compareTopK = useMemo(() => getTopSkills(compareKVec, KNOWLEDGE_SKILLS, 3), [compareKVec]);
+  const compareTopG = useMemo(() => getTopSkills(compareGVec, GENERAL_SKILLS, 3), [compareGVec]);
+
+  // AIエージェントへのコンテキスト用（より多面的な特徴分析のためTop 5を提供）
+  const primaryTopK5 = useMemo(() => getTopSkills(primaryKVec, KNOWLEDGE_SKILLS, 5), [primaryKVec]);
+  const primaryTopG5 = useMemo(() => getTopSkills(primaryGVec, GENERAL_SKILLS, 5), [primaryGVec]);
+  const compareTopK5 = useMemo(() => getTopSkills(compareKVec, KNOWLEDGE_SKILLS, 5), [compareKVec]);
+  const compareTopG5 = useMemo(() => getTopSkills(compareGVec, GENERAL_SKILLS, 5), [compareGVec]);
 
   // AIエージェントへの画面コンテキスト共有
   useEffect(() => {
@@ -314,19 +320,20 @@ function RadarChartContent() {
       summaryText: `${primaryName} のシラバススキル分析（${compareName ? `vs ${compareName}` : '単体表示'}）`,
       details: {
         viewMode,
+        normalization: 'L1正規化（全軸合計=100%の構成比率）',
         primary: {
           name: primaryName,
           subjectCount: primaryRecord.subject_count,
-          topKnowledge: primaryTopK.map((s) => `${s.name}: ${s.val}%`),
-          topGeneral: primaryTopG.map((s) => `${s.name}: ${s.val}%`),
+          topKnowledge: primaryTopK5.map((s) => `${s.name}: ${s.val}%`),
+          topGeneral: primaryTopG5.map((s) => `${s.name}: ${s.val}%`),
         },
         ...(compareName && compareRecord
           ? {
               compare: {
                 name: compareName,
                 subjectCount: compareRecord.subject_count,
-                topKnowledge: compareTopK.map((s) => `${s.name}: ${s.val}%`),
-                topGeneral: compareTopG.map((s) => `${s.name}: ${s.val}%`),
+                topKnowledge: compareTopK5.map((s) => `${s.name}: ${s.val}%`),
+                topGeneral: compareTopG5.map((s) => `${s.name}: ${s.val}%`),
               },
             }
           : {}),
@@ -338,10 +345,10 @@ function RadarChartContent() {
     compareRecord,
     isCompareEnabled,
     viewMode,
-    primaryTopK,
-    primaryTopG,
-    compareTopK,
-    compareTopG,
+    primaryTopK5,
+    primaryTopG5,
+    compareTopK5,
+    compareTopG5,
     setAnalyticsContext,
   ]);
 

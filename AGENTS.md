@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# プロジェクト概要: CurricuLens (Syllabus Analytics & AI Assistant)
+# プロジェクト概要: Syllabus Analysis App
 
 大学等のシラバス・カリキュラムデータを可視化・分析し、画面の文脈に連動したAIエージェントと対話できるWebアプリケーション。
 
