@@ -32,6 +32,7 @@ import {
   Building2, 
   GraduationCap 
 } from 'lucide-react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -143,6 +144,9 @@ function SimilarityPageContent() {
   // 選択中の基準対象
   const [targetId, setTargetId] = useState<string>('');
 
+  // 大学フィルター (学部・学科レベル時)
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+
   // 計算設定 (※正規化はご要望に基づき L1正規化 に固定)
   const [metric, setMetric] = useState<MetricType>('cosine');
   const [vectorTarget, setVectorTarget] = useState<VectorTarget>('all');
@@ -186,6 +190,28 @@ function SimilarityPageContent() {
     fetchData();
   }, [level]);
 
+  // レベル変更時に大学フィルターをリセット
+  useEffect(() => {
+    setSelectedUnivFilter('全ての大学');
+  }, [level]);
+
+  // 大学一覧リスト
+  const universityList = useMemo(() => {
+    const set = new Set<string>();
+    dataList.forEach((d) => {
+      if (d.university_name) set.add(d.university_name);
+    });
+    return ['全ての大学', ...Array.from(set)];
+  }, [dataList]);
+
+  // 大学フィルター適用後の基準選択肢
+  const filteredDataList = useMemo(() => {
+    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+      return dataList;
+    }
+    return dataList.filter((d) => d.university_name === selectedUnivFilter);
+  }, [dataList, level, selectedUnivFilter]);
+
   // 2. 初期基準IDの設定（URLクエリ優先、または先頭要素）
   useEffect(() => {
     if (dataList.length === 0) return;
@@ -206,10 +232,17 @@ function SimilarityPageContent() {
     setTargetId(matchedId || dataList[0].id);
   }, [dataList, queryDept, queryUniv]);
 
+  // 大学フィルター切替時に、選択中IDがリスト内にない場合は先頭を選択
+  useEffect(() => {
+    if (filteredDataList.length > 0 && !filteredDataList.some((d) => d.id === targetId)) {
+      setTargetId(filteredDataList[0].id);
+    }
+  }, [filteredDataList, targetId]);
+
   // 現在選択されている基準レコード
   const targetRecord = useMemo(() => {
-    return dataList.find((d) => d.id === targetId) || dataList[0];
-  }, [dataList, targetId]);
+    return filteredDataList.find((d) => d.id === targetId) || dataList.find((d) => d.id === targetId) || dataList[0];
+  }, [filteredDataList, dataList, targetId]);
 
   // 表示名フォーマッタ
   const formatLabel = (rec?: SkillVectorRecord) => {
@@ -365,30 +398,46 @@ function SimilarityPageContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
         {/* 基準対象の選択 */}
-        <div className="p-4 rounded-lg bg-blue-50/50 border border-blue-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-bold text-blue-800 flex items-center gap-1.5">
-              <GraduationCap className="w-4 h-4 text-blue-600" />
-              基準学科を選択:
-            </span>
-            {targetRecord && (
-              <span className="text-xs text-blue-600 font-medium">
-                科目数: {targetRecord.subject_count}科目
+        <div className="p-4 rounded-lg bg-blue-50/50 border border-blue-200 space-y-3">
+          {/* 大学フィルター (学部・学科レベル時) */}
+          {level !== 'university' && universityList.length > 1 && (
+            <div className="pb-2 border-b border-blue-200/60">
+              <SearchableSelect
+                label="大学で絞り込み:"
+                options={universityList}
+                value={selectedUnivFilter}
+                onChange={setSelectedUnivFilter}
+                placeholder="大学名を検索・選択..."
+                colorScheme="blue"
+              />
+            </div>
+          )}
+
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <span className="text-xs font-bold text-blue-800 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-blue-600" />
+                基準{level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科'}を選択:
               </span>
-            )}
+              {targetRecord && (
+                <span className="text-xs text-blue-600 font-medium">
+                  科目数: {targetRecord.subject_count}科目
+                </span>
+              )}
+            </div>
+            <select
+              value={targetId}
+              onChange={(e) => setTargetId(e.target.value)}
+              disabled={isLoading || filteredDataList.length === 0}
+              className="w-full px-3.5 py-2 text-sm bg-white border border-blue-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+            >
+              {filteredDataList.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {formatLabel(item)} ({item.subject_count}科目)
+                </option>
+              ))}
+            </select>
           </div>
-          <select
-            value={targetId}
-            onChange={(e) => setTargetId(e.target.value)}
-            disabled={isLoading || dataList.length === 0}
-            className="w-full px-3.5 py-2 text-sm bg-white border border-blue-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
-          >
-            {dataList.map((item) => (
-              <option key={item.id} value={item.id}>
-                {formatLabel(item)} ({item.subject_count}科目)
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* 計算条件・フィルター */}

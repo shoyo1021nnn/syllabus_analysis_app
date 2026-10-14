@@ -35,8 +35,10 @@ import {
   Layers, 
   Radar as RadarIcon, 
   TrendingUp,
-  Sliders
+  Sliders,
+  Building2
 } from 'lucide-react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -206,9 +208,41 @@ function BestPairContent() {
     setTargetId(matchedId || dataList[0].id);
   }, [dataList, queryDept, queryUniv]);
 
+  // 大学フィルター (学部・学科レベル時)
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+
+  // レベル変更時に大学フィルターをリセット
+  useEffect(() => {
+    setSelectedUnivFilter('全ての大学');
+  }, [level]);
+
+  // 大学一覧リスト
+  const universityList = useMemo(() => {
+    const set = new Set<string>();
+    dataList.forEach((d) => {
+      if (d.university_name) set.add(d.university_name);
+    });
+    return ['全ての大学', ...Array.from(set)];
+  }, [dataList]);
+
+  // 大学フィルター適用後の基準選択肢
+  const filteredDataList = useMemo(() => {
+    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+      return dataList;
+    }
+    return dataList.filter((d) => d.university_name === selectedUnivFilter);
+  }, [dataList, level, selectedUnivFilter]);
+
+  // フィルター切替時に未所属なら先頭を自動選択
+  useEffect(() => {
+    if (filteredDataList.length > 0 && !filteredDataList.some((d) => d.id === targetId)) {
+      setTargetId(filteredDataList[0].id);
+    }
+  }, [filteredDataList, targetId]);
+
   const targetRecord = useMemo(() => {
-    return dataList.find((d) => d.id === targetId) || dataList[0];
-  }, [dataList, targetId]);
+    return filteredDataList.find((d) => d.id === targetId) || filteredDataList[0] || dataList[0];
+  }, [filteredDataList, dataList, targetId]);
 
   const formatLabel = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
@@ -420,30 +454,46 @@ function BestPairContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
         {/* 基準対象選択 */}
-        <div className="p-4 rounded-lg bg-indigo-50/50 border border-indigo-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-              <GraduationCap className="w-4 h-4 text-indigo-600" />
-              基準組織を選択:
-            </span>
-            {targetRecord && (
-              <span className="text-xs text-indigo-600 font-medium">
-                科目数: {targetRecord.subject_count}科目
+        <div className="p-4 rounded-lg bg-indigo-50/50 border border-indigo-200 space-y-3">
+          {/* 大学フィルター (学部・学科レベル時) */}
+          {level !== 'university' && universityList.length > 1 && (
+            <div className="pb-2 border-b border-indigo-200/60">
+              <SearchableSelect
+                label="大学で絞り込み:"
+                options={universityList}
+                value={selectedUnivFilter}
+                onChange={setSelectedUnivFilter}
+                placeholder="大学名を検索・選択..."
+                colorScheme="indigo"
+              />
+            </div>
+          )}
+
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-indigo-600" />
+                基準組織を選択:
               </span>
-            )}
+              {targetRecord && (
+                <span className="text-xs text-indigo-600 font-medium">
+                  科目数: {targetRecord.subject_count}科目
+                </span>
+              )}
+            </div>
+            <select
+              value={targetId}
+              onChange={(e) => setTargetId(e.target.value)}
+              disabled={isLoading || filteredDataList.length === 0}
+              className="w-full px-3.5 py-2 text-sm bg-white border border-indigo-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-xs"
+            >
+              {filteredDataList.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {formatLabel(item)} ({item.subject_count}科目)
+                </option>
+              ))}
+            </select>
           </div>
-          <select
-            value={targetId}
-            onChange={(e) => setTargetId(e.target.value)}
-            disabled={isLoading || dataList.length === 0}
-            className="w-full px-3.5 py-2 text-sm bg-white border border-indigo-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-xs"
-          >
-            {dataList.map((item) => (
-              <option key={item.id} value={item.id}>
-                {formatLabel(item)} ({item.subject_count}科目)
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* 条件設定 */}

@@ -39,8 +39,10 @@ import {
   Sliders,
   Users,
   Target,
-  ArrowRight
+  ArrowRight,
+  Building2
 } from 'lucide-react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -212,9 +214,41 @@ function GreedyTeamContent() {
     setInitialId(matchedId || dataList[0].id);
   }, [dataList, queryDept, queryUniv]);
 
+  // 大学フィルター (学部・学科レベル時)
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+
+  // レベル変更時に大学フィルターをリセット
+  useEffect(() => {
+    setSelectedUnivFilter('全ての大学');
+  }, [level]);
+
+  // 大学一覧リスト
+  const universityList = useMemo(() => {
+    const set = new Set<string>();
+    dataList.forEach((d) => {
+      if (d.university_name) set.add(d.university_name);
+    });
+    return ['全ての大学', ...Array.from(set)];
+  }, [dataList]);
+
+  // 大学フィルター適用後の基準選択肢
+  const filteredDataList = useMemo(() => {
+    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+      return dataList;
+    }
+    return dataList.filter((d) => d.university_name === selectedUnivFilter);
+  }, [dataList, level, selectedUnivFilter]);
+
+  // フィルター切替時に未所属なら先頭を自動選択
+  useEffect(() => {
+    if (filteredDataList.length > 0 && !filteredDataList.some((d) => d.id === initialId)) {
+      setInitialId(filteredDataList[0].id);
+    }
+  }, [filteredDataList, initialId]);
+
   const initialRecord = useMemo(() => {
-    return dataList.find((d) => d.id === initialId) || dataList[0];
-  }, [dataList, initialId]);
+    return filteredDataList.find((d) => d.id === initialId) || filteredDataList[0] || dataList[0];
+  }, [filteredDataList, dataList, initialId]);
 
   const formatLabel = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
@@ -224,6 +258,12 @@ function GreedyTeamContent() {
     if (fac) return `【${rec.university_name}】 ${fac}`;
     return `【${rec.university_name}】`;
   };
+
+  const levelUnit = useMemo(() => {
+    if (level === 'faculty') return '学部';
+    if (level === 'university') return '大学';
+    return '学科';
+  }, [level]);
 
   const extractVector = (rec?: SkillVectorRecord): number[] => {
     if (!rec) return [];
@@ -460,30 +500,46 @@ function GreedyTeamContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
         {/* 起点組織選択 */}
-        <div className="p-4 rounded-lg bg-indigo-50/50 border border-indigo-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-            <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-              <GraduationCap className="w-4 h-4 text-indigo-600" />
-              起点の組織（リーダー組織）を選択:
-            </span>
-            {initialRecord && (
-              <span className="text-xs text-indigo-600 font-medium">
-                科目数: {initialRecord.subject_count}科目
+        <div className="p-4 rounded-lg bg-indigo-50/50 border border-indigo-200 space-y-3">
+          {/* 大学フィルター (学部・学科レベル時) */}
+          {level !== 'university' && universityList.length > 1 && (
+            <div className="pb-2 border-b border-indigo-200/60">
+              <SearchableSelect
+                label="大学で絞り込み:"
+                options={universityList}
+                value={selectedUnivFilter}
+                onChange={setSelectedUnivFilter}
+                placeholder="大学名を検索・選択..."
+                colorScheme="indigo"
+              />
+            </div>
+          )}
+
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+              <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-indigo-600" />
+                起点の組織（リーダー組織）を選択:
               </span>
-            )}
+              {initialRecord && (
+                <span className="text-xs text-indigo-600 font-medium">
+                  科目数: {initialRecord.subject_count}科目
+                </span>
+              )}
+            </div>
+            <select
+              value={initialId}
+              onChange={(e) => setInitialId(e.target.value)}
+              disabled={isLoading || filteredDataList.length === 0}
+              className="w-full px-3.5 py-2 text-sm bg-white border border-indigo-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-xs"
+            >
+              {filteredDataList.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {formatLabel(item)} ({item.subject_count}科目)
+                </option>
+              ))}
+            </select>
           </div>
-          <select
-            value={initialId}
-            onChange={(e) => setInitialId(e.target.value)}
-            disabled={isLoading || dataList.length === 0}
-            className="w-full px-3.5 py-2 text-sm bg-white border border-indigo-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-xs"
-          >
-            {dataList.map((item) => (
-              <option key={item.id} value={item.id}>
-                {formatLabel(item)} ({item.subject_count}科目)
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* 探索モードとパラメータ */}
@@ -514,10 +570,11 @@ function GreedyTeamContent() {
                 onChange={(e) => setTargetTeamSize(Number(e.target.value))}
                 className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               >
-                <option value={3}>3組織チーム</option>
-                <option value={4}>4組織チーム (標準)</option>
-                <option value={5}>5組織チーム</option>
-                <option value={6}>6組織チーム</option>
+                <option value={2}>2{levelUnit}チーム (+1{levelUnit}追加)</option>
+                <option value={3}>3{levelUnit}チーム (+2{levelUnit}追加)</option>
+                <option value={4}>4{levelUnit}チーム (標準)</option>
+                <option value={5}>5{levelUnit}チーム</option>
+                <option value={6}>6{levelUnit}チーム</option>
               </select>
             </div>
           ) : (
@@ -603,7 +660,7 @@ function GreedyTeamContent() {
             <div className="text-xl font-bold text-indigo-600 mt-1">
               {(teamResult.finalScore * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-indigo-600/80 mt-0.5 block">{teamResult.teamMembers.length}組織合成</span>
+            <span className="text-2xs text-indigo-600/80 mt-0.5 block">{teamResult.teamMembers.length}{levelUnit}合成</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs bg-emerald-50/20">
@@ -620,7 +677,7 @@ function GreedyTeamContent() {
             <span className="text-xs text-slate-500 font-medium">編成ステータス</span>
             <div className="text-sm font-bold text-slate-800 mt-2 flex items-center gap-1.5">
               <span className={`w-2.5 h-2.5 rounded-full ${teamResult.reachedThreshold ? 'bg-emerald-500' : 'bg-blue-500'}`}></span>
-              <span>{teamResult.reachedThreshold ? '目標閾値達成' : `${teamResult.teamMembers.length}組織編成完了`}</span>
+              <span>{teamResult.reachedThreshold ? '目標閾値達成' : `${teamResult.teamMembers.length}${levelUnit}編成完了`}</span>
             </div>
             <span className="text-2xs text-slate-400 mt-0.5 block">{combineMethod === 'max' ? '最大値結合' : '平均値結合'}</span>
           </div>
@@ -632,7 +689,7 @@ function GreedyTeamContent() {
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <Users className="w-4 h-4 text-indigo-600" />
-            編成されたチームメンバー ({teamResult.teamMembers.length}組織):
+            編成されたチームメンバー ({teamResult.teamMembers.length}{levelUnit}):
           </span>
           <div className="flex flex-wrap gap-2 pt-1">
             {teamResult.teamMembers.map((member, index) => (
@@ -673,7 +730,7 @@ function GreedyTeamContent() {
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
             <RadarChart
-              title={`A: 知識関連スキル (${teamResult ? teamResult.teamMembers.length : 0}組織 ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
+              title={`A: 知識関連スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
               height={420}
@@ -683,7 +740,7 @@ function GreedyTeamContent() {
           {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
             <RadarChart
-              title={`B: 汎用スキル (${teamResult ? teamResult.teamMembers.length : 0}組織 ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
+              title={`B: 汎用スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
               indicators={generalIndicators}
               seriesData={generalSeries}
               height={420}

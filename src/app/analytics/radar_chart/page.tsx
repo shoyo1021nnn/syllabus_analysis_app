@@ -29,8 +29,10 @@ import {
   CheckSquare, 
   Square, 
   TrendingUp, 
-  BookOpen 
+  BookOpen,
+  Building2
 } from 'lucide-react';
+import { SearchableSelect } from '@/components/SearchableSelect';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -113,6 +115,10 @@ function RadarChartContent() {
   const [primaryId, setPrimaryId] = useState<string>('');
   const [isCompareEnabled, setIsCompareEnabled] = useState<boolean>(true);
   const [compareId, setCompareId] = useState<string>('');
+
+  // 大学フィルター (基準・比較それぞれ)
+  const [primaryUnivFilter, setPrimaryUnivFilter] = useState<string>('全ての大学');
+  const [compareUnivFilter, setCompareUnivFilter] = useState<string>('全ての大学');
 
   // 表示モード & 正規化
   const [viewMode, setViewMode] = useState<ViewMode>('split');
@@ -204,14 +210,58 @@ function RadarChartContent() {
     setCompareId(targetCompareId);
   }, [dataList, queryPrimaryId, queryCompareId, queryDept, queryUniv, queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv]);
 
+  // レベル変更時に大学フィルターをリセット
+  useEffect(() => {
+    setPrimaryUnivFilter('全ての大学');
+    setCompareUnivFilter('全ての大学');
+  }, [level]);
+
+  // 大学一覧リスト
+  const universityList = useMemo(() => {
+    const set = new Set<string>();
+    dataList.forEach((d) => {
+      if (d.university_name) set.add(d.university_name);
+    });
+    return ['全ての大学', ...Array.from(set)];
+  }, [dataList]);
+
+  // 基準対象用の大学絞り込みリスト
+  const filteredPrimaryList = useMemo(() => {
+    if (level === 'university' || primaryUnivFilter === '全ての大学') {
+      return dataList;
+    }
+    return dataList.filter((d) => d.university_name === primaryUnivFilter);
+  }, [dataList, level, primaryUnivFilter]);
+
+  // 比較対象用の大学絞り込みリスト
+  const filteredCompareList = useMemo(() => {
+    if (level === 'university' || compareUnivFilter === '全ての大学') {
+      return dataList;
+    }
+    return dataList.filter((d) => d.university_name === compareUnivFilter);
+  }, [dataList, level, compareUnivFilter]);
+
+  // 大学フィルター切替時に選択中IDがリスト外なら先頭を選択
+  useEffect(() => {
+    if (filteredPrimaryList.length > 0 && !filteredPrimaryList.some((d) => d.id === primaryId)) {
+      setPrimaryId(filteredPrimaryList[0].id);
+    }
+  }, [filteredPrimaryList, primaryId]);
+
+  useEffect(() => {
+    if (filteredCompareList.length > 0 && !filteredCompareList.some((d) => d.id === compareId)) {
+      setCompareId(filteredCompareList[0].id);
+    }
+  }, [filteredCompareList, compareId]);
+
   // 現在選択されているレコード
   const primaryRecord = useMemo(() => {
-    return dataList.find((d) => d.id === primaryId) || dataList[0];
-  }, [dataList, primaryId]);
+    return filteredPrimaryList.find((d) => d.id === primaryId) || dataList.find((d) => d.id === primaryId) || dataList[0];
+  }, [filteredPrimaryList, dataList, primaryId]);
 
   const compareRecord = useMemo(() => {
-    return dataList.find((d) => d.id === compareId) || dataList[1] || dataList[0];
-  }, [dataList, compareId]);
+    return filteredCompareList.find((d) => d.id === compareId) || dataList.find((d) => d.id === compareId) || dataList[1] || dataList[0];
+  }, [filteredCompareList, dataList, compareId]);
 
   // レコード表示名フォーマッタ
   const formatLabel = (rec?: SkillVectorRecord) => {
@@ -467,65 +517,97 @@ function RadarChartContent() {
         {/* 対象選択 (基準 vs 比較) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 対象 1 (基準: 青) */}
-          <div className="p-3.5 rounded-lg bg-blue-50/40 border border-blue-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                基準対象 (青)
-              </span>
-              {primaryRecord && (
-                <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" /> 科目数: {primaryRecord.subject_count}
+          <div className="p-3.5 rounded-lg bg-blue-50/40 border border-blue-200 space-y-2.5">
+            {/* 基準対象用 大学フィルター (学部・学科時) */}
+            {level !== 'university' && universityList.length > 1 && (
+              <div className="pb-2 border-b border-blue-200/60">
+                <SearchableSelect
+                  label="大学絞り込み (基準):"
+                  options={universityList}
+                  value={primaryUnivFilter}
+                  onChange={setPrimaryUnivFilter}
+                  placeholder="大学名を検索・選択..."
+                  colorScheme="blue"
+                />
+              </div>
+            )}
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                  基準対象 (青)
                 </span>
-              )}
+                {primaryRecord && (
+                  <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5" /> 科目数: {primaryRecord.subject_count}
+                  </span>
+                )}
+              </div>
+              <select
+                value={primaryId}
+                onChange={(e) => setPrimaryId(e.target.value)}
+                disabled={isLoading || filteredPrimaryList.length === 0}
+                className="w-full px-3 py-2 text-sm bg-white border border-blue-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+              >
+                {filteredPrimaryList.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {formatLabel(item)}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              value={primaryId}
-              onChange={(e) => setPrimaryId(e.target.value)}
-              disabled={isLoading || dataList.length === 0}
-              className="w-full px-3 py-2 text-sm bg-white border border-blue-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
-            >
-              {dataList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {formatLabel(item)}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* 対象 2 (比較: 赤) */}
-          <div className={`p-3.5 rounded-lg border transition ${isCompareEnabled ? 'bg-rose-50/40 border-rose-200' : 'bg-slate-50/50 border-slate-200 opacity-70'}`}>
-            <div className="flex items-center justify-between mb-2">
-              <button
-                type="button"
-                onClick={() => setIsCompareEnabled(!isCompareEnabled)}
-                className="text-xs font-bold text-rose-700 flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer"
-              >
-                {isCompareEnabled ? (
-                  <CheckSquare className="w-4 h-4 text-rose-500" />
-                ) : (
-                  <Square className="w-4 h-4 text-slate-400" />
+          <div className={`p-3.5 rounded-lg border transition space-y-2.5 ${isCompareEnabled ? 'bg-rose-50/40 border-rose-200' : 'bg-slate-50/50 border-slate-200 opacity-70'}`}>
+            {/* 比較対象用 大学フィルター (学部・学科時) */}
+            {isCompareEnabled && level !== 'university' && universityList.length > 1 && (
+              <div className="pb-2 border-b border-rose-200/60">
+                <SearchableSelect
+                  label="大学絞り込み (比較):"
+                  options={universityList}
+                  value={compareUnivFilter}
+                  onChange={setCompareUnivFilter}
+                  placeholder="大学名を検索・選択..."
+                  colorScheme="rose"
+                />
+              </div>
+            )}
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCompareEnabled(!isCompareEnabled)}
+                  className="text-xs font-bold text-rose-700 flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer"
+                >
+                  {isCompareEnabled ? (
+                    <CheckSquare className="w-4 h-4 text-rose-500" />
+                  ) : (
+                    <Square className="w-4 h-4 text-slate-400" />
+                  )}
+                  <span>比較対象を追加 (赤)</span>
+                </button>
+                {isCompareEnabled && compareRecord && (
+                  <span className="text-xs text-rose-600 font-medium flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5" /> 科目数: {compareRecord.subject_count}
+                  </span>
                 )}
-                <span>比較対象を追加 (赤)</span>
-              </button>
-              {isCompareEnabled && compareRecord && (
-                <span className="text-xs text-rose-600 font-medium flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" /> 科目数: {compareRecord.subject_count}
-                </span>
-              )}
+              </div>
+              <select
+                value={compareId}
+                onChange={(e) => setCompareId(e.target.value)}
+                disabled={!isCompareEnabled || isLoading || filteredCompareList.length === 0}
+                className="w-full px-3 py-2 text-sm bg-white border border-rose-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none shadow-sm disabled:bg-slate-100 disabled:text-slate-400"
+              >
+                {filteredCompareList.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {formatLabel(item)}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              value={compareId}
-              onChange={(e) => setCompareId(e.target.value)}
-              disabled={!isCompareEnabled || isLoading || dataList.length === 0}
-              className="w-full px-3 py-2 text-sm bg-white border border-rose-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none shadow-sm disabled:bg-slate-100 disabled:text-slate-400"
-            >
-              {dataList.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {formatLabel(item)}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       </div>
