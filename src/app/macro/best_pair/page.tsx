@@ -338,15 +338,20 @@ function BestPairContent() {
     return toPercent(combined);
   }, [targetGVec, partnerGVec, combineMethod]);
 
+  const getShortName = (rec?: SkillVectorRecord) => {
+    if (!rec) return '';
+    return (rec as any).department_name || (rec as any).faculty_name || rec.university_name;
+  };
+
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarSeriesItem[] = [
-      { name: `${formatLabel(targetRecord)} (単体)`, value: targetKVec, color: '#3b82f6' },
+      { name: `基準: ${getShortName(targetRecord)}`, value: targetKVec, color: '#3b82f6' },
     ];
     if (partnerRecord) {
-      list.push({ name: `${formatLabel(partnerRecord)} (パートナー)`, value: partnerKVec, color: '#f43f5e' });
+      list.push({ name: `相手: ${getShortName(partnerRecord)}`, value: partnerKVec, color: '#f43f5e' });
       list.push({ 
-        name: `ペア結合 (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`, 
+        name: `ペア結合 (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
         value: combinedKVec, 
         color: '#10b981' 
       });
@@ -357,12 +362,12 @@ function BestPairContent() {
   const generalSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarSeriesItem[] = [
-      { name: `${formatLabel(targetRecord)} (単体)`, value: targetGVec, color: '#3b82f6' },
+      { name: `基準: ${getShortName(targetRecord)}`, value: targetGVec, color: '#3b82f6' },
     ];
     if (partnerRecord) {
-      list.push({ name: `${formatLabel(partnerRecord)} (パートナー)`, value: partnerGVec, color: '#f43f5e' });
+      list.push({ name: `相手: ${getShortName(partnerRecord)}`, value: partnerGVec, color: '#f43f5e' });
       list.push({ 
-        name: `ペア結合 (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`, 
+        name: `ペア結合 (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
         value: combinedGVec, 
         color: '#10b981' 
       });
@@ -611,40 +616,88 @@ function BestPairContent() {
               )}
             </p>
           </div>
-
-          <div className="flex items-center space-x-3 text-xs">
-            <span className="flex items-center gap-1 text-blue-600 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> 基準単体
-            </span>
-            <span className="flex items-center gap-1 text-rose-600 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> パートナー単体
-            </span>
-            <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ペア結合後
-            </span>
-          </div>
         </div>
 
-        {/* 2分割レーダーチャート */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[440px]">
+        {/* 2分割レーダーチャート + 右側縦並び凡例パネル */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_250px] gap-4 items-stretch">
           {/* 知識関連スキル (左) */}
-          <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+          <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title={`A: 知識関連スキル (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
-              height={420}
+              height={440}
+              showLegend={false}
             />
           </div>
 
-          {/* 汎用スキル (右) */}
-          <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+          {/* 汎用スキル (中央) */}
+          <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title={`B: 汎用スキル (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`}
               indicators={generalIndicators}
               seriesData={generalSeries}
-              height={420}
+              height={440}
+              showLegend={false}
             />
+          </div>
+
+          {/* 右側: 共通縦並び凡例パネル */}
+          <div className="flex flex-col justify-between border border-slate-200/80 rounded-xl p-4 bg-slate-50/60 shadow-2xs space-y-4">
+            <div>
+              <div className="flex items-center gap-1.5 pb-2.5 mb-3 border-b border-slate-200">
+                <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                <span className="text-xs font-bold text-slate-800">凡例・系列構成</span>
+              </div>
+
+              <div className="space-y-3">
+                {/* 基準組織 */}
+                <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                    <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700">基準組織</span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-800 leading-snug">
+                    {formatLabel(targetRecord)}
+                  </div>
+                  {targetRecord && (
+                    <div className="text-2xs text-slate-500 mt-0.5">科目数: {targetRecord.subject_count}科目</div>
+                  )}
+                </div>
+
+                {/* パートナー組織 */}
+                {partnerRecord && (
+                  <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                      <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">パートナー</span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-800 leading-snug">
+                      {formatLabel(partnerRecord)}
+                    </div>
+                    <div className="text-2xs text-slate-500 mt-0.5">科目数: {partnerRecord.subject_count}科目</div>
+                  </div>
+                )}
+
+                {/* ペア結合後 */}
+                <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700">ペア結合後</span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-800 leading-snug">
+                    強み合成ベクトル
+                  </div>
+                  <div className="text-2xs text-slate-500 mt-0.5">
+                    結合方式: {combineMethod === 'max' ? '最大値結合 (Max)' : '平均値結合 (Mean)'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-2xs text-slate-400 bg-white p-2.5 rounded-lg border border-slate-100 leading-relaxed">
+              💡 チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。
+            </div>
           </div>
         </div>
       </div>

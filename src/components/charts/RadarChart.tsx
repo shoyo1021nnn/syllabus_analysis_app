@@ -17,6 +17,7 @@ interface RadarChartProps {
   seriesData: RadarSeriesItem[];
   title?: string;
   height?: string | number;
+  showLegend?: boolean;
 }
 
 const DEFAULT_COLORS = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6'];
@@ -26,6 +27,7 @@ export default function RadarChart({
   seriesData,
   title,
   height = '100%',
+  showLegend = true,
 }: RadarChartProps) {
   const option = useMemo(() => {
     return {
@@ -34,9 +36,9 @@ export default function RadarChart({
         ? {
             text: title,
             left: 'center',
-            top: 10,
+            top: 8,
             textStyle: {
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: 600,
               color: '#1e293b',
             },
@@ -69,23 +71,30 @@ export default function RadarChart({
           return rows;
         },
       },
-      legend: {
-        bottom: 5,
-        left: 'center',
-        textStyle: { color: '#475569', fontSize: 12 },
-        itemGap: 16,
-      },
+      legend: showLegend
+        ? {
+            type: 'scroll',
+            bottom: 2,
+            left: 'center',
+            textStyle: { color: '#475569', fontSize: 11 },
+            itemGap: 12,
+            itemWidth: 12,
+            itemHeight: 6,
+            pageIconSize: 10,
+            pageTextStyle: { fontSize: 10, color: '#64748b' },
+          }
+        : undefined,
       radar: {
         indicator: indicators,
-        center: ['50%', title ? '52%' : '50%'],
-        radius: '55%',
+        center: ['50%', showLegend ? (title ? '43%' : '46%') : (title ? '52%' : '50%')],
+        radius: showLegend ? '45%' : '52%',
         splitNumber: 4,
         shape: 'polygon',
         axisName: {
           color: '#475569',
           fontSize: 10,
           fontWeight: 500,
-          lineHeight: 14,
+          lineHeight: 13,
           formatter: (value: string) => value,
         },
         splitArea: {

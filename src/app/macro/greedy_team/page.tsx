@@ -364,16 +364,21 @@ function GreedyTeamContent() {
     return toPercent(combined);
   }, [teamGeneralVectors, combineMethod]);
 
+  const getShortLabel = (label: string) => {
+    const match = label.match(/【.*?】\s*(.+)/);
+    return match ? match[1] : label;
+  };
+
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
     if (!teamResult || teamKnowledgeVectors.length === 0) return [];
     const list: RadarSeriesItem[] = [
       {
-        name: `${teamResult.initialMember.label} (起点)`,
+        name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
         value: teamKnowledgeVectors[0] || [],
         color: '#3b82f6',
       },
       {
-        name: `チーム合成 (${teamResult.teamMembers.length}組織 ${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+        name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
         value: finalTeamKVec,
         color: '#10b981',
       },
@@ -383,25 +388,25 @@ function GreedyTeamContent() {
       const memberIdx = step.step;
       if (teamKnowledgeVectors[memberIdx]) {
         list.push({
-          name: `Step ${step.step}: ${step.addedMember.label}`,
+          name: `+Step ${step.step}: ${getShortLabel(step.addedMember.label)}`,
           value: teamKnowledgeVectors[memberIdx],
           color: partnerColors[idx % partnerColors.length],
         });
       }
     });
     return list;
-  }, [teamResult, teamKnowledgeVectors, finalTeamKVec, combineMethod]);
+  }, [teamResult, teamKnowledgeVectors, finalTeamKVec, levelUnit]);
 
   const generalSeries: RadarSeriesItem[] = useMemo(() => {
     if (!teamResult || teamGeneralVectors.length === 0) return [];
     const list: RadarSeriesItem[] = [
       {
-        name: `${teamResult.initialMember.label} (起点)`,
+        name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
         value: teamGeneralVectors[0] || [],
         color: '#3b82f6',
       },
       {
-        name: `チーム合成 (${teamResult.teamMembers.length}組織 ${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+        name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
         value: finalTeamGVec,
         color: '#10b981',
       },
@@ -411,14 +416,14 @@ function GreedyTeamContent() {
       const memberIdx = step.step;
       if (teamGeneralVectors[memberIdx]) {
         list.push({
-          name: `Step ${step.step}: ${step.addedMember.label}`,
+          name: `+Step ${step.step}: ${getShortLabel(step.addedMember.label)}`,
           value: teamGeneralVectors[memberIdx],
           color: partnerColors[idx % partnerColors.length],
         });
       }
     });
     return list;
-  }, [teamResult, teamGeneralVectors, finalTeamGVec, combineMethod]);
+  }, [teamResult, teamGeneralVectors, finalTeamGVec, levelUnit]);
 
   // AIコンテキスト共有
   useEffect(() => {
@@ -725,26 +730,104 @@ function GreedyTeamContent() {
           </div>
         </div>
 
-        {/* 2分割レーダーチャート */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[440px]">
+        {/* 2分割レーダーチャート + 右側縦並び凡例パネル */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_260px] gap-4 items-stretch">
           {/* 知識関連スキル (左) */}
-          <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+          <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title={`A: 知識関連スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
-              height={420}
+              height={440}
+              showLegend={false}
             />
           </div>
 
-          {/* 汎用スキル (右) */}
-          <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+          {/* 汎用スキル (中央) */}
+          <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title={`B: 汎用スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
               indicators={generalIndicators}
               seriesData={generalSeries}
-              height={420}
+              height={440}
+              showLegend={false}
             />
+          </div>
+
+          {/* 右側: 共通縦並び凡例パネル */}
+          <div className="flex flex-col justify-between border border-slate-200/80 rounded-xl p-4 bg-slate-50/60 shadow-2xs space-y-3">
+            <div>
+              <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-slate-200">
+                <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                <span className="text-xs font-bold text-slate-800">チーム構成・系列凡例</span>
+              </div>
+
+              <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
+                {/* 起点組織 */}
+                {teamResult && (
+                  <div className="p-2 rounded-lg bg-blue-50/70 border border-blue-200">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                      <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700">起点（リーダー）</span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-800 leading-snug">
+                      {teamResult.initialMember.label}
+                    </div>
+                  </div>
+                )}
+
+                {/* 各ステップ追加メンバー */}
+                {teamResult && teamResult.steps.slice(0, 3).map((step, idx) => {
+                  const colors = ['bg-rose-500', 'bg-purple-500', 'bg-amber-500'];
+                  const borderColors = ['border-rose-200 bg-rose-50/50', 'border-purple-200 bg-purple-50/50', 'border-amber-200 bg-amber-50/50'];
+                  const badgeColors = ['bg-rose-100 text-rose-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700'];
+                  const colorCls = colors[idx % colors.length];
+                  const boxCls = borderColors[idx % borderColors.length];
+                  const badgeCls = badgeColors[idx % badgeColors.length];
+
+                  return (
+                    <div key={step.step} className={`p-2 rounded-lg border ${boxCls}`}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2.5 h-2.5 rounded-full ${colorCls} shrink-0`}></span>
+                          <span className={`text-2xs font-bold px-1.5 py-0.2 rounded ${badgeCls}`}>
+                            Step {step.step} 追加
+                          </span>
+                        </div>
+                        <span className="text-2xs font-semibold text-slate-500">
+                          +{(step.improvement * 100).toFixed(1)}pt
+                        </span>
+                      </div>
+                      <div className="text-xs font-bold text-slate-800 leading-snug">
+                        {step.addedMember.label}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* チーム合成 */}
+                {teamResult && (
+                  <div className="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                      <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700">
+                        チーム合成 ({teamResult.teamMembers.length}{levelUnit})
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-800 leading-snug">
+                      最終スキル合成ベクトル
+                    </div>
+                    <div className="text-2xs text-slate-500 mt-0.5">
+                      達成度: {(teamResult.finalScore * 100).toFixed(1)}% ({combineMethod === 'max' ? 'Max' : 'Mean'}結合)
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="text-2xs text-slate-400 bg-white p-2 rounded-lg border border-slate-100 leading-relaxed">
+              💡 各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。
+            </div>
           </div>
         </div>
       </div>

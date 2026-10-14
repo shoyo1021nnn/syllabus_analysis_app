@@ -15,7 +15,10 @@ import {
 } from '@/types/database';
 import { 
   calculateSimilarityRanking, 
-  combineVectors 
+  combineVectors,
+  KNOWLEDGE_SKILLS,
+  GENERAL_SKILLS,
+  ALL_SKILLS
 } from '@/lib/vectorUtils';
 import SimilarityRanking from '@/components/charts/SimilarityRanking';
 import BackButton from '@/components/BackButton';
@@ -318,7 +321,80 @@ function SimilarityPageContent() {
     };
     const currentMetricName = metricNameMap[metric] || metric;
 
-    const presets: string[] = [];
+    // スキル定義リスト
+    const skillDefs = 
+      vectorTarget === 'knowledge' ? KNOWLEDGE_SKILLS :
+      vectorTarget === 'general' ? GENERAL_SKILLS : ALL_SKILLS;
+
+    const extractTopSkills = (vec: number[], topN = 3) => {
+      const sum = vec.reduce((acc, v) => acc + v, 0);
+      return vec
+        .map((val, idx) => {
+          const def = skillDefs[idx];
+          const ratio = sum > 0 ? (val / sum) * 100 : 0;
+          return {
+            code: def?.code || '',
+            name: def?.nameJa || `スキル${idx + 1}`,
+            ratio: Number(ratio.toFixed(1)),
+          };
+        })
+        .sort((a, b) => b.ratio - a.ratio)
+        .slice(0, topN);
+    };
+
+    // 基準組織の主要スキル
+    const targetTopSkills = extractTopSkills(extractVector(targetRecord), 4);
+
+    // 上位5学科の主要スキル
+    const top5Rankings = rankingResults.slice(0, 5);
+    const top5Detailed = top5Rankings.map((r) => {
+      const orig = dataList.find((d) => d.id === r.id);
+      const vec = orig ? extractVector(orig) : [];
+      const topSkills = extractTopSkills(vec, 3);
+      return {
+        rank: r.rank,
+        label: r.label,
+        university: r.university_name,
+        score: Number(r.score.toFixed(4)),
+        topSkills,
+      };
+    });
+
+    // 上位5学科における主力スキルの共通性（出現頻度）集計
+    const skillOccurrence: Record<string, { count: number; name: string; ratios: number[] }> = {};
+    top5Detailed.forEach((dept) => {
+      dept.topSkills.forEach((s) => {
+        if (!skillOccurrence[s.code]) {
+          skillOccurrence[s.code] = { count: 0, name: s.name, ratios: [] };
+        }
+        skillOccurrence[s.code].count += 1;
+        skillOccurrence[s.code].ratios.push(s.ratio);
+      });
+    });
+
+    // 2学科以上で上位3位以内に登場するスキル（共通候補）
+    const sharedSkills = Object.entries(skillOccurrence)
+      .filter(([_, data]) => data.count >= 2)
+      .map(([code, data]) => ({
+        code,
+        name: data.name,
+        count: data.count,
+        appearanceRate: `${data.count}/${top5Detailed.length}学科`,
+        avgRatio: Number((data.ratios.reduce((a, b) => a + b, 0) / data.ratios.length).toFixed(1)),
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    // 過半数（3学科以上）で共通するスキルがあれば「共通性あり」、なければ「バラバラ（注力分野が分散）」
+    const hasClearCommonality = sharedSkills.some((s) => s.count >= 3);
+    const commonalityVerdict = hasClearCommonality
+      ? `上位5学科のうち過半数（${sharedSkills.filter((s) => s.count >= 3).map((s) => `「${s.name}」（${s.count}学科）`).join('・')}）が共通して主力カリキュラムとなっています。教育の骨格に強い共通基盤が見られます。`
+      : sharedSkills.length > 0
+      ? `上位5学科間で過半数が一致する決定的な主力スキルはなく、各学科の主力分野は部分的に重なる程度で比較的バラバラに分散しています（最も共通しているスキルでも最大${sharedSkills[0]?.count || 0}学科のみ）。`
+      : `上位5学科の主力スキルは完全にバラバラに分散しており、学科ごとに全く異なる専門領域を強みとしています。`;
+
+    const presets: string[] = [
+      `上位学科に共通するスキル傾向はある？それともカリキュラムはバラバラ？`,
+    ];
     if (top1) {
       presets.push(`「${targetLabel}」と第1位の「${top1.label}」（スコア: ${top1.score.toFixed(3)}）の共通点は？`);
       if (top2) {
@@ -337,18 +413,20 @@ function SimilarityPageContent() {
           label: targetLabel,
           university: targetRecord.university_name,
           subjectCount: targetRecord.subject_count,
+          topSkills: targetTopSkills,
         },
         metric: currentMetricName,
         vectorTarget,
-        topRankings: rankingResults.slice(0, 5).map((r) => ({
-          rank: r.rank,
-          label: r.label,
-          score: Number(r.score.toFixed(4)),
-        })),
+        topRankings: top5Detailed,
+        commonalityAnalysis: {
+          hasClearCommonality,
+          verdict: commonalityVerdict,
+          sharedSkills,
+        },
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, rankingResults, metric, vectorTarget, setAnalyticsContext]);
+  }, [targetRecord, rankingResults, metric, vectorTarget, dataList, setAnalyticsContext]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
