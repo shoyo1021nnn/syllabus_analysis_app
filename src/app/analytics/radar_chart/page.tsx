@@ -21,6 +21,7 @@ import {
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
+import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
   Radar as RadarIcon, 
@@ -111,6 +112,7 @@ function RadarChartContent() {
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   // 対象1 (基準) & 対象2 (比較) の選択ID
   const [primaryId, setPrimaryId] = useState<string>('');
@@ -129,6 +131,7 @@ function RadarChartContent() {
     async function fetchData() {
       setIsLoading(true);
       if (!isSupabaseConfigured) {
+        setDbError('Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。');
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
         setIsLoading(false);
@@ -142,16 +145,23 @@ function RadarChartContent() {
           .select('*')
           .order('university_name', { ascending: true });
 
-        if (error || !data || data.length === 0) {
-          console.warn(`Failed to fetch from ${tableName}, using mock fallback:`, error);
+        if (error) {
+          console.error(`Failed to fetch from ${tableName}:`, error);
+          setDbError(`データベースからのデータ取得に失敗しました: ${error.message}`);
+          setDataList(MOCK_DEPARTMENTS);
+          setIsUsingMock(true);
+        } else if (!data || data.length === 0) {
+          setDbError(`テーブル「${tableName}」にデータが存在しません。`);
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else {
+          setDbError(null);
           setDataList(data);
           setIsUsingMock(false);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error in fetching skill vector:', err);
+        setDbError(`データベース通信エラーが発生しました: ${err?.message || err}`);
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
       } finally {
@@ -185,6 +195,12 @@ function RadarChartContent() {
     const finalPrimaryId = targetPrimaryId || dataList[0].id;
     setPrimaryId(finalPrimaryId);
 
+    // 選択された基準対象の大学に合わせて大学フィルターを同期（リスト外リセットを防止）
+    const pRecord = dataList.find((d) => d.id === finalPrimaryId);
+    if (pRecord && primaryUnivFilter !== '全ての大学' && primaryUnivFilter !== pRecord.university_name) {
+      setPrimaryUnivFilter('全ての大学');
+    }
+
     // 2. 比較対象 (compare) の決定
     let targetCompareId = '';
     if (queryCompareId && dataList.some((d) => d.id === queryCompareId)) {
@@ -209,6 +225,12 @@ function RadarChartContent() {
       targetCompareId = diffUniv ? diffUniv.id : dataList[1]?.id || dataList[0].id;
     }
     setCompareId(targetCompareId);
+
+    // 選択された比較対象の大学に合わせて大学フィルターを同期
+    const cRecord = dataList.find((d) => d.id === targetCompareId);
+    if (cRecord && compareUnivFilter !== '全ての大学' && compareUnivFilter !== cRecord.university_name) {
+      setCompareUnivFilter('全ての大学');
+    }
   }, [dataList, queryPrimaryId, queryCompareId, queryDept, queryUniv, queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv]);
 
   // レベル変更時に大学フィルターをリセット
@@ -475,26 +497,16 @@ function RadarChartContent() {
             </p>
           </div>
         </div>
-
-        {/* データソースステータス */}
-        <div>
-          {isUsingMock ? (
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-              <span>プレビュー（サンプルデータ）</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <Database className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Supabase 実データ接続中</span>
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* データベース接続エラー時の警告バナー */}
+      {dbError && (
+        <DatabaseErrorBanner message={dbError} />
+      )}
 
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        {/* レベル・表示モード・正規化の切り替え */}
+        {/* レベル・表示モードの切り替え */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
           <div className="flex flex-wrap items-center gap-3">
             {/* 階層レベル切り替え */}
@@ -524,13 +536,6 @@ function RadarChartContent() {
                 <option value="knowledge">知識関連スキルのみ (12角形)</option>
                 <option value="general">汎用スキルのみ (12角形)</option>
               </select>
-            </div>
-
-            {/* 正規化 (L1正規化に固定) */}
-            <div className="flex items-center space-x-1.5">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                ✓ L1正規化適用（スキル構成比 %）
-              </span>
             </div>
           </div>
         </div>

@@ -107,7 +107,7 @@ export default function MacroLayout({
               <div className="p-4 border-b border-panel-border bg-accent/30 backdrop-blur-xs flex items-center">
                 <h2 className="font-semibold flex items-center gap-2 text-sm text-slate-800 dark:text-slate-100">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-                  AI 学習支援アドバイザー
+                  Syllabus AI
                 </h2>
               </div>
 

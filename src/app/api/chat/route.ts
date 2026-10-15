@@ -5,15 +5,15 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-    const { messages, context } = await req.json();
+   const { messages, context } = await req.json();
 
-    // v7のUIMessage形式(parts)をCoreMessage形式(content)にマッピングする
-    const coreMessages = messages.map((m: any) => ({
-        role: m.role,
-        content: m.content || (m.parts ? m.parts.map((p: any) => p.text || '').join('') : '')
-    }));
+   // v7のUIMessage形式(parts)をCoreMessage形式(content)にマッピングする
+   const coreMessages = messages.map((m: any) => ({
+      role: m.role,
+      content: m.content || (m.parts ? m.parts.map((p: any) => p.text || '').join('') : '')
+   }));
 
-    let systemPrompt = `あなたは大学のシラバス・カリキュラム分析を専門とする客観的で誠実な教育データ分析AIです。
+   let systemPrompt = `あなたは大学のシラバス・カリキュラム分析を専門とする客観的で誠実な教育データ分析AI「Syllabus AI」です。
 学生、大学教員、カリキュラム設計者に対し、**『提示された分析結果が客観的に何を示しているか』を誰でも素早く、直感的に読み解けるように導くこと**を使命として回答してください。
 
 ========================================
@@ -75,17 +75,17 @@ export async function POST(req: Request) {
 - B-12: リーダーシップ・マネジメントスキル
 ========================================`;
 
-    if (context && (context.pageTitle || context.primaryTarget || context.details)) {
-        systemPrompt += `\n\n========================================
+   if (context && (context.pageTitle || context.primaryTarget || context.details)) {
+      systemPrompt += `\n\n========================================
 【現在ユーザーが閲覧中の分析画面コンテキスト】
 ・分析機能: ${context.pageTitle || '分析画面'}
 ${context.primaryTarget ? `・基準対象（学科等）: ${context.primaryTarget}\n` : ''}${context.compareTarget ? `・比較対象（学科等）: ${context.compareTarget}\n` : ''}${context.summaryText ? `・概要: ${context.summaryText}\n` : ''}`;
 
-        if (context.details) {
-            systemPrompt += `・詳細分析データ:\n${JSON.stringify(context.details, null, 2)}\n`;
-        }
+      if (context.details) {
+         systemPrompt += `・詳細分析データ:\n${JSON.stringify(context.details, null, 2)}\n`;
+      }
 
-        systemPrompt += `========================================
+      systemPrompt += `========================================
 【思考・回答の根本原則】
 1. **「分析結果や仕様の客観的な読み解き方」を最優先で伝える（結論ファースト）**:
    - ユーザーがグラフや質問内容を素早く理解できるよう、冒頭で「一言で言うと何が起きているか」「どの特徴に着目すべきか」の要点を端的に伝えてください。
@@ -110,13 +110,10 @@ ${context.primaryTarget ? `・基準対象（学科等）: ${context.primaryTarg
 - （同様に対象Bの客観的な上位スキルと重点分野を整理）
 
 ## 3. 両学科のカリキュラム構成の対比
-- （両者の注力領域の違い・スキルバランスの対比を客観的に整理）
+- （両者の注力領域の違い・スキルバランスの対比を客観的に整理）`;
 
-## 4. 分析データから読み取れる教育的示唆
-- （データの数値に基づいた、バランス改善やカリキュラム設計の検討ポイント）`;
-
-        if (context.pageTitle === '類似度計算ランキング' || context.details?.commonalityAnalysis) {
-            systemPrompt += `\n\n========================================
+      if (context.pageTitle === '類似度計算ランキング' || context.details?.commonalityAnalysis) {
+         systemPrompt += `\n\n========================================
 【類似度計算ランキング画面での回答ガイドライン】
 上位学科の傾向や共通点、またはランキング全体の解釈に関する質問を受けた場合は、詳細分析データ（details.topRankings および details.commonalityAnalysis）を精査し、以下の指針に従って客観的に回答してください：
 
@@ -131,14 +128,67 @@ ${context.primaryTarget ? `・基準対象（学科等）: ${context.primaryTarg
 
 2. **上位学科それぞれの注力スキルの紹介**:
    - #1, #2, #3 等の上位学科について、それぞれの主力スキル（details.topRankings[].topSkills）を引用して、共通またはバラバラであることの客観的な証拠として提示してください。`;
-        }
-    }
+      }
+   }
 
-    const result = streamText({
-        model: openai('gpt-4o-mini'),
-        system: systemPrompt,
-        messages: coreMessages,
-    });
+   // 双方向分析アクションの出力指示を追加
+   systemPrompt += `\n\n========================================
+【双方向分析アクションの出力指示】
+回答テキストの最後で、ユーザーが次に深掘り・検証すべき具体的な分析アクションを1〜3件提案してください。
+必ず回答の末尾に、以下のコードブロック形式（\`\`\`analysis-actions）で有効なJSON配列を出力してください。
+UI側がこれを自動検知し、クリック可能なリッチアクションボタンとして描画します。
 
-    return result.toUIMessageStreamResponse();
+【JSONフォーマット例】
+\`\`\`analysis-actions
+[
+  {
+    "id": "act-1",
+    "type": "navigate",
+    "title": "【中部大学】情報工学科とレーダー比較",
+    "description": "知識・汎用24スキルのバランス差異を直接対比します",
+    "targetPage": "/analytics/radar_chart",
+    "params": {
+      "primaryDept": "電気情報工学科",
+      "primaryUniv": "九州大学",
+      "compareDept": "情報工学科",
+      "compareUniv": "中部大学"
+    },
+    "icon": "radar",
+    "badge": "類似度 #1"
+  },
+  {
+    "id": "act-2",
+    "type": "navigate",
+    "title": "スキル補完パートナーを探索",
+    "description": "自学科の弱点スキルを補う連携先組織をランキング検索",
+    "targetPage": "/macro/skill_complementation",
+    "params": {
+      "dept": "電気情報工学科",
+      "univ": "九州大学"
+    },
+    "icon": "compass",
+    "badge": "弱点相補"
+  }
+]
+\`\`\`
+
+【各プロパティの仕様】
+- id: ユニークなID（例: "act-1", "act-2"）
+- type: "navigate"
+- title: ボタンに表示する簡潔なタイトル
+- description: どのような分析・比較ができるかの1行説明
+- targetPage: "/analytics/radar_chart" | "/analytics/similarity" | "/analytics/clustering" | "/macro/skill_complementation" | "/macro/best_pair" | "/macro/greedy_team"
+- params: 渡すクエリパラメータオブジェクト（閲覧中コンテキストや上位学科の大学名・学科名を正確に設定）
+  - primaryId / compareId がコンテキストにあればそれらを優先、または primaryDept / compareDept / primaryUniv / compareUniv / dept / univ を指定
+- icon: "radar" | "similarity" | "clustering" | "compass" | "sparkles" | "users"
+- badge: （任意）"類似度 #1", "おすすめ", "シナジー最大", "弱点相補" など`;
+
+
+   const result = streamText({
+      model: openai('gpt-4o-mini'),
+      system: systemPrompt,
+      messages: coreMessages,
+   });
+
+   return result.toUIMessageStreamResponse();
 }

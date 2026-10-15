@@ -6,6 +6,8 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
+import ActionCards from '@/components/ActionCards';
+import { AnalysisAction } from '@/types/actions';
 
 interface CodeBlockProps {
   language: string;
@@ -80,11 +82,32 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
         remarkPlugins={[remarkGfm]}
         components={{
           code({ inline, className, children, ...props }: any) {
-            const match = /language-(\w+)/.exec(className || '');
+            const match = /language-([a-zA-Z0-9_-]+)/.exec(className || '');
+            const lang = match ? match[1].toLowerCase() : '';
             const codeString = String(children).replace(/\n$/, '');
 
+            // analysis-actions, actions, またはアクション配列を含むjsonの場合はアクションカードとして描画
+            if (!inline) {
+              const isActionTag = lang === 'analysis-actions' || lang === 'analysis_actions' || lang === 'actions';
+              if (isActionTag || lang === 'json' || !lang) {
+                try {
+                  const parsed = JSON.parse(codeString);
+                  if (
+                    Array.isArray(parsed) &&
+                    parsed.length > 0 &&
+                    parsed[0].targetPage &&
+                    (parsed[0].title || parsed[0].label)
+                  ) {
+                    return <ActionCards actions={parsed} />;
+                  }
+                } catch {
+                  // ストリーミング途中または純粋なコードの場合は通常レンダリングへ
+                }
+              }
+            }
+
             if (!inline && (match || codeString.includes('\n'))) {
-              return <CodeBlock language={match ? match[1] : ''} value={codeString} />;
+              return <CodeBlock language={lang} value={codeString} />;
             }
             return (
               <code

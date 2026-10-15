@@ -27,7 +27,7 @@ export default function AnalyticsIndexPage() {
         taxonomySummary: 'A群(知識スキル12項目: A-1〜A-12)およびB群(汎用スキル12項目: B-1〜B-12)の計24項目'
       },
       presetQuestions: [
-        'Syllabus Analysis Appでできる分析の種類と特徴を教えて',
+        'Syllabus AIでできる分析の種類と特徴を教えて',
         '自学科のカリキュラムを見直すにはどの分析から始めるべき？',
         'シラバスから抽出される24のスキル体系とは何ですか？',
       ],

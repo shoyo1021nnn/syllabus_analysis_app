@@ -108,7 +108,7 @@ export default function AnalyticsLayout({
                         <div className="p-4 border-b border-panel-border bg-accent/30 backdrop-blur-sm">
                             <h2 className="font-semibold flex items-center gap-2 text-sm">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-                                Syllabus Analysis App
+                                Syllabus AI
                             </h2>
                         </div>
 

@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { ClusteringPoint, ClusteringRun } from '@/types/database';
 import ClusterScatterPlot from '@/components/charts/ClusterScatterPlot';
 import BackButton from '@/components/BackButton';
+import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
   Network, 
@@ -73,6 +74,7 @@ export default function ClusteringPage() {
   const [isLoadingRuns, setIsLoadingRuns] = useState<boolean>(true);
   const [isLoadingPoints, setIsLoadingPoints] = useState<boolean>(false);
   const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<ClusteringPoint | null>(null);
 
   // 1. 初回ロード: clustering_runs を取得
@@ -80,6 +82,7 @@ export default function ClusteringPage() {
     async function fetchRuns() {
       setIsLoadingRuns(true);
       if (!isSupabaseConfigured) {
+        setDbError('Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。');
         setRuns(MOCK_RUNS);
         setSelectedRunId(MOCK_RUNS[0].id);
         setIsUsingMock(true);
@@ -92,18 +95,26 @@ export default function ClusteringPage() {
           .select('*')
           .order('rank', { ascending: true });
 
-        if (error || !data || data.length === 0) {
-          console.warn('clustering_runs could not be fetched or is empty. Falling back to mock data.', error);
+        if (error) {
+          console.error('Failed to fetch clustering_runs:', error);
+          setDbError(`クラスタリング実行履歴の取得に失敗しました: ${error.message}`);
+          setRuns(MOCK_RUNS);
+          setSelectedRunId(MOCK_RUNS[0].id);
+          setIsUsingMock(true);
+        } else if (!data || data.length === 0) {
+          setDbError('テーブル「clustering_runs」にデータが存在しません。');
           setRuns(MOCK_RUNS);
           setSelectedRunId(MOCK_RUNS[0].id);
           setIsUsingMock(true);
         } else {
+          setDbError(null);
           setRuns(data);
           setSelectedRunId(data[0].id);
           setIsUsingMock(false);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to connect to Supabase:', err);
+        setDbError(`データベース通信エラーが発生しました: ${err?.message || err}`);
         setRuns(MOCK_RUNS);
         setSelectedRunId(MOCK_RUNS[0].id);
         setIsUsingMock(true);
@@ -222,22 +233,12 @@ export default function ClusteringPage() {
             </div>
           </div>
         </div>
-
-        {/* データソースステータス */}
-        <div>
-          {isUsingMock ? (
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-750 border border-amber-200">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-              <span>プレビュー（サンプルデータ）</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <Database className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Supabase 実データ接続中</span>
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* データベース接続エラー時の警告バナー */}
+      {dbError && (
+        <DatabaseErrorBanner message={dbError} />
+      )}
 
       {/* コントロールバー & 統計サマリー */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
