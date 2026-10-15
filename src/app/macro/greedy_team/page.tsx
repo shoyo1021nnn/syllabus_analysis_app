@@ -23,6 +23,7 @@ import {
   combineMultipleVectors
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
@@ -425,6 +426,35 @@ function GreedyTeamContent() {
     return list;
   }, [teamResult, teamGeneralVectors, finalTeamGVec, levelUnit]);
 
+  // 2つのチャート共通の凡例アイテム
+  const legendItems: RadarLegendItem[] = useMemo(() => {
+    if (!teamResult) return [];
+    const list: RadarLegendItem[] = [
+      {
+        name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
+        color: '#3b82f6',
+        subLabel: '起点メンバー',
+      },
+    ];
+
+    const partnerColors = ['#f43f5e', '#a855f7'];
+    teamResult.steps.slice(0, 2).forEach((step, idx) => {
+      list.push({
+        name: `+Step ${step.step}: ${getShortLabel(step.addedMember.label)}`,
+        color: partnerColors[idx % partnerColors.length],
+        subLabel: `+${(step.improvement * 100).toFixed(1)}pt`,
+      });
+    });
+
+    list.push({
+      name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
+      color: '#10b981',
+      subLabel: `達成度 ${(teamResult.finalScore * 100).toFixed(1)}%`,
+    });
+
+    return list;
+  }, [teamResult, levelUnit]);
+
   // AIコンテキスト共有
   useEffect(() => {
     if (!teamResult) return;
@@ -730,8 +760,8 @@ function GreedyTeamContent() {
           </div>
         </div>
 
-        {/* 2分割レーダーチャート + 右側縦並び凡例パネル */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_260px] gap-4 items-stretch">
+        {/* 2分割レーダーチャート (内部凡例は非表示にして大きく表示) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[440px]">
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
@@ -743,7 +773,7 @@ function GreedyTeamContent() {
             />
           </div>
 
-          {/* 汎用スキル (中央) */}
+          {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title={`B: 汎用スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
@@ -753,82 +783,16 @@ function GreedyTeamContent() {
               showLegend={false}
             />
           </div>
+        </div>
 
-          {/* 右側: 共通縦並び凡例パネル */}
-          <div className="flex flex-col justify-between border border-slate-200/80 rounded-xl p-4 bg-slate-50/60 shadow-2xs space-y-3">
-            <div>
-              <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-slate-200">
-                <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
-                <span className="text-xs font-bold text-slate-800">チーム構成・系列凡例</span>
-              </div>
+        {/* 2つのレーダーチャート共通の凡例（中央に1つだけ大きめに表示） */}
+        <div className="pt-2 border-t border-slate-100">
+          <RadarLegend items={legendItems} />
+        </div>
 
-              <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
-                {/* 起点組織 */}
-                {teamResult && (
-                  <div className="p-2 rounded-lg bg-blue-50/70 border border-blue-200">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
-                      <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700">起点（リーダー）</span>
-                    </div>
-                    <div className="text-xs font-bold text-slate-800 leading-snug">
-                      {teamResult.initialMember.label}
-                    </div>
-                  </div>
-                )}
-
-                {/* 各ステップ追加メンバー */}
-                {teamResult && teamResult.steps.slice(0, 3).map((step, idx) => {
-                  const colors = ['bg-rose-500', 'bg-purple-500', 'bg-amber-500'];
-                  const borderColors = ['border-rose-200 bg-rose-50/50', 'border-purple-200 bg-purple-50/50', 'border-amber-200 bg-amber-50/50'];
-                  const badgeColors = ['bg-rose-100 text-rose-700', 'bg-purple-100 text-purple-700', 'bg-amber-100 text-amber-700'];
-                  const colorCls = colors[idx % colors.length];
-                  const boxCls = borderColors[idx % borderColors.length];
-                  const badgeCls = badgeColors[idx % badgeColors.length];
-
-                  return (
-                    <div key={step.step} className={`p-2 rounded-lg border ${boxCls}`}>
-                      <div className="flex items-center justify-between mb-0.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-2.5 h-2.5 rounded-full ${colorCls} shrink-0`}></span>
-                          <span className={`text-2xs font-bold px-1.5 py-0.2 rounded ${badgeCls}`}>
-                            Step {step.step} 追加
-                          </span>
-                        </div>
-                        <span className="text-2xs font-semibold text-slate-500">
-                          +{(step.improvement * 100).toFixed(1)}pt
-                        </span>
-                      </div>
-                      <div className="text-xs font-bold text-slate-800 leading-snug">
-                        {step.addedMember.label}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* チーム合成 */}
-                {teamResult && (
-                  <div className="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-                      <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700">
-                        チーム合成 ({teamResult.teamMembers.length}{levelUnit})
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-slate-800 leading-snug">
-                      最終スキル合成ベクトル
-                    </div>
-                    <div className="text-2xs text-slate-500 mt-0.5">
-                      達成度: {(teamResult.finalScore * 100).toFixed(1)}% ({combineMethod === 'max' ? 'Max' : 'Mean'}結合)
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="text-2xs text-slate-400 bg-white p-2 rounded-lg border border-slate-100 leading-relaxed">
-              💡 各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。
-            </div>
-          </div>
+        <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
+          <span>💡 各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。</span>
+          <span>結合方式: <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? '最大値結合 (Max)' : '平均値結合 (Mean)'}</strong></span>
         </div>
       </div>
 

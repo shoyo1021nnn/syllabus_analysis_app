@@ -19,6 +19,7 @@ import {
   combineVectors
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
@@ -354,6 +355,26 @@ function RadarChartContent() {
     return list;
   }, [primaryRecord, compareRecord, primaryAllVec, compareAllVec, isCompareEnabled]);
 
+  // グラフ共通の凡例アイテム
+  const legendItems: RadarLegendItem[] = useMemo(() => {
+    if (!primaryRecord) return [];
+    const list: RadarLegendItem[] = [
+      {
+        name: formatLabel(primaryRecord),
+        color: '#3b82f6',
+        subLabel: '基準対象',
+      },
+    ];
+    if (isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord.id) {
+      list.push({
+        name: formatLabel(compareRecord),
+        color: '#f43f5e',
+        subLabel: '比較対象',
+      });
+    }
+    return list;
+  }, [primaryRecord, compareRecord, isCompareEnabled]);
+
   // Topスキル算出ヘルパー
   const getTopSkills = (vec: number[] = [], skills: typeof KNOWLEDGE_SKILLS, count = 3) => {
     return vec
@@ -624,21 +645,23 @@ function RadarChartContent() {
             {viewMode === 'split' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[480px]">
                 {/* 知識関連スキル (左) */}
-                <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+                <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
                   <RadarChart
                     title="A: 知識関連スキル (12項目)"
                     indicators={knowledgeIndicators}
                     seriesData={knowledgeSeries}
                     height={460}
+                    showLegend={false}
                   />
                 </div>
                 {/* 汎用スキル (右) */}
-                <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+                <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
                   <RadarChart
                     title="B: 汎用スキル (12項目)"
                     indicators={generalIndicators}
                     seriesData={generalSeries}
                     height={460}
+                    showLegend={false}
                   />
                 </div>
               </div>
@@ -651,6 +674,7 @@ function RadarChartContent() {
                   indicators={combinedIndicators}
                   seriesData={combinedSeries}
                   height={520}
+                  showLegend={false}
                 />
               </div>
             )}
@@ -662,6 +686,7 @@ function RadarChartContent() {
                   indicators={knowledgeIndicators}
                   seriesData={knowledgeSeries}
                   height={500}
+                  showLegend={false}
                 />
               </div>
             )}
@@ -673,9 +698,15 @@ function RadarChartContent() {
                   indicators={generalIndicators}
                   seriesData={generalSeries}
                   height={500}
+                  showLegend={false}
                 />
               </div>
             )}
+
+            {/* グラフ共通の凡例（中央に1つだけ大きめに表示） */}
+            <div className="pt-3 pb-1 border-t border-slate-100">
+              <RadarLegend items={legendItems} />
+            </div>
           </>
         )}
       </div>

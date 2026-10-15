@@ -30,6 +30,8 @@ export default function RadarChart({
   showLegend = true,
 }: RadarChartProps) {
   const option = useMemo(() => {
+    const isMultiSeries = seriesData.length >= 3;
+
     return {
       backgroundColor: 'transparent',
       title: title
@@ -74,10 +76,11 @@ export default function RadarChart({
       legend: showLegend
         ? {
             type: 'scroll',
-            bottom: 2,
+            orient: isMultiSeries ? 'vertical' : 'horizontal',
+            bottom: 4,
             left: 'center',
             textStyle: { color: '#475569', fontSize: 11 },
-            itemGap: 12,
+            itemGap: isMultiSeries ? 5 : 14,
             itemWidth: 12,
             itemHeight: 6,
             pageIconSize: 10,
@@ -86,8 +89,13 @@ export default function RadarChart({
         : undefined,
       radar: {
         indicator: indicators,
-        center: ['50%', showLegend ? (title ? '43%' : '46%') : (title ? '52%' : '50%')],
-        radius: showLegend ? '45%' : '52%',
+        center: [
+          '50%',
+          showLegend
+            ? (isMultiSeries ? (title ? '37%' : '39%') : (title ? '43%' : '46%'))
+            : (title ? '52%' : '50%'),
+        ],
+        radius: showLegend ? (isMultiSeries ? '38%' : '45%') : '52%',
         splitNumber: 4,
         shape: 'polygon',
         axisName: {

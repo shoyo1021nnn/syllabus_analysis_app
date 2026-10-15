@@ -104,12 +104,11 @@ export default function MacroLayout({
             {/* 右側のAIエージェントパネル (デフォルト 1/3) */}
             <Panel defaultSize={33} minSize={20} className="bg-panel border-l border-panel-border flex flex-col shadow-[-4px_0_15px_rgba(0,0,0,0.03)] dark:shadow-[-4px_0_15px_rgba(0,0,0,0.2)]">
               {/* エージェントパネルのヘッダー */}
-              <div className="p-4 border-b border-panel-border bg-accent/30 backdrop-blur-xs flex items-center justify-between">
+              <div className="p-4 border-b border-panel-border bg-accent/30 backdrop-blur-xs flex items-center">
                 <h2 className="font-semibold flex items-center gap-2 text-sm text-slate-800 dark:text-slate-100">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
                   AI 学習支援アドバイザー
                 </h2>
-                <span className="text-2xs text-slate-400 font-medium">連動稼働中</span>
               </div>
 
               <div className="flex-1 overflow-hidden">

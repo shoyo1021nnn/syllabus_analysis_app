@@ -22,6 +22,7 @@ import {
   normalizeL1 
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
@@ -375,6 +376,31 @@ function BestPairContent() {
     return list;
   }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec, combineMethod]);
 
+  // 2つのチャート共通の凡例アイテム
+  const legendItems: RadarLegendItem[] = useMemo(() => {
+    if (!targetRecord) return [];
+    const list: RadarLegendItem[] = [
+      {
+        name: `基準: ${getShortName(targetRecord)}`,
+        color: '#3b82f6',
+        subLabel: '基準組織',
+      },
+    ];
+    if (partnerRecord) {
+      list.push({
+        name: `相手: ${getShortName(partnerRecord)}`,
+        color: '#f43f5e',
+        subLabel: 'パートナー候補',
+      });
+      list.push({
+        name: `ペア結合 (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`,
+        color: '#10b981',
+        subLabel: '合成ベクトル',
+      });
+    }
+    return list;
+  }, [targetRecord, partnerRecord, combineMethod]);
+
   // AIコンテキスト共有
   useEffect(() => {
     if (!targetRecord) return;
@@ -618,8 +644,8 @@ function BestPairContent() {
           </div>
         </div>
 
-        {/* 2分割レーダーチャート + 右側縦並び凡例パネル */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_250px] gap-4 items-stretch">
+        {/* 2分割レーダーチャート (内部凡例は非表示にして大きく表示) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[440px]">
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
@@ -631,7 +657,7 @@ function BestPairContent() {
             />
           </div>
 
-          {/* 汎用スキル (中央) */}
+          {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title={`B: 汎用スキル (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`}
@@ -641,64 +667,16 @@ function BestPairContent() {
               showLegend={false}
             />
           </div>
+        </div>
 
-          {/* 右側: 共通縦並び凡例パネル */}
-          <div className="flex flex-col justify-between border border-slate-200/80 rounded-xl p-4 bg-slate-50/60 shadow-2xs space-y-4">
-            <div>
-              <div className="flex items-center gap-1.5 pb-2.5 mb-3 border-b border-slate-200">
-                <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
-                <span className="text-xs font-bold text-slate-800">凡例・系列構成</span>
-              </div>
+        {/* 2つのレーダーチャート共通の凡例（中央に1つだけ大きめに表示） */}
+        <div className="pt-2 border-t border-slate-100">
+          <RadarLegend items={legendItems} />
+        </div>
 
-              <div className="space-y-3">
-                {/* 基準組織 */}
-                <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
-                    <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-700">基準組織</span>
-                  </div>
-                  <div className="text-xs font-bold text-slate-800 leading-snug">
-                    {formatLabel(targetRecord)}
-                  </div>
-                  {targetRecord && (
-                    <div className="text-2xs text-slate-500 mt-0.5">科目数: {targetRecord.subject_count}科目</div>
-                  )}
-                </div>
-
-                {/* パートナー組織 */}
-                {partnerRecord && (
-                  <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
-                      <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">パートナー</span>
-                    </div>
-                    <div className="text-xs font-bold text-slate-800 leading-snug">
-                      {formatLabel(partnerRecord)}
-                    </div>
-                    <div className="text-2xs text-slate-500 mt-0.5">科目数: {partnerRecord.subject_count}科目</div>
-                  </div>
-                )}
-
-                {/* ペア結合後 */}
-                <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span className="text-2xs font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-700">ペア結合後</span>
-                  </div>
-                  <div className="text-xs font-bold text-slate-800 leading-snug">
-                    強み合成ベクトル
-                  </div>
-                  <div className="text-2xs text-slate-500 mt-0.5">
-                    結合方式: {combineMethod === 'max' ? '最大値結合 (Max)' : '平均値結合 (Mean)'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-2xs text-slate-400 bg-white p-2.5 rounded-lg border border-slate-100 leading-relaxed">
-              💡 チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。
-            </div>
-          </div>
+        <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
+          <span>💡 チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。</span>
+          <span>結合方式: <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? '最大値結合 (Max)' : '平均値結合 (Mean)'}</strong></span>
         </div>
       </div>
 

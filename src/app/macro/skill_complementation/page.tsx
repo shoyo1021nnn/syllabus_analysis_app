@@ -19,6 +19,7 @@ import {
   SkillComplementationItem 
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { 
@@ -344,6 +345,31 @@ function SkillComplementationContent() {
     return list;
   }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec]);
 
+  // 2つのチャート共通の凡例アイテム
+  const legendItems: RadarLegendItem[] = useMemo(() => {
+    if (!targetRecord) return [];
+    const list: RadarLegendItem[] = [
+      {
+        name: `基準: ${formatLabel(targetRecord)}`,
+        color: '#3b82f6',
+        subLabel: '基準組織',
+      },
+    ];
+    if (partnerRecord) {
+      list.push({
+        name: `候補: ${formatLabel(partnerRecord)}`,
+        color: '#f43f5e',
+        subLabel: '補完パートナー候補',
+      });
+      list.push({
+        name: '補完後 (Max結合)',
+        color: '#10b981',
+        subLabel: '弱点補完合成',
+      });
+    }
+    return list;
+  }, [targetRecord, partnerRecord]);
+
   // AIエージェントコンテキスト供給
   useEffect(() => {
     if (!targetRecord) return;
@@ -568,40 +594,44 @@ function SkillComplementationContent() {
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 text-xs">
-            <span className="flex items-center gap-1 text-blue-600 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> 基準
-            </span>
-            <span className="flex items-center gap-1 text-rose-600 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 候補
-            </span>
-            <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 補完後Max結合
-            </span>
+          <div className="text-2xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
+            💡 各点にホバーして詳細比率（%）を確認
           </div>
         </div>
 
-        {/* 2分割レーダーチャート */}
+        {/* 2分割レーダーチャート (内部凡例は非表示にして大きく表示) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[440px]">
           {/* 知識関連スキル (左) */}
-          <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+          <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title="A: 知識関連スキル (専門一致度の対比)"
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
-              height={420}
+              height={440}
+              showLegend={false}
             />
           </div>
 
           {/* 汎用スキル (右) */}
-          <div className="flex flex-col border border-slate-100 rounded-lg p-2 bg-slate-50/20">
+          <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
               title="B: 汎用スキル (弱点補完＆Max結合結果)"
               indicators={generalIndicators}
               seriesData={generalSeries}
-              height={420}
+              height={440}
+              showLegend={false}
             />
           </div>
+        </div>
+
+        {/* 2つのレーダーチャート共通の凡例（中央に1つだけ大きめに表示） */}
+        <div className="pt-2 border-t border-slate-100">
+          <RadarLegend items={legendItems} />
+        </div>
+
+        <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
+          <span>💡 チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。</span>
+          <span>補完アプローチ: <strong className="text-slate-600 font-semibold">{approach === 'synergy' ? '専門一致・汎用相補 (バランス型)' : '相補最適化'}</strong></span>
         </div>
       </div>
 

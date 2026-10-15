@@ -91,8 +91,8 @@ export function AgentPanel() {
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        {messages.length > 0 && (
+                    {messages.length > 0 && (
+                        <div className="flex items-center gap-1.5 shrink-0">
                             <button
                                 type="button"
                                 onClick={() => setMessages([])}
@@ -102,11 +102,8 @@ export function AgentPanel() {
                                 <RotateCcw className="w-3 h-3 text-slate-500" />
                                 <span>リセット</span>
                             </button>
-                        )}
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200">
-                            連動中
-                        </span>
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
 
