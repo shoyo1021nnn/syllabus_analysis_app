@@ -9,7 +9,7 @@ export interface SearchableSelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  colorScheme?: 'blue' | 'indigo' | 'rose';
+  colorScheme?: 'blue' | 'indigo' | 'rose' | 'teal' | 'orange';
   disabled?: boolean;
   className?: string;
 }
@@ -20,7 +20,7 @@ export function SearchableSelect({
   value,
   onChange,
   placeholder = '大学名を検索・選択...',
-  colorScheme = 'blue',
+  colorScheme = 'teal',
   disabled = false,
   className = '',
 }: SearchableSelectProps) {
@@ -32,6 +32,28 @@ export function SearchableSelect({
   // 配色設定
   const theme = useMemo(() => {
     switch (colorScheme) {
+      case 'teal':
+        return {
+          label: 'text-teal-700',
+          icon: 'text-teal-600',
+          border: 'border-teal-200',
+          focusRing: 'focus:ring-teal-500 focus:border-teal-500',
+          activeBg: 'bg-teal-50 text-teal-900',
+          checkIcon: 'text-teal-600',
+          badgeBg: 'bg-teal-100 text-teal-800',
+          hoverBg: 'hover:bg-teal-50/60',
+        };
+      case 'orange':
+        return {
+          label: 'text-orange-700',
+          icon: 'text-orange-600',
+          border: 'border-orange-200',
+          focusRing: 'focus:ring-orange-500 focus:border-orange-500',
+          activeBg: 'bg-orange-50 text-orange-900',
+          checkIcon: 'text-orange-600',
+          badgeBg: 'bg-orange-100 text-orange-800',
+          hoverBg: 'hover:bg-orange-50/60',
+        };
       case 'rose':
         return {
           label: 'text-rose-700',
@@ -57,14 +79,14 @@ export function SearchableSelect({
       case 'blue':
       default:
         return {
-          label: 'text-blue-800',
-          icon: 'text-blue-600',
-          border: 'border-blue-200',
-          focusRing: 'focus:ring-blue-500 focus:border-blue-500',
-          activeBg: 'bg-blue-50 text-blue-900',
-          checkIcon: 'text-blue-600',
-          badgeBg: 'bg-blue-100 text-blue-800',
-          hoverBg: 'hover:bg-blue-50/60',
+          label: 'text-teal-700',
+          icon: 'text-teal-600',
+          border: 'border-teal-200',
+          focusRing: 'focus:ring-teal-500 focus:border-teal-500',
+          activeBg: 'bg-teal-50 text-teal-900',
+          checkIcon: 'text-teal-600',
+          badgeBg: 'bg-teal-100 text-teal-800',
+          hoverBg: 'hover:bg-teal-50/60',
         };
     }
   }, [colorScheme]);

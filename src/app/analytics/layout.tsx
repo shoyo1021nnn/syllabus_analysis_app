@@ -30,7 +30,7 @@ export default function AnalyticsLayout({
                 <div className="flex items-center space-x-4">
                     <Link 
                         href="/" 
-                        className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition"
+                        className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 transition"
                         title="ポータルホームに戻る"
                     >
                         <Home className="w-4 h-4" />
@@ -40,10 +40,10 @@ export default function AnalyticsLayout({
                     <span className="text-slate-300 dark:text-slate-700">|</span>
 
                     <Link href="/analytics" className="flex items-center space-x-2 group shrink-0">
-                        <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-blue-500 to-indigo-600 group-hover:opacity-85 transition">
+                        <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-teal-600 to-teal-500 group-hover:opacity-85 transition">
                             スキルベクトル分析
                         </h1>
-                        <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                        <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                             Analytics
                         </span>
                     </Link>
@@ -61,11 +61,11 @@ export default function AnalyticsLayout({
                                     href={tab.href}
                                     className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 ${
                                         isActive
-                                            ? 'bg-blue-50 text-blue-700 font-bold border-2 border-blue-600 shadow-2xs ring-2 ring-blue-500/10'
-                                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-blue-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
+                                            ? 'bg-teal-50 text-teal-700 font-bold border-2 border-teal-600 shadow-2xs ring-2 ring-teal-500/10'
+                                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-teal-400 hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
                                     }`}
                                 >
-                                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`} />
+                                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500'}`} />
                                     <span>{tab.label}</span>
                                 </Link>
                             );
@@ -76,7 +76,7 @@ export default function AnalyticsLayout({
 
                     <Link
                         href="/macro"
-                        className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
+                        className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs"
                         title="マクロな学習支援画面へ移動"
                     >
                         <span>マクロ学習支援へ</span>

@@ -58,7 +58,7 @@ export default function MacroMenuPage() {
       {/* ページタイトル & 概要 */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 rounded-xl">
+          <div className="p-2.5 bg-orange-50 dark:bg-orange-950/70 text-orange-600 dark:text-orange-400 rounded-xl border border-orange-200/80 dark:border-orange-800/60">
             <Layers className="w-6 h-6" />
           </div>
           <div>
@@ -78,20 +78,20 @@ export default function MacroMenuPage() {
         {/* 1. スキル補完検索 */}
         <Link
           href="/macro/skill_complementation"
-          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 p-6 shadow-xs hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 flex flex-col justify-between"
+          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between"
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200 shadow-2xs">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
                 <Compass className="w-6 h-6" />
               </div>
-              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200">
+              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
                 相補パートナー探索
               </span>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                 1. スキル補完検索
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
@@ -100,7 +100,7 @@ export default function MacroMenuPage() {
             </div>
           </div>
 
-          <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+          <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
             <span>スキル補完検索を開く</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -109,20 +109,20 @@ export default function MacroMenuPage() {
         {/* 2. ベスト・ペア検索 */}
         <Link
           href="/macro/best_pair"
-          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 p-6 shadow-xs hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 flex flex-col justify-between"
+          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between"
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200 shadow-2xs">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200">
+              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
                 1対1 最高シナジー
               </span>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                 2. ベスト・ペア検索
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
@@ -131,7 +131,7 @@ export default function MacroMenuPage() {
             </div>
           </div>
 
-          <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+          <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
             <span>ベスト・ペア検索を開く</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -140,20 +140,20 @@ export default function MacroMenuPage() {
         {/* 3. チーム編成支援 */}
         <Link
           href="/macro/greedy_team"
-          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 p-6 shadow-xs hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 flex flex-col justify-between"
+          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between"
         >
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-200 shadow-2xs">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
                 <UserPlus className="w-6 h-6" />
               </div>
-              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200">
+              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
                 Greedy多人数編成
               </span>
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                 3. チーム編成支援
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
@@ -162,7 +162,7 @@ export default function MacroMenuPage() {
             </div>
           </div>
 
-          <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+          <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
             <span>チーム編成支援を開く</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -173,7 +173,7 @@ export default function MacroMenuPage() {
       {/* 理論・背景解説アコーディオン/カード */}
       <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-indigo-600" />
+          <BookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           マクロな学習支援の理論的背景
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 dark:text-slate-300">

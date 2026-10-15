@@ -387,15 +387,15 @@ function GreedyTeamContent() {
       {
         name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
         value: teamKnowledgeVectors[0] || [],
-        color: '#3b82f6',
+        color: '#009688', // teal
       },
       {
         name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
         value: finalTeamKVec,
-        color: '#10b981',
+        color: '#059669',
       },
     ];
-    const partnerColors = ['#f43f5e', '#a855f7'];
+    const partnerColors = ['#e0532b', '#ea580c']; // terracotta & bright orange
     teamResult.steps.slice(0, 2).forEach((step, idx) => {
       const memberIdx = step.step;
       if (teamKnowledgeVectors[memberIdx]) {
@@ -415,15 +415,15 @@ function GreedyTeamContent() {
       {
         name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
         value: teamGeneralVectors[0] || [],
-        color: '#3b82f6',
+        color: '#009688',
       },
       {
         name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
         value: finalTeamGVec,
-        color: '#10b981',
+        color: '#059669',
       },
     ];
-    const partnerColors = ['#f43f5e', '#a855f7'];
+    const partnerColors = ['#e0532b', '#ea580c'];
     teamResult.steps.slice(0, 2).forEach((step, idx) => {
       const memberIdx = step.step;
       if (teamGeneralVectors[memberIdx]) {
@@ -443,23 +443,23 @@ function GreedyTeamContent() {
     const list: RadarLegendItem[] = [
       {
         name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
-        color: '#3b82f6',
-        subLabel: '起点メンバー',
+        color: '#009688',
+        subLabel: '起点メンバー (青緑)',
       },
     ];
 
-    const partnerColors = ['#f43f5e', '#a855f7'];
+    const partnerColors = ['#e0532b', '#ea580c'];
     teamResult.steps.slice(0, 2).forEach((step, idx) => {
       list.push({
         name: `+Step ${step.step}: ${getShortLabel(step.addedMember.label)}`,
         color: partnerColors[idx % partnerColors.length],
-        subLabel: `+${(step.improvement * 100).toFixed(1)}pt`,
+        subLabel: `+${(step.improvement * 100).toFixed(1)}pt (橙)`,
       });
     });
 
     list.push({
       name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
-      color: '#10b981',
+      color: '#059669',
       subLabel: `達成度 ${(teamResult.finalScore * 100).toFixed(1)}%`,
     });
 
@@ -509,7 +509,7 @@ function GreedyTeamContent() {
       {/* ヘッダーカード */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
             <UserPlus className="w-6 h-6" />
           </div>
           <div>
@@ -517,8 +517,8 @@ function GreedyTeamContent() {
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
                 チーム編成支援 (Greedy Team Build)
               </h1>
-              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
                 <span>貪欲法による最適編成</span>
               </span>
             </div>
@@ -537,29 +537,29 @@ function GreedyTeamContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
         {/* 起点組織選択 */}
-        <div className="p-4 rounded-lg bg-indigo-50/50 border border-indigo-200 space-y-3">
+        <div className="p-4 rounded-lg bg-teal-50/50 border border-teal-200 space-y-3">
           {/* 大学フィルター (学部・学科レベル時) */}
           {level !== 'university' && universityList.length > 1 && (
-            <div className="pb-2 border-b border-indigo-200/60">
+            <div className="pb-2 border-b border-teal-200/60">
               <SearchableSelect
                 label="大学で絞り込み:"
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
                 placeholder="大学名を検索・選択..."
-                colorScheme="indigo"
+                colorScheme="teal"
               />
             </div>
           )}
 
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
+              <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-teal-600" />
                 起点の組織（リーダー組織）を選択:
               </span>
               {initialRecord && (
-                <span className="text-xs text-indigo-600 font-medium">
+                <span className="text-xs text-teal-700 font-medium">
                   科目数: {initialRecord.subject_count}科目
                 </span>
               )}
@@ -568,7 +568,7 @@ function GreedyTeamContent() {
               value={initialId}
               onChange={(e) => setInitialId(e.target.value)}
               disabled={isLoading || filteredDataList.length === 0}
-              className="w-full px-3.5 py-2 text-sm bg-white border border-indigo-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-xs"
+              className="w-full px-3.5 py-2 text-sm bg-white border border-teal-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-xs"
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -584,12 +584,12 @@ function GreedyTeamContent() {
           {/* 探索モード */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Sliders className="w-3.5 h-3.5 text-indigo-500" /> 探索モード:
+              <Sliders className="w-3.5 h-3.5 text-orange-500" /> 探索モード:
             </label>
             <select
               value={searchMode}
               onChange={(e) => setSearchMode(e.target.value as 'team_size' | 'threshold')}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="team_size">人数指定モード (固定人数)</option>
               <option value="threshold">閾値達成モード (目標到達まで)</option>
@@ -600,12 +600,12 @@ function GreedyTeamContent() {
           {searchMode === 'team_size' ? (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-indigo-500" /> 目標チーム人数:
+                <Users className="w-3.5 h-3.5 text-orange-500" /> 目標チーム人数:
               </label>
               <select
                 value={targetTeamSize}
                 onChange={(e) => setTargetTeamSize(Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
               >
                 <option value={2}>2{levelUnit}チーム (+1{levelUnit}追加)</option>
                 <option value={3}>3{levelUnit}チーム (+2{levelUnit}追加)</option>
@@ -617,12 +617,12 @@ function GreedyTeamContent() {
           ) : (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                <Target className="w-3.5 h-3.5 text-indigo-500" /> 目標スコア閾値:
+                <Target className="w-3.5 h-3.5 text-orange-500" /> 目標スコア閾値:
               </label>
               <select
                 value={targetThreshold}
                 onChange={(e) => setTargetThreshold(Number(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
               >
                 <option value={0.85}>85% 到達</option>
                 <option value={0.90}>90% 到達</option>
@@ -640,7 +640,7 @@ function GreedyTeamContent() {
             <select
               value={combineMethod}
               onChange={(e) => setCombineMethod(e.target.value as 'max' | 'mean')}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="max">最大値結合 (強み集約)</option>
               <option value="mean">平均値結合 (総合底上げ)</option>
@@ -655,7 +655,7 @@ function GreedyTeamContent() {
             <select
               value={vectorTarget}
               onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="all">全24スキル統合</option>
               <option value="knowledge">知識関連 (12項目)</option>
@@ -671,7 +671,7 @@ function GreedyTeamContent() {
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="department">学科レベル</option>
               <option value="faculty">学部レベル</option>
@@ -692,12 +692,12 @@ function GreedyTeamContent() {
             <span className="text-2xs text-slate-400 mt-0.5 block">起点組織のみ</span>
           </div>
 
-          <div className="p-4 bg-white rounded-xl border border-indigo-200 shadow-2xs bg-indigo-50/20">
-            <span className="text-xs text-indigo-700 font-bold">最終チームスコア</span>
-            <div className="text-xl font-bold text-indigo-600 mt-1">
+          <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-2xs bg-orange-50/20">
+            <span className="text-xs text-orange-700 font-bold">最終チームスコア</span>
+            <div className="text-xl font-bold text-orange-600 mt-1">
               {(teamResult.finalScore * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-indigo-600/80 mt-0.5 block">{teamResult.teamMembers.length}{levelUnit}合成</span>
+            <span className="text-2xs text-orange-600/80 mt-0.5 block">{teamResult.teamMembers.length}{levelUnit}合成</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs bg-emerald-50/20">
@@ -713,7 +713,7 @@ function GreedyTeamContent() {
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <span className="text-xs text-slate-500 font-medium">編成ステータス</span>
             <div className="text-sm font-bold text-slate-800 mt-2 flex items-center gap-1.5">
-              <span className={`w-2.5 h-2.5 rounded-full ${teamResult.reachedThreshold ? 'bg-emerald-500' : 'bg-blue-500'}`}></span>
+              <span className={`w-2.5 h-2.5 rounded-full ${teamResult.reachedThreshold ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
               <span>{teamResult.reachedThreshold ? '目標閾値達成' : `${teamResult.teamMembers.length}${levelUnit}編成完了`}</span>
             </div>
             <span className="text-2xs text-slate-400 mt-0.5 block">{combineMethod === 'max' ? '最大値結合' : '平均値結合'}</span>
@@ -725,7 +725,7 @@ function GreedyTeamContent() {
       {teamResult && (
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-indigo-600" />
+            <Users className="w-4 h-4 text-orange-600" />
             編成されたチームメンバー ({teamResult.teamMembers.length}{levelUnit}):
           </span>
           <div className="flex flex-wrap gap-2 pt-1">
@@ -734,7 +734,7 @@ function GreedyTeamContent() {
                 key={member.id}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${
                   index === 0
-                    ? 'bg-blue-50 text-blue-700 border-blue-200 font-bold'
+                    ? 'bg-teal-50 text-teal-700 border-teal-200 font-bold'
                     : 'bg-slate-50 text-slate-700 border-slate-200'
                 }`}
               >
@@ -753,7 +753,7 @@ function GreedyTeamContent() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <RadarIcon className="w-5 h-5 text-indigo-600" />
+              <RadarIcon className="w-5 h-5 text-orange-600" />
               チームスキルバランス推移 レーダーチャート
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -825,8 +825,8 @@ function GreedyTeamContent() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
                 {/* Step 0: 起点組織 */}
-                <tr className="bg-blue-50/40">
-                  <td className="py-2.5 px-3 text-center font-bold text-blue-700">
+                <tr className="bg-teal-50/40">
+                  <td className="py-2.5 px-3 text-center font-bold text-teal-700">
                     起点
                   </td>
                   <td className="py-2.5 px-3 font-semibold text-slate-800">
@@ -846,13 +846,13 @@ function GreedyTeamContent() {
                 {/* 各ステップ */}
                 {teamResult.steps.map((step) => (
                   <tr key={step.step} className="hover:bg-slate-50/80 transition">
-                    <td className="py-2.5 px-3 text-center font-bold text-indigo-700">
+                    <td className="py-2.5 px-3 text-center font-bold text-orange-700">
                       Step {step.step}
                     </td>
                     <td className="py-2.5 px-3 font-medium text-slate-800">
                       {step.addedMember.label}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-indigo-600">
+                    <td className="py-2.5 px-3 text-right font-bold text-orange-700">
                       {(step.teamScore * 100).toFixed(2)}%
                     </td>
                     <td className="py-2.5 px-3 text-right font-semibold text-emerald-600">
@@ -885,7 +885,7 @@ export default function GreedyTeamPage() {
   return (
     <Suspense fallback={
       <div className="w-full h-full flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
       </div>
     }>
       <GreedyTeamContent />

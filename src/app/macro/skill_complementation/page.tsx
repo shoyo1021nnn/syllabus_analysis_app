@@ -346,10 +346,10 @@ function SkillComplementationContent() {
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarSeriesItem[] = [
-      { name: formatLabel(targetRecord), value: targetKVec, color: '#3b82f6' },
+      { name: formatLabel(targetRecord), value: targetKVec, color: '#009688' }, // teal
     ];
     if (partnerRecord) {
-      list.push({ name: formatLabel(partnerRecord), value: partnerKVec, color: '#f43f5e' });
+      list.push({ name: formatLabel(partnerRecord), value: partnerKVec, color: '#e0532b' }); // orange
     }
     return list;
   }, [targetRecord, partnerRecord, targetKVec, partnerKVec]);
@@ -357,11 +357,11 @@ function SkillComplementationContent() {
   const generalSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarSeriesItem[] = [
-      { name: formatLabel(targetRecord), value: targetGVec, color: '#3b82f6' },
+      { name: formatLabel(targetRecord), value: targetGVec, color: '#009688' },
     ];
     if (partnerRecord) {
-      list.push({ name: formatLabel(partnerRecord), value: partnerGVec, color: '#f43f5e' });
-      list.push({ name: '補完後 (Max結合)', value: combinedGVec, color: '#10b981' });
+      list.push({ name: formatLabel(partnerRecord), value: partnerGVec, color: '#e0532b' });
+      list.push({ name: '補完後 (Max結合)', value: combinedGVec, color: '#059669' });
     }
     return list;
   }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec]);
@@ -372,19 +372,19 @@ function SkillComplementationContent() {
     const list: RadarLegendItem[] = [
       {
         name: `基準: ${formatLabel(targetRecord)}`,
-        color: '#3b82f6',
-        subLabel: '基準組織',
+        color: '#009688',
+        subLabel: '基準組織 (青緑)',
       },
     ];
     if (partnerRecord) {
       list.push({
         name: `候補: ${formatLabel(partnerRecord)}`,
-        color: '#f43f5e',
-        subLabel: '補完パートナー候補',
+        color: '#e0532b',
+        subLabel: '補完パートナー候補 (橙)',
       });
       list.push({
         name: '補完後 (Max結合)',
-        color: '#10b981',
+        color: '#059669',
         subLabel: '弱点補完合成',
       });
     }
@@ -448,7 +448,7 @@ function SkillComplementationContent() {
       {/* ヘッダーカード */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
             <Compass className="w-6 h-6" />
           </div>
           <div>
@@ -456,8 +456,8 @@ function SkillComplementationContent() {
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
                 スキル補完検索
               </h1>
-              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
                 <span>相補パートナー探索</span>
               </span>
             </div>
@@ -476,29 +476,29 @@ function SkillComplementationContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
         {/* 基準対象選択 */}
-        <div className="p-4 rounded-lg bg-indigo-50/50 border border-indigo-200 space-y-3">
+        <div className="p-4 rounded-lg bg-teal-50/50 border border-teal-200 space-y-3">
           {/* 大学フィルター (学部・学科レベル時) */}
           {level !== 'university' && universityList.length > 1 && (
-            <div className="pb-2 border-b border-indigo-200/60">
+            <div className="pb-2 border-b border-teal-200/60">
               <SearchableSelect
                 label="大学で絞り込み:"
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
                 placeholder="大学名を検索・選択..."
-                colorScheme="indigo"
+                colorScheme="teal"
               />
             </div>
           )}
 
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-bold text-indigo-800 flex items-center gap-1.5">
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
+              <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-teal-600" />
                 基準組織を選択:
               </span>
               {targetRecord && (
-                <span className="text-xs text-indigo-600 font-medium">
+                <span className="text-xs text-teal-700 font-medium">
                   科目数: {targetRecord.subject_count}科目
                 </span>
               )}
@@ -507,7 +507,7 @@ function SkillComplementationContent() {
               value={targetId}
               onChange={(e) => setTargetId(e.target.value)}
               disabled={isLoading || filteredDataList.length === 0}
-              className="w-full px-3.5 py-2 text-sm bg-white border border-indigo-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-xs"
+              className="w-full px-3.5 py-2 text-sm bg-white border border-teal-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-xs"
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -523,12 +523,12 @@ function SkillComplementationContent() {
           {/* 補完アプローチ */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> 補完アプローチ:
+              <Sparkles className="w-3.5 h-3.5 text-orange-500" /> 補完アプローチ:
             </label>
             <select
               value={approach}
               onChange={(e) => setApproach(e.target.value as ComplementationApproach)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="synergy">専門一致・汎用相補 (推奨)</option>
               <option value="gap">理想ギャップ補填特化</option>
@@ -546,7 +546,7 @@ function SkillComplementationContent() {
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value as MetricType)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="cosine">コサイン類似度 (標準)</option>
               <option value="tanimoto">谷本係数 (Tanimoto)</option>
@@ -561,7 +561,7 @@ function SkillComplementationContent() {
             <select
               value={filterUniversity}
               onChange={(e) => setFilterUniversity(e.target.value as TargetFilter)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="all">すべての大学</option>
               <option value="diff">他大学のみ (同一大学除く)</option>
@@ -577,7 +577,7 @@ function SkillComplementationContent() {
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="department">学科レベル</option>
               <option value="faculty">学部レベル</option>
@@ -592,14 +592,14 @@ function SkillComplementationContent() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <Radar className="w-5 h-5 text-indigo-600" />
+              <Radar className="w-5 h-5 text-orange-600" />
               スキル相補シミュレーション（基準 vs 選択パートナー vs 補完後）
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              基準: <span className="font-semibold text-blue-600">{formatLabel(targetRecord)}</span>
+              基準: <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
               {partnerRecord && (
                 <>
-                  {' '}× 補完候補: <span className="font-semibold text-rose-600">{formatLabel(partnerRecord)}</span>
+                  {' '}× 補完候補: <span className="font-semibold text-orange-700">{formatLabel(partnerRecord)}</span>
                 </>
               )}
             </p>
@@ -685,7 +685,7 @@ function SkillComplementationContent() {
                     onClick={() => setSelectedPartnerId(item.id)}
                     className={`cursor-pointer transition ${
                       isSelected
-                        ? 'bg-indigo-50/80 font-medium'
+                        ? 'bg-orange-50/80 font-medium'
                         : 'hover:bg-slate-50/80'
                     }`}
                   >
@@ -702,7 +702,7 @@ function SkillComplementationContent() {
                     <td className="py-2.5 px-3 font-medium text-slate-800">
                       {item.label}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-indigo-600">
+                    <td className="py-2.5 px-3 text-right font-bold text-orange-700">
                       {item.sort_score.toFixed(4)}
                     </td>
                     <td className="py-2.5 px-3 text-right text-slate-600">
@@ -714,7 +714,7 @@ function SkillComplementationContent() {
                     <td className="py-2.5 px-3 text-right text-emerald-600 font-semibold">
                       {(item.gap_score * 100).toFixed(1)}%
                     </td>
-                    <td className="py-2.5 px-3 text-right text-blue-600 font-semibold">
+                    <td className="py-2.5 px-3 text-right text-teal-700 font-semibold">
                       {(item.ideal_attainment_max * 100).toFixed(1)}%
                     </td>
                     <td className="py-2.5 px-3 text-center">
@@ -724,10 +724,10 @@ function SkillComplementationContent() {
                           e.stopPropagation();
                           setSelectedPartnerId(item.id);
                         }}
-                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium transition ${
+                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
                           isSelected
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+                            ? 'bg-orange-600 text-white shadow-xs'
+                            : 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
                         }`}
                       >
                         <span>{isSelected ? '表示中' : '選択'}</span>
@@ -748,7 +748,7 @@ export default function SkillComplementationPage() {
   return (
     <Suspense fallback={
       <div className="w-full h-full flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
       </div>
     }>
       <SkillComplementationContent />

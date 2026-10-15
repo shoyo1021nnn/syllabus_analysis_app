@@ -30,7 +30,7 @@ export default function MacroLayout({
           <div className="flex items-center space-x-4">
             <Link 
               href="/" 
-              className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 transition"
+              className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-slate-800 transition"
               title="ポータルホームに戻る"
             >
               <Home className="w-4 h-4" />
@@ -40,10 +40,10 @@ export default function MacroLayout({
             <span className="text-slate-300 dark:text-slate-700">|</span>
 
             <Link href="/macro" className="flex items-center space-x-2 group shrink-0">
-              <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-indigo-500 to-purple-600 group-hover:opacity-85 transition">
+              <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-orange-600 to-amber-600 group-hover:opacity-85 transition">
                 マクロな学習支援
               </h1>
-              <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
                 Macro Support
               </span>
             </Link>
@@ -61,11 +61,11 @@ export default function MacroLayout({
                     href={tab.href}
                     className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 ${
                       isActive
-                        ? 'bg-indigo-50 text-indigo-700 font-bold border-2 border-indigo-600 shadow-2xs ring-2 ring-indigo-500/10'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
+                        ? 'bg-orange-50 text-orange-700 font-bold border-2 border-orange-600 shadow-2xs ring-2 ring-orange-500/10'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-orange-400 hover:text-orange-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`} />
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-500'}`} />
                     <span>{tab.label}</span>
                   </Link>
                 );
@@ -76,7 +76,7 @@ export default function MacroLayout({
 
             <Link
               href="/analytics"
-              className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition"
+              className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs"
               title="スキルベクトル分析画面へ移動"
             >
               <span>スキル分析結果へ</span>

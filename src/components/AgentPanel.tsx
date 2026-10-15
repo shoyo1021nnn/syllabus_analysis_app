@@ -81,9 +81,9 @@ export function AgentPanel() {
         <div className="flex flex-col h-full bg-panel">
             {/* === 画面連動コンテキスト表示バッジ & リセットボタン === */}
             {(contextData.pageTitle || contextData.primaryTarget || messages.length > 0) && (
-                <div className="px-3.5 py-2 bg-blue-50/90 dark:bg-slate-800/80 border-b border-blue-100 dark:border-slate-700/60 flex items-center justify-between text-xs transition-all">
-                    <div className="flex items-center gap-1.5 min-w-0 text-blue-800 dark:text-blue-300">
-                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
+                <div className="px-3.5 py-2 bg-teal-50/90 dark:bg-teal-950/40 border-b border-teal-100 dark:border-teal-900/50 flex items-center justify-between text-xs transition-all">
+                    <div className="flex items-center gap-1.5 min-w-0 text-teal-800 dark:text-teal-300">
+                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
                         <span className="font-semibold shrink-0">{contextData.pageTitle || '画面連動'}</span>
                         {contextData.primaryTarget && (
                             <span className="truncate text-slate-600 dark:text-slate-400 font-normal">
@@ -178,7 +178,7 @@ export function AgentPanel() {
                             type="button"
                             onClick={() => handlePresetClick(q)}
                             disabled={isLoading}
-                            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-blue-950 dark:hover:text-blue-300 transition-all duration-150 border border-slate-200 dark:border-slate-700 text-left disabled:opacity-50 cursor-pointer"
+                            className="text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-teal-950 dark:hover:text-teal-300 transition-all duration-150 border border-slate-200 hover:border-teal-300 dark:border-slate-700 text-left disabled:opacity-50 cursor-pointer"
                         >
                             💡 {q}
                         </button>
@@ -196,7 +196,7 @@ export function AgentPanel() {
                     <button
                         type="submit"
                         disabled={!input?.trim() || isLoading}
-                        className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors shadow-sm"
+                        className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-hover transition-colors shadow-sm"
                     >
                         <Send className="w-4 h-4 ml-0.5" />
                     </button>

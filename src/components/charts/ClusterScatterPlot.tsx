@@ -14,18 +14,18 @@ interface ClusterScatterPlotProps {
   onSelectPoint?: (point: ClusteringPoint) => void;
 }
 
-// クラスタごとの洗練されたカラーパレット
+// クラスタごとの洗練されたカラーパレット（ティール＆オレンジ基調）
 const CLUSTER_COLORS = [
-  '#3b82f6', // blue
+  '#009688', // teal (ティール)
+  '#e0532b', // terracotta orange (テラコッタオレンジ)
+  '#0284c7', // sky
   '#10b981', // emerald
-  '#f59e0b', // amber
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-  '#14b8a6', // teal
-  '#6366f1', // indigo
-  '#84cc16', // lime
+  '#d97706', // amber
+  '#7c3aed', // violet
+  '#db2777', // pink
+  '#0d9488', // dark teal
+  '#ea580c', // bright orange
+  '#475569', // slate
 ];
 
 // 大学ごとのシンボル形状

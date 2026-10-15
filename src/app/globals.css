@@ -1,18 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  /* モダンでクリアなライトテーマ */
+  /* モダンでクリアなライトテーマ（ティール × オレンジ × 白） */
   --background: #f8fafc;
   --foreground: #0f172a;
 
   --panel-bg: #ffffff;
   --panel-border: #e2e8f0;
 
-  --primary: #3b82f6;
+  --primary: #009688;
   --primary-foreground: #ffffff;
+  --primary-hover: #00796b;
 
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --secondary: #e0532b;
+  --secondary-foreground: #ffffff;
+  --secondary-hover: #c8431e;
+
+  --accent: #f0fdfa;
+  --accent-foreground: #0f766e;
 }
 
 @theme inline {
@@ -22,6 +27,10 @@
   --color-panel-border: var(--panel-border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
@@ -39,10 +48,15 @@
     --panel-bg: #0f172a;
     --panel-border: #1e293b;
 
-    --primary: #3b82f6;
+    --primary: #009688;
     --primary-foreground: #ffffff;
+    --primary-hover: #26a69a;
 
-    --accent: #1e293b;
+    --secondary: #e0532b;
+    --secondary-foreground: #ffffff;
+    --secondary-hover: #ea653f;
+
+    --accent: #134e4a;
     --accent-foreground: #f8fafc;
   }
 }

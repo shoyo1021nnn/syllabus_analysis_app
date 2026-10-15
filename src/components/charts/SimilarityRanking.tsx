@@ -75,7 +75,7 @@ export default function SimilarityRanking({
             <div style="font-size: 13px; line-height: 1.5;">
               <div style="font-weight: 700; color: #1e293b;">${p.name}</div>
               <div style="color: #64748b; font-size: 12px; margin-top: 2px;">
-                ${metricName}: <span style="font-weight: 700; color: #3b82f6;">${p.value}</span>
+                ${metricName}: <span style="font-weight: 700; color: #009688;">${p.value}</span>
               </div>
             </div>
           `;
@@ -131,10 +131,10 @@ export default function SimilarityRanking({
               const idx = params.dataIndex; // 0 (10位) 〜 9 (1位)
               if (isEuclid) {
                 // ユークリッド距離は小さい方が上位
-                return '#6366f1';
+                return '#009688';
               }
               const opacity = 0.45 + (idx / 10) * 0.55;
-              return `rgba(59, 130, 246, ${opacity})`;
+              return `rgba(0, 150, 136, ${opacity})`;
             },
           },
         },

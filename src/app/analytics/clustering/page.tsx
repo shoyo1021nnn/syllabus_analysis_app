@@ -220,7 +220,7 @@ export default function ClusteringPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <div className="flex items-center space-x-2">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="p-2 bg-teal-50 text-teal-600 rounded-lg">
               <Network className="w-6 h-6" />
             </div>
             <div>
@@ -252,7 +252,7 @@ export default function ClusteringPage() {
               value={selectedRunId}
               onChange={(e) => setSelectedRunId(e.target.value)}
               disabled={isLoadingRuns}
-              className="px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-sm"
+              className="px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none transition shadow-sm"
             >
               {runs.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -271,34 +271,34 @@ export default function ClusteringPage() {
         {/* メトリクスカード群 */}
         {activeRun && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-lg bg-blue-50/50 border border-blue-100">
-              <div className="text-xs text-blue-600 font-medium">クラスタ数 (k)</div>
-              <div className="text-2xl font-bold text-blue-900 mt-0.5">k = {activeRun.k}</div>
+            <div className="p-3.5 rounded-lg bg-teal-50/50 border border-teal-100">
+              <div className="text-xs text-teal-700 font-medium">クラスタ数 (k)</div>
+              <div className="text-2xl font-bold text-teal-900 mt-0.5">k = {activeRun.k}</div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-emerald-50/50 border border-emerald-100">
-              <div className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+            <div className="p-3.5 rounded-lg bg-orange-50/50 border border-orange-100">
+              <div className="text-xs text-orange-700 font-medium flex items-center gap-1">
                 <Award className="w-3.5 h-3.5" /> シルエットスコア
               </div>
-              <div className="text-2xl font-bold text-emerald-900 mt-0.5">
+              <div className="text-2xl font-bold text-orange-900 mt-0.5">
                 {activeRun.silhouette_score?.toFixed(4)}
               </div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-indigo-50/50 border border-indigo-100">
-              <div className="text-xs text-indigo-600 font-medium flex items-center gap-1">
+            <div className="p-3.5 rounded-lg bg-teal-50/30 border border-teal-100">
+              <div className="text-xs text-teal-700 font-medium flex items-center gap-1">
                 <Activity className="w-3.5 h-3.5" /> PC1 寄与率
               </div>
-              <div className="text-2xl font-bold text-indigo-900 mt-0.5">
+              <div className="text-2xl font-bold text-teal-900 mt-0.5">
                 {activeRun.pc1_ratio ? `${(activeRun.pc1_ratio * 100).toFixed(1)}%` : '-'}
               </div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-purple-50/50 border border-purple-100">
-              <div className="text-xs text-purple-600 font-medium flex items-center gap-1">
+            <div className="p-3.5 rounded-lg bg-orange-50/30 border border-orange-100">
+              <div className="text-xs text-orange-700 font-medium flex items-center gap-1">
                 <Activity className="w-3.5 h-3.5" /> PC2 寄与率
               </div>
-              <div className="text-2xl font-bold text-purple-900 mt-0.5">
+              <div className="text-2xl font-bold text-orange-900 mt-0.5">
                 {activeRun.pc2_ratio ? `${(activeRun.pc2_ratio * 100).toFixed(1)}%` : '-'}
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function ClusteringPage() {
       <div className="flex-1 min-h-[500px] bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
         {isLoadingPoints ? (
           <div className="flex-1 flex items-center justify-center text-slate-400">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-2" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mr-2" />
             データを読み込み中...
           </div>
         ) : (
@@ -326,11 +326,11 @@ export default function ClusteringPage() {
 
       {/* 選択ノード詳細カード */}
       {selectedPoint && (
-        <div className="p-4 bg-white rounded-xl border-2 border-blue-200 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="p-4 bg-white rounded-xl border-2 border-teal-300 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center space-x-2">
-                <span className="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-700">
+                <span className="px-2 py-0.5 rounded text-xs font-semibold bg-teal-100 text-teal-800">
                   Cluster {selectedPoint.cluster_id}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">{selectedPoint.university_name}</span>
@@ -349,14 +349,14 @@ export default function ClusteringPage() {
                 href={`/analytics/radar_chart?dept=${encodeURIComponent(selectedPoint.department_name)}&univ=${encodeURIComponent(selectedPoint.university_name)}`}
                 className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition shadow-xs border border-slate-200"
               >
-                <Radar className="w-3.5 h-3.5 text-blue-600" />
+                <Radar className="w-3.5 h-3.5 text-teal-600" />
                 <span>スキルレーダーで見る</span>
               </Link>
               <Link
                 href={`/analytics/similarity?dept=${encodeURIComponent(selectedPoint.department_name)}&univ=${encodeURIComponent(selectedPoint.university_name)}`}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition shadow-xs border border-blue-200"
+                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 transition shadow-xs border border-teal-200"
               >
-                <Users className="w-3.5 h-3.5 text-blue-600" />
+                <Users className="w-3.5 h-3.5 text-teal-600" />
                 <span>類似学科を探す</span>
               </Link>
             </div>

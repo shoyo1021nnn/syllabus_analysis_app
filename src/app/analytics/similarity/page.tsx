@@ -458,7 +458,7 @@ function SimilarityPageContent() {
       {/* ページタイトル & 概要 */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+          <div className="p-2.5 bg-teal-50 text-teal-600 rounded-lg">
             <Users className="w-6 h-6" />
           </div>
           <div>
@@ -480,29 +480,29 @@ function SimilarityPageContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
         {/* 基準対象の選択 */}
-        <div className="p-4 rounded-lg bg-blue-50/50 border border-blue-200 space-y-3">
+        <div className="p-4 rounded-lg bg-teal-50/50 border border-teal-200 space-y-3">
           {/* 大学フィルター (学部・学科レベル時) */}
           {level !== 'university' && universityList.length > 1 && (
-            <div className="pb-2 border-b border-blue-200/60">
+            <div className="pb-2 border-b border-teal-200/60">
               <SearchableSelect
                 label="大学で絞り込み:"
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
                 placeholder="大学名を検索・選択..."
-                colorScheme="blue"
+                colorScheme="teal"
               />
             </div>
           )}
 
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-bold text-blue-800 flex items-center gap-1.5">
-                <GraduationCap className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-teal-600" />
                 基準{level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科'}を選択:
               </span>
               {targetRecord && (
-                <span className="text-xs text-blue-600 font-medium">
+                <span className="text-xs text-teal-700 font-medium">
                   科目数: {targetRecord.subject_count}科目
                 </span>
               )}
@@ -511,7 +511,7 @@ function SimilarityPageContent() {
               value={targetId}
               onChange={(e) => setTargetId(e.target.value)}
               disabled={isLoading || filteredDataList.length === 0}
-              className="w-full px-3.5 py-2 text-sm bg-white border border-blue-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+              className="w-full px-3.5 py-2 text-sm bg-white border border-teal-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-sm"
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -532,7 +532,7 @@ function SimilarityPageContent() {
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value as MetricType)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
               <option value="cosine">コサイン類似度 (標準)</option>
               <option value="dot">内積スコア</option>
@@ -549,7 +549,7 @@ function SimilarityPageContent() {
             <select
               value={vectorTarget}
               onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
               <option value="all">全24スキル統合 (知識+汎用)</option>
               <option value="knowledge">知識関連スキルのみ (12項目)</option>
@@ -565,7 +565,7 @@ function SimilarityPageContent() {
             <select
               value={filterUniversity}
               onChange={(e) => setFilterUniversity(e.target.value as TargetFilter)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
               <option value="all">すべての大学</option>
               <option value="diff">他大学の学科のみ (同一大学除く)</option>
@@ -581,7 +581,7 @@ function SimilarityPageContent() {
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
               <option value="department">学科レベル</option>
               <option value="faculty">学部レベル</option>
@@ -595,7 +595,7 @@ function SimilarityPageContent() {
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col min-h-[460px]">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-blue-600" />
+            <BarChart2 className="w-5 h-5 text-teal-600" />
             Top 10 類似度ランキング
           </h2>
           <span className="text-xs text-slate-400">
@@ -605,7 +605,7 @@ function SimilarityPageContent() {
 
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-slate-400">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-2" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mr-2" />
             ランキングを算出中...
           </div>
         ) : (
@@ -660,16 +660,16 @@ function SimilarityPageContent() {
                     <td className="py-2.5 px-3">
                       {targetDeptName}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-blue-600">
+                    <td className="py-2.5 px-3 text-right font-bold text-teal-700">
                       {item.score.toFixed(4)}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <Link
                         href={`/analytics/radar_chart?primaryId=${targetRecord.id}&compareId=${item.id}`}
-                        className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition shadow-xs border border-blue-200/60"
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 transition shadow-xs border border-teal-200/60"
                         title="この学科と基準学科をレーダーチャートで直接対比"
                       >
-                        <Radar className="w-3.5 h-3.5 text-blue-600" />
+                        <Radar className="w-3.5 h-3.5 text-teal-600" />
                         <span>レーダーで比較</span>
                       </Link>
                     </td>

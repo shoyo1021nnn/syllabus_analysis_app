@@ -328,14 +328,14 @@ function RadarChartContent() {
       {
         name: formatLabel(primaryRecord),
         value: primaryKVec,
-        color: '#3b82f6', // blue
+        color: '#009688', // teal
       },
     ];
     if (isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord?.id) {
       list.push({
         name: formatLabel(compareRecord),
         value: compareKVec,
-        color: '#f43f5e', // rose
+        color: '#e0532b', // terracotta orange
       });
     }
     return list;
@@ -346,14 +346,14 @@ function RadarChartContent() {
       {
         name: formatLabel(primaryRecord),
         value: primaryGVec,
-        color: '#3b82f6',
+        color: '#009688',
       },
     ];
     if (isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord?.id) {
       list.push({
         name: formatLabel(compareRecord),
         value: compareGVec,
-        color: '#f43f5e',
+        color: '#e0532b',
       });
     }
     return list;
@@ -364,14 +364,14 @@ function RadarChartContent() {
       {
         name: formatLabel(primaryRecord),
         value: primaryAllVec,
-        color: '#3b82f6',
+        color: '#009688',
       },
     ];
     if (isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord?.id) {
       list.push({
         name: formatLabel(compareRecord),
         value: compareAllVec,
-        color: '#f43f5e',
+        color: '#e0532b',
       });
     }
     return list;
@@ -383,14 +383,14 @@ function RadarChartContent() {
     const list: RadarLegendItem[] = [
       {
         name: formatLabel(primaryRecord),
-        color: '#3b82f6',
+        color: '#009688',
         subLabel: '基準対象',
       },
     ];
     if (isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord.id) {
       list.push({
         name: formatLabel(compareRecord),
-        color: '#f43f5e',
+        color: '#e0532b',
         subLabel: '比較対象',
       });
     }
@@ -485,7 +485,7 @@ function RadarChartContent() {
       {/* ページタイトル & 概要 */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+          <div className="p-2.5 bg-teal-50 text-teal-600 rounded-lg">
             <RadarIcon className="w-6 h-6" />
           </div>
           <div>
@@ -515,7 +515,7 @@ function RadarChartContent() {
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
               >
                 <option value="department">学科レベル</option>
                 <option value="faculty">学部レベル</option>
@@ -529,7 +529,7 @@ function RadarChartContent() {
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
               >
                 <option value="split">知識・汎用 2分割 (12角形×2)</option>
                 <option value="combined">統合表示 (24角形)</option>
@@ -542,30 +542,30 @@ function RadarChartContent() {
 
         {/* 対象選択 (基準 vs 比較) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 対象 1 (基準: 青) */}
-          <div className="p-3.5 rounded-lg bg-blue-50/40 border border-blue-200 space-y-2.5">
+          {/* 対象 1 (基準: 青緑/ティール) */}
+          <div className="p-3.5 rounded-lg bg-teal-50/40 border border-teal-200 space-y-2.5">
             {/* 基準対象用 大学フィルター (学部・学科時) */}
             {level !== 'university' && universityList.length > 1 && (
-              <div className="pb-2 border-b border-blue-200/60">
+              <div className="pb-2 border-b border-teal-200/60">
                 <SearchableSelect
                   label="大学絞り込み (基準):"
                   options={universityList}
                   value={primaryUnivFilter}
                   onChange={setPrimaryUnivFilter}
                   placeholder="大学名を検索・選択..."
-                  colorScheme="blue"
+                  colorScheme="teal"
                 />
               </div>
             )}
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                  基準対象 (青)
+                <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
+                  基準対象 (青緑)
                 </span>
                 {primaryRecord && (
-                  <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                  <span className="text-xs text-teal-700 font-medium flex items-center gap-1">
                     <BookOpen className="w-3.5 h-3.5" /> 科目数: {primaryRecord.subject_count}
                   </span>
                 )}
@@ -574,7 +574,7 @@ function RadarChartContent() {
                 value={primaryId}
                 onChange={(e) => setPrimaryId(e.target.value)}
                 disabled={isLoading || filteredPrimaryList.length === 0}
-                className="w-full px-3 py-2 text-sm bg-white border border-blue-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+                className="w-full px-3 py-2 text-sm bg-white border border-teal-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-sm"
               >
                 {filteredPrimaryList.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -585,18 +585,18 @@ function RadarChartContent() {
             </div>
           </div>
 
-          {/* 対象 2 (比較: 赤) */}
-          <div className={`p-3.5 rounded-lg border transition space-y-2.5 ${isCompareEnabled ? 'bg-rose-50/40 border-rose-200' : 'bg-slate-50/50 border-slate-200 opacity-70'}`}>
+          {/* 対象 2 (比較: 橙/テラコッタオレンジ) */}
+          <div className={`p-3.5 rounded-lg border transition space-y-2.5 ${isCompareEnabled ? 'bg-orange-50/40 border-orange-200' : 'bg-slate-50/50 border-slate-200 opacity-70'}`}>
             {/* 比較対象用 大学フィルター (学部・学科時) */}
             {isCompareEnabled && level !== 'university' && universityList.length > 1 && (
-              <div className="pb-2 border-b border-rose-200/60">
+              <div className="pb-2 border-b border-orange-200/60">
                 <SearchableSelect
                   label="大学絞り込み (比較):"
                   options={universityList}
                   value={compareUnivFilter}
                   onChange={setCompareUnivFilter}
                   placeholder="大学名を検索・選択..."
-                  colorScheme="rose"
+                  colorScheme="orange"
                 />
               </div>
             )}
@@ -606,17 +606,17 @@ function RadarChartContent() {
                 <button
                   type="button"
                   onClick={() => setIsCompareEnabled(!isCompareEnabled)}
-                  className="text-xs font-bold text-rose-700 flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer"
+                  className="text-xs font-bold text-orange-800 flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer"
                 >
                   {isCompareEnabled ? (
-                    <CheckSquare className="w-4 h-4 text-rose-500" />
+                    <CheckSquare className="w-4 h-4 text-orange-600" />
                   ) : (
                     <Square className="w-4 h-4 text-slate-400" />
                   )}
-                  <span>比較対象を追加 (赤)</span>
+                  <span>比較対象を追加 (橙)</span>
                 </button>
                 {isCompareEnabled && compareRecord && (
-                  <span className="text-xs text-rose-600 font-medium flex items-center gap-1">
+                  <span className="text-xs text-orange-700 font-medium flex items-center gap-1">
                     <BookOpen className="w-3.5 h-3.5" /> 科目数: {compareRecord.subject_count}
                   </span>
                 )}
@@ -625,7 +625,7 @@ function RadarChartContent() {
                 value={compareId}
                 onChange={(e) => setCompareId(e.target.value)}
                 disabled={!isCompareEnabled || isLoading || filteredCompareList.length === 0}
-                className="w-full px-3 py-2 text-sm bg-white border border-rose-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none shadow-sm disabled:bg-slate-100 disabled:text-slate-400"
+                className="w-full px-3 py-2 text-sm bg-white border border-orange-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm disabled:bg-slate-100 disabled:text-slate-400"
               >
                 {filteredCompareList.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -642,7 +642,7 @@ function RadarChartContent() {
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 min-h-[550px] flex flex-col">
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-slate-400">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-2" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mr-2" />
             データを読み込み中...
           </div>
         ) : (
@@ -720,32 +720,32 @@ function RadarChartContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 基準対象 Topスキル */}
         {primaryRecord && (
-          <div className="p-4 bg-white rounded-xl border border-blue-200 shadow-sm">
-            <div className="flex items-center space-x-2 text-xs font-bold text-blue-700 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+          <div className="p-4 bg-white rounded-xl border border-teal-200 shadow-sm">
+            <div className="flex items-center space-x-2 text-xs font-bold text-teal-800 mb-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
               <span>{formatLabel(primaryRecord)} の強み・特徴</span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-blue-600" /> 知識スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-teal-600" /> 知識スキル Top 3
                 </div>
                 {primaryTopK.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-blue-600">{s.val.toFixed(1)}%</span>
+                    <span className="font-semibold text-teal-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
 
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-blue-600" /> 汎用スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-teal-600" /> 汎用スキル Top 3
                 </div>
                 {primaryTopG.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-blue-600">{s.val.toFixed(1)}%</span>
+                    <span className="font-semibold text-teal-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
@@ -755,32 +755,32 @@ function RadarChartContent() {
 
         {/* 比較対象 Topスキル */}
         {isCompareEnabled && compareRecord && (
-          <div className="p-4 bg-white rounded-xl border border-rose-200 shadow-sm">
-            <div className="flex items-center space-x-2 text-xs font-bold text-rose-700 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-sm">
+            <div className="flex items-center space-x-2 text-xs font-bold text-orange-800 mb-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
               <span>{formatLabel(compareRecord)} の強み・特徴</span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-rose-600" /> 知識スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-orange-600" /> 知識スキル Top 3
                 </div>
                 {compareTopK.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-rose-600">{s.val.toFixed(1)}%</span>
+                    <span className="font-semibold text-orange-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
 
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-rose-600" /> 汎用スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-orange-600" /> 汎用スキル Top 3
                 </div>
                 {compareTopG.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
                     <span>{i + 1}. {s.name}</span>
-                    <span className="font-semibold text-rose-600">{s.val.toFixed(1)}%</span>
+                    <span className="font-semibold text-orange-600">{s.val.toFixed(1)}%</span>
                   </div>
                 ))}
               </div>
