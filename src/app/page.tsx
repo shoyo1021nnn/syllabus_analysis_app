@@ -45,21 +45,21 @@ export default function HomePage() {
           </h1>
         </div>
 
-        {/* 2大メイン導線カード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto w-full pt-4">
+        {/* 3大メイン導線カード */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full pt-4">
           
           {/* カード 1: スキルベクトル分析結果（ティール基調） */}
           <Link
             href="/analytics"
-            className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 p-8 shadow-sm hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+            className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 p-7 shadow-xs hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
           >
             {/* 上部背景アクセントグラデーション */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-teal-500 to-teal-600 group-hover:h-2 transition-all duration-300"></div>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-200 dark:border-teal-800/80 group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <BarChart3 className="w-7 h-7" />
+                <div className="w-13 h-13 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-200 dark:border-teal-800/80 group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 shadow-xs">
+                  <BarChart3 className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800">
                   Analytics
@@ -67,35 +67,35 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                  スキルベクトル分析結果
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                  スキル分析結果
                 </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                   全国の大学・学部・学科が持つ24次元のスキル構成比を客観的に比較・マッピングし、カリキュラムの現在地やベンチマーク対象を明確にします。
                 </p>
               </div>
 
               {/* 含まれる3つの機能プレビュー */}
-              <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center space-x-2.5 text-xs text-slate-600 dark:text-slate-400">
-                  <Network className="w-4 h-4 text-teal-600 shrink-0" />
-                  <span><strong>K-meansクラスタリング:</strong> 全体分布をPCA散布図で俯瞰</span>
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <Network className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                  <span><strong>クラスタリング:</strong> PCA散布図で俯瞰</span>
                 </div>
-                <div className="flex items-center space-x-2.5 text-xs text-slate-600 dark:text-slate-400">
-                  <GitCompare className="w-4 h-4 text-teal-600 shrink-0" />
-                  <span><strong>類似度計算ランキング:</strong> ベンチマーク類似学科を算出</span>
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <GitCompare className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                  <span><strong>類似度ランキング:</strong> 類似学科を算出</span>
                 </div>
-                <div className="flex items-center space-x-2.5 text-xs text-slate-600 dark:text-slate-400">
-                  <Radar className="w-4 h-4 text-teal-600 shrink-0" />
-                  <span><strong>スキルレーダーチャート:</strong> 24項目の強み・弱みを直接対比</span>
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <Radar className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                  <span><strong>レーダーチャート:</strong> 強み・弱みを対比</span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 pt-4 flex items-center justify-between text-teal-600 dark:text-teal-400 font-bold text-sm">
-              <span>分析ダッシュボードを開く</span>
-              <div className="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
-                <ArrowRight className="w-4 h-4" />
+            <div className="mt-6 pt-3 flex items-center justify-between text-teal-600 dark:text-teal-400 font-bold text-xs">
+              <span>分析ダッシュボード</span>
+              <div className="w-7 h-7 rounded-full bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+                <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>
           </Link>
@@ -103,15 +103,15 @@ export default function HomePage() {
           {/* カード 2: マクロな学習支援（テラコッタオレンジ基調） */}
           <Link
             href="/macro"
-            className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-8 shadow-sm hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+            className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-7 shadow-xs hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
           >
             {/* 上部背景アクセントグラデーション */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-orange-500 to-orange-600 group-hover:h-2 transition-all duration-300"></div>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center border border-orange-200 dark:border-orange-800/80 group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <Users className="w-7 h-7" />
+                <div className="w-13 h-13 rounded-2xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center border border-orange-200 dark:border-orange-800/80 group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300 shadow-xs">
+                  <Users className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 px-3 py-1 rounded-full border border-orange-200 dark:border-orange-800">
                   Macro Support
@@ -119,35 +119,87 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                   マクロな学習支援
                 </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                  自組織の不足スキルを補う連携パートナーの探索や、理想的なスキルバランスを達成するためのベストペア・最適チーム編成をシミュレーションします。
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                  自組織の不足スキルを補う連携パートナー探索や、理想的なスキルバランスを達成するベストペア・最適チーム編成を支援します。
                 </p>
               </div>
 
               {/* 含まれる3つの機能プレビュー */}
-              <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center space-x-2.5 text-xs text-slate-600 dark:text-slate-400">
-                  <Compass className="w-4 h-4 text-orange-500 shrink-0" />
-                  <span><strong>スキル補完検索:</strong> 不足を補い合う相補パートナー探索</span>
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <Compass className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                  <span><strong>相補パートナー:</strong> 不足を補い合う探索</span>
                 </div>
-                <div className="flex items-center space-x-2.5 text-xs text-slate-600 dark:text-slate-400">
-                  <Sparkles className="w-4 h-4 text-orange-500 shrink-0" />
-                  <span><strong>ベスト・ペア検索:</strong> 1対1結合(Max/Mean)で最高シナジーを特定</span>
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <Sparkles className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                  <span><strong>ベスト・ペア:</strong> 1対1結合で最高シナジー</span>
                 </div>
-                <div className="flex items-center space-x-2.5 text-xs text-slate-600 dark:text-slate-400">
-                  <UserPlus className="w-4 h-4 text-orange-500 shrink-0" />
-                  <span><strong>チーム編成支援:</strong> 貪欲法による多人数スキルカバレッジ最適化</span>
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <UserPlus className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                  <span><strong>チーム編成支援:</strong> 多人数カバレッジ最適化</span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 pt-4 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-sm">
-              <span>学習支援メニューを開く</span>
-              <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
-                <ArrowRight className="w-4 h-4" />
+            <div className="mt-6 pt-3 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
+              <span>学習支援メニュー</span>
+              <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </Link>
+
+          {/* カード 3: ミクロな学習支援（インディゴ基調） */}
+          <Link
+            href="/micro"
+            className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 p-7 shadow-xs hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+          >
+            {/* 上部背景アクセントグラデーション */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-indigo-500 to-indigo-600 group-hover:h-2 transition-all duration-300"></div>
+
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="w-13 h-13 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-200 dark:border-indigo-800/80 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-xs">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
+                  Micro Support
+                </span>
+              </div>
+
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  ミクロな学習支援
+                </h2>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                  履修した科目を選択することで自身の24次元スキルを可視化。不足スキルを補完する科目を九州大学の全シラバスから自動推薦します。
+                </p>
+              </div>
+
+              {/* 含まれる3つの機能プレビュー */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <GraduationCap className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span><strong>履修登録・管理:</strong> 5,903科目から検索選択</span>
+                </div>
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <Radar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span><strong>個人スキル可視化:</strong> 累積チャートで強み弱み</span>
+                </div>
+                <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span><strong>補完科目推薦:</strong> ギャップを埋める科目を提示</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-3 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+              <span>個人学習支援メニュー</span>
+              <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+                <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>
           </Link>

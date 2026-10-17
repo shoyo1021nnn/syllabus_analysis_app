@@ -24,6 +24,16 @@ const DEFAULT_PRESETS: Record<string, string[]> = {
         "類似度が低い学科との決定的な違いは？",
         "この距離指標における結果の解釈を教えて",
     ],
+    micro_portfolio: [
+        "私の現在のスキル蓄積における強みと特徴を分析して",
+        "不足しているスキルを補うためにはどのような科目を意識すべき？",
+        "この履修状況でバランスを整えるための次学期のアドバイスは？",
+    ],
+    micro_recommendation: [
+        "提示された推薦科目の中で最も効率的に弱点を埋められるものは？",
+        "基幹教育科目の中から特に汎用スキルが伸びるおすすめは？",
+        "私の不足スキルを補完する上で配慮すべき履修順序はありますか？",
+    ],
     default: [
         "この科目の前提知識は何ですか？",
         "類似する科目を教えてください",
@@ -46,6 +56,8 @@ export function AgentPanel() {
         if (contextData.presetQuestions && contextData.presetQuestions.length > 0) {
             return contextData.presetQuestions;
         }
+        if (pathname?.includes('portfolio')) return DEFAULT_PRESETS.micro_portfolio;
+        if (pathname?.includes('recommendation')) return DEFAULT_PRESETS.micro_recommendation;
         if (pathname?.includes('radar_chart')) return DEFAULT_PRESETS.radar_chart;
         if (pathname?.includes('clustering')) return DEFAULT_PRESETS.clustering;
         if (pathname?.includes('similarity')) return DEFAULT_PRESETS.similarity;

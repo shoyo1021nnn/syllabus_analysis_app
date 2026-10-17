@@ -5,6 +5,11 @@ import {
   SimilarityScoreItem,
   SkillDefinition,
   VectorTarget,
+  CourseSkillVector,
+  EnrolledCourse,
+  PersonalSkillProfile,
+  SkillItemScore,
+  CourseRecommendationItem,
 } from '@/types/database';
 
 // ==========================================
@@ -717,5 +722,274 @@ export function runGreedyTeamBuild(
     reachedThreshold,
     baselineScore,
     finalScore: currentScore,
+  };
+}
+
+// ==========================================
+// 8. ミクロな学習支援（個人向け）計算ロジック（案B: 累積加算方式）
+// ==========================================
+
+/**
+ * 履修科目のリストから、学生個人の24次元累積スキルプロファイルを算出する（案B）
+ */
+export function calculatePersonalSkillProfile(enrolledCourses: EnrolledCourse[]): PersonalSkillProfile {
+  const cumulativeKnowledge = new Array(12).fill(0);
+  const cumulativeGeneral = new Array(12).fill(0);
+  let totalCredits = 0;
+
+  for (const item of enrolledCourses) {
+    const course = item.course;
+    const cred = typeof course.credits === 'number' && !isNaN(course.credits) ? course.credits : (course.credits ? Number(course.credits) : 2.0);
+    totalCredits += cred;
+
+    const kVec = Array.isArray(course.knowledge_vector) && course.knowledge_vector.length === 12
+      ? course.knowledge_vector
+      : [
+          course.a_1_education || 0, course.a_2_humanities || 0, course.a_3_arts || 0,
+          course.a_4_social_sciences || 0, course.a_5_business || 0, course.a_6_natural_sciences || 0,
+          course.a_7_ict || 0, course.a_8_engineering || 0, course.a_9_hardware_operation || 0,
+          course.a_10_agriculture_forestry || 0, course.a_11_health_welfare || 0, course.a_12_services || 0
+        ];
+
+    const gVec = Array.isArray(course.general_vector) && course.general_vector.length === 12
+      ? course.general_vector
+      : [
+          course.b_1_teamwork || 0, course.b_2_critical || 0, course.b_3_language || 0,
+          course.b_4_ethics || 0, course.b_5_self_management || 0, course.b_6_problem_solving || 0,
+          course.b_7_adaptability || 0, course.b_8_creativity || 0, course.b_9_expressiveness || 0,
+          course.b_10_info_processing || 0, course.b_11_computer_skills || 0, course.b_12_leadership || 0
+        ];
+
+    for (let i = 0; i < 12; i++) {
+      cumulativeKnowledge[i] += Number(kVec[i]) || 0;
+      cumulativeGeneral[i] += Number(gVec[i]) || 0;
+    }
+  }
+
+  // 24スキルすべてのスコアリストを作成
+  const allSkillScores: SkillItemScore[] = [
+    ...KNOWLEDGE_SKILLS.map((s, idx) => ({
+      code: s.code,
+      category: 'knowledge' as const,
+      nameJa: s.nameJa,
+      nameEn: s.nameEn,
+      score: cumulativeKnowledge[idx],
+    })),
+    ...GENERAL_SKILLS.map((s, idx) => ({
+      code: s.code,
+      category: 'general' as const,
+      nameJa: s.nameJa,
+      nameEn: s.nameEn,
+      score: cumulativeGeneral[idx],
+    })),
+  ];
+
+  // スコア順にソート
+  const sortedDesc = [...allSkillScores].sort((a, b) => b.score - a.score);
+  const sortedAsc = [...allSkillScores].sort((a, b) => a.score - b.score);
+
+  // 強み: スコアが0より大きい上位3項目（なければ空）
+  const strengths = sortedDesc.filter((s) => s.score > 0).slice(0, 4);
+
+  // 弱点: スコアが低い下位項目（0または相対的に低い上位3〜4項目）
+  const weaknesses = sortedAsc.slice(0, 4);
+
+  return {
+    cumulativeKnowledgeVector: cumulativeKnowledge,
+    cumulativeGeneralVector: cumulativeGeneral,
+    totalCredits: Math.round(totalCredits * 10) / 10,
+    courseCount: enrolledCourses.length,
+    strengths,
+    weaknesses,
+  };
+}
+
+/**
+ * 不足スキルを補完する科目を推薦・ランキングする
+ */
+export function recommendCoursesForPersonalGaps(
+  profile: PersonalSkillProfile,
+  candidateCourses: CourseSkillVector[],
+  enrolledCourseIds: Set<string>,
+  options: {
+    facultyFilter?: string;
+    semesterFilter?: string;
+    targetCategory?: 'all' | 'knowledge' | 'general';
+    topN?: number;
+  } = {}
+): CourseRecommendationItem[] {
+  const { facultyFilter, semesterFilter, targetCategory = 'all', topN = 10 } = options;
+
+  // 候補科目から履修済みを除外・異常フラグ（is_zero_vector）を除外
+  let filtered = candidateCourses.filter(
+    (c) => !enrolledCourseIds.has(c.id) && !c.is_zero_vector
+  );
+
+  if (facultyFilter && facultyFilter !== 'all') {
+    filtered = filtered.filter((c) => c.faculty_name === facultyFilter);
+  }
+  if (semesterFilter && semesterFilter !== 'all') {
+    filtered = filtered.filter((c) => c.semester && c.semester.includes(semesterFilter));
+  }
+
+  // 不足スキルのコード一覧
+  const weakCodes = new Set(
+    profile.weaknesses
+      .filter((w) => {
+        if (targetCategory === 'knowledge') return w.category === 'knowledge';
+        if (targetCategory === 'general') return w.category === 'general';
+        return true;
+      })
+      .map((w) => w.code)
+  );
+
+  const recommendations: CourseRecommendationItem[] = [];
+
+  for (const course of filtered) {
+    const kVec = Array.isArray(course.knowledge_vector) && course.knowledge_vector.length === 12
+      ? course.knowledge_vector
+      : [
+          course.a_1_education || 0, course.a_2_humanities || 0, course.a_3_arts || 0,
+          course.a_4_social_sciences || 0, course.a_5_business || 0, course.a_6_natural_sciences || 0,
+          course.a_7_ict || 0, course.a_8_engineering || 0, course.a_9_hardware_operation || 0,
+          course.a_10_agriculture_forestry || 0, course.a_11_health_welfare || 0, course.a_12_services || 0
+        ];
+
+    const gVec = Array.isArray(course.general_vector) && course.general_vector.length === 12
+      ? course.general_vector
+      : [
+          course.b_1_teamwork || 0, course.b_2_critical || 0, course.b_3_language || 0,
+          course.b_4_ethics || 0, course.b_5_self_management || 0, course.b_6_problem_solving || 0,
+          course.b_7_adaptability || 0, course.b_8_creativity || 0, course.b_9_expressiveness || 0,
+          course.b_10_info_processing || 0, course.b_11_computer_skills || 0, course.b_12_leadership || 0
+        ];
+
+    // この科目が持つ24スキル一覧
+    const courseSkills: Array<{ code: string; nameJa: string; value: number }> = [
+      ...KNOWLEDGE_SKILLS.map((s, idx) => ({ code: s.code, nameJa: s.nameJa, value: Number(kVec[idx]) || 0 })),
+      ...GENERAL_SKILLS.map((s, idx) => ({ code: s.code, nameJa: s.nameJa, value: Number(gVec[idx]) || 0 })),
+    ];
+
+    // 不足スキルに対する補填スコア合計
+    let gapGainSum = 0;
+    const targetedSkills: Array<{ code: string; nameJa: string; gain: number }> = [];
+
+    for (const cs of courseSkills) {
+      if (weakCodes.has(cs.code) && cs.value > 0) {
+        gapGainSum += cs.value;
+        targetedSkills.push({
+          code: cs.code,
+          nameJa: cs.nameJa,
+          gain: cs.value,
+        });
+      }
+    }
+
+    // 科目全体の強みスキル（スコア6以上、またはトップスキル）も合わせて記録
+    const strongSkillsInCourse = courseSkills
+      .filter((cs) => cs.value >= 5 && !targetedSkills.some((ts) => ts.code === cs.code))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 2);
+
+    for (const sc of strongSkillsInCourse) {
+      targetedSkills.push({
+        code: sc.code,
+        nameJa: sc.nameJa,
+        gain: sc.value,
+      });
+    }
+
+    // 適合スコアの算出: 弱点スキルの補填度を重視しつつ、科目全体のスキル合計値も加味
+    // 弱点スキル獲得量(最大4項目 * 9 = 36点満点)を80%重み、全体スキル強度(216点満点)を20%重み
+    const totalCourseSkillSum = courseSkills.reduce((acc, curr) => acc + curr.value, 0);
+    const gapScoreNormalized = Math.min(100, Math.round((gapGainSum / 18) * 100)); // 18点以上で100点
+    const totalScoreNormalized = Math.min(100, Math.round((totalCourseSkillSum / 36) * 100));
+
+    // 弱点補填が1つでもある場合を大幅優遇
+    const matchScore = gapGainSum > 0
+      ? Math.round(gapScoreNormalized * 0.75 + totalScoreNormalized * 0.25)
+      : Math.round(totalScoreNormalized * 0.3);
+
+    if (matchScore > 10) {
+      recommendations.push({
+        course,
+        matchScore,
+        gapCoverageScore: gapScoreNormalized,
+        targetedSkills: targetedSkills.sort((a, b) => b.gain - a.gain).slice(0, 4),
+      });
+    }
+  }
+
+  // 適合スコア降順でソート
+  recommendations.sort((a, b) => b.matchScore - a.matchScore);
+  return recommendations.slice(0, topN);
+}
+
+/**
+ * 特定の科目を仮追加した場合のスキル増加シミュレーション
+ */
+export function simulateCourseAddition(
+  currentProfile: PersonalSkillProfile,
+  candidateCourse: CourseSkillVector
+): {
+  simulatedKnowledge: number[];
+  simulatedGeneral: number[];
+  gains: Array<{ code: string; nameJa: string; before: number; after: number; diff: number }>;
+} {
+  const kVec = Array.isArray(candidateCourse.knowledge_vector) && candidateCourse.knowledge_vector.length === 12
+    ? candidateCourse.knowledge_vector
+    : [
+        candidateCourse.a_1_education || 0, candidateCourse.a_2_humanities || 0, candidateCourse.a_3_arts || 0,
+        candidateCourse.a_4_social_sciences || 0, candidateCourse.a_5_business || 0, candidateCourse.a_6_natural_sciences || 0,
+        candidateCourse.a_7_ict || 0, candidateCourse.a_8_engineering || 0, candidateCourse.a_9_hardware_operation || 0,
+        candidateCourse.a_10_agriculture_forestry || 0, candidateCourse.a_11_health_welfare || 0, candidateCourse.a_12_services || 0
+      ];
+
+  const gVec = Array.isArray(candidateCourse.general_vector) && candidateCourse.general_vector.length === 12
+    ? candidateCourse.general_vector
+    : [
+        candidateCourse.b_1_teamwork || 0, candidateCourse.b_2_critical || 0, candidateCourse.b_3_language || 0,
+        candidateCourse.b_4_ethics || 0, candidateCourse.b_5_self_management || 0, candidateCourse.b_6_problem_solving || 0,
+        candidateCourse.b_7_adaptability || 0, candidateCourse.b_8_creativity || 0, candidateCourse.b_9_expressiveness || 0,
+        candidateCourse.b_10_info_processing || 0, candidateCourse.b_11_computer_skills || 0, candidateCourse.b_12_leadership || 0
+      ];
+
+  const simK = currentProfile.cumulativeKnowledgeVector.map((val, i) => val + (Number(kVec[i]) || 0));
+  const simG = currentProfile.cumulativeGeneralVector.map((val, i) => val + (Number(gVec[i]) || 0));
+
+  const gains: Array<{ code: string; nameJa: string; before: number; after: number; diff: number }> = [];
+
+  KNOWLEDGE_SKILLS.forEach((s, i) => {
+    const diff = Number(kVec[i]) || 0;
+    if (diff > 0) {
+      gains.push({
+        code: s.code,
+        nameJa: s.nameJa,
+        before: currentProfile.cumulativeKnowledgeVector[i] || 0,
+        after: simK[i],
+        diff,
+      });
+    }
+  });
+
+  GENERAL_SKILLS.forEach((s, i) => {
+    const diff = Number(gVec[i]) || 0;
+    if (diff > 0) {
+      gains.push({
+        code: s.code,
+        nameJa: s.nameJa,
+        before: currentProfile.cumulativeGeneralVector[i] || 0,
+        after: simG[i],
+        diff,
+      });
+    }
+  });
+
+  gains.sort((a, b) => b.diff - a.diff);
+
+  return {
+    simulatedKnowledge: simK,
+    simulatedGeneral: simG,
+    gains,
   };
 }
