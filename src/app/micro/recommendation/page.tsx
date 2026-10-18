@@ -17,7 +17,8 @@ import {
   RotateCcw,
   SlidersHorizontal,
   Layers,
-  Award
+  Award,
+  User
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { CourseSkillVector, EnrolledCourse, CourseRecommendationItem } from "@/types/database";
@@ -417,18 +418,18 @@ export default function MicroRecommendationPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 min-w-0">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold text-2xs flex items-center justify-center shrink-0">
                             {index + 1}
                           </span>
+                          {item.course.course_code && (
+                            <span className="font-mono text-2xs px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold">
+                              #{item.course.course_code}
+                            </span>
+                          )}
                           <span className="text-2xs font-bold text-slate-500 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                             {item.course.faculty_name}
                           </span>
-                          {item.course.semester && (
-                            <span className="text-2xs text-slate-400">
-                              {item.course.semester}
-                            </span>
-                          )}
                           <span className="text-2xs text-slate-400">
                             {item.course.credits ?? 2}単位
                           </span>
@@ -437,11 +438,26 @@ export default function MicroRecommendationPage() {
                         <h3 className="font-bold text-sm text-slate-900 dark:text-white truncate" title={item.course.course_name}>
                           {item.course.course_name}
                         </h3>
-                        {item.course.instructor && (
-                          <p className="text-2xs text-slate-400">
-                            担当教員: {item.course.instructor}
-                          </p>
-                        )}
+                        <div className="flex items-center gap-2 text-2xs text-slate-500 mt-0.5 flex-wrap">
+                          {item.course.instructor ? (
+                            <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                              <User className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate max-w-[160px]" title={item.course.instructor.replace(/\n+/g, ', ')}>
+                                {item.course.instructor.replace(/\n+/g, ', ')}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">教員未記載</span>
+                          )}
+                          {(item.course.term_time || item.course.semester) && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate max-w-[160px]" title={item.course.term_time || item.course.semester || ''}>
+                                {item.course.term_time || item.course.semester}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       {/* 適合度スコアバッジ */}
@@ -537,8 +553,26 @@ export default function MicroRecommendationPage() {
                     解除
                   </button>
                 </div>
-                <div className="font-bold text-xs text-slate-900 dark:text-white">
-                  {simulatedCourse.course_name}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {simulatedCourse.course_code && (
+                      <span className="font-mono text-2xs px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 font-semibold">
+                        #{simulatedCourse.course_code}
+                      </span>
+                    )}
+                    <span className="text-2xs font-semibold text-slate-500">
+                      {simulatedCourse.faculty_name}
+                    </span>
+                  </div>
+                  <div className="font-bold text-xs text-slate-900 dark:text-white">
+                    {simulatedCourse.course_name}
+                  </div>
+                  {simulatedCourse.instructor && (
+                    <div className="flex items-center gap-1 text-2xs text-slate-600 dark:text-slate-400">
+                      <User className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate">{simulatedCourse.instructor.replace(/\n+/g, ', ')}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {simulationResult?.gains.slice(0, 3).map((g) => (

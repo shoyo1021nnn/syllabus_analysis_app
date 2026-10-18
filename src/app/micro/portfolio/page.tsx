@@ -17,7 +17,10 @@ import {
   Check,
   TrendingUp,
   Filter,
-  Info
+  Info,
+  CheckSquare,
+  Square,
+  User
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { CourseSkillVector, EnrolledCourse } from "@/types/database";
@@ -60,6 +63,9 @@ export default function MicroPortfolioPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // 複数選択ステート
+  const [selectedCourseIds, setSelectedCourseIds] = useState<Set<string>>(new Set());
+
   // チャートタブ
   const [chartTab, setChartTab] = useState<'both' | 'knowledge' | 'general'>('both');
 
@@ -92,7 +98,7 @@ export default function MicroPortfolioPage() {
     }
   }, []);
 
-  // 科目追加
+  // 科目追加（単一）
   const handleAddCourse = (course: CourseSkillVector) => {
     if (enrolledCourses.some((item) => item.course.id === course.id)) return;
     const newEnrolled: EnrolledCourse = {
@@ -100,6 +106,64 @@ export default function MicroPortfolioPage() {
       enrolledAt: new Date().toISOString(),
     };
     saveCourses([...enrolledCourses, newEnrolled]);
+    setSelectedCourseIds((prev) => {
+      const next = new Set(prev);
+      next.delete(course.id);
+      return next;
+    });
+  };
+
+  // 複数選択トグル
+  const handleToggleSelect = (courseId: string) => {
+    if (enrolledCourses.some((item) => item.course.id === courseId)) return;
+    setSelectedCourseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(courseId)) {
+        next.delete(courseId);
+      } else {
+        next.add(courseId);
+      }
+      return next;
+    });
+  };
+
+  // 現在の検索結果内の未登録科目
+  const unEnrolledInResults = useMemo(() => {
+    return searchResults.filter(
+      (c) => !enrolledCourses.some((e) => e.course.id === c.id)
+    );
+  }, [searchResults, enrolledCourses]);
+
+  const isAllSelected = useMemo(() => {
+    return (
+      unEnrolledInResults.length > 0 &&
+      unEnrolledInResults.every((c) => selectedCourseIds.has(c.id))
+    );
+  }, [unEnrolledInResults, selectedCourseIds]);
+
+  // 全選択 / 全解除
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedCourseIds(new Set());
+    } else {
+      setSelectedCourseIds(new Set(unEnrolledInResults.map((c) => c.id)));
+    }
+  };
+
+  // 選択科目を一括登録
+  const handleBatchEnroll = () => {
+    const toAdd = searchResults.filter(
+      (c) => selectedCourseIds.has(c.id) && !enrolledCourses.some((e) => e.course.id === c.id)
+    );
+    if (toAdd.length === 0) return;
+
+    const now = new Date().toISOString();
+    const newItems: EnrolledCourse[] = toAdd.map((course) => ({
+      course,
+      enrolledAt: now,
+    }));
+    saveCourses([...enrolledCourses, ...newItems]);
+    setSelectedCourseIds(new Set());
   };
 
   // 科目削除
@@ -111,6 +175,7 @@ export default function MicroPortfolioPage() {
   const handleClearAll = () => {
     if (confirm("登録したすべての履修科目をクリアしますか？")) {
       saveCourses([]);
+      setSelectedCourseIds(new Set());
     }
   };
 
@@ -119,20 +184,22 @@ export default function MicroPortfolioPage() {
     if (e) e.preventDefault();
     setIsSearching(true);
     setHasSearched(true);
+    setSelectedCourseIds(new Set());
 
     try {
       let query = supabase
         .from('course_skill_vectors')
         .select('*')
         .eq('is_zero_vector', false)
-        .limit(25);
+        .limit(50);
 
       if (selectedFaculty && selectedFaculty !== "すべて") {
         query = query.eq('faculty_name', selectedFaculty);
       }
 
       if (searchQuery.trim()) {
-        query = query.ilike('course_name', `%${searchQuery.trim()}%`);
+        const term = searchQuery.trim();
+        query = query.or(`course_name.ilike.%${term}%,course_code.ilike.%${term}%,instructor.ilike.%${term}%`);
       }
 
       const { data, error } = await query;
@@ -155,7 +222,7 @@ export default function MicroPortfolioPage() {
           .select('*')
           .eq('is_zero_vector', false)
           .eq('faculty_name', '基幹教育科目')
-          .limit(10);
+          .limit(20);
         if (data && data.length > 0) {
           setSearchResults(data);
           setHasSearched(true);
@@ -299,14 +366,14 @@ export default function MicroPortfolioPage() {
 
               <div>
                 <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  科目名・キーワード
+                  科目名・講義コード・教員名
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="例: プログラミング, 心理学, 統計..."
+                    placeholder="例: プログラミング, 木實, 25371211..."
                     className="flex-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
@@ -320,12 +387,61 @@ export default function MicroPortfolioPage() {
               </div>
             </form>
 
-            {/* 検索結果リスト */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-              <div className="text-2xs font-bold text-slate-500 mb-2">
-                検索結果 ({searchResults.length}件)
+            {/* 検索結果リスト ＆ 一括登録バー */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xs font-bold text-slate-500">
+                    検索結果 ({searchResults.length}件)
+                  </span>
+                  {selectedCourseIds.size > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-2xs">
+                      {selectedCourseIds.size}件 選択中
+                    </span>
+                  )}
+                </div>
+
+                {/* 未登録科目が存在する場合の全選択トグル */}
+                {unEnrolledInResults.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectAll}
+                    className="text-2xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 flex items-center space-x-1 transition"
+                  >
+                    {isAllSelected ? (
+                      <>
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        <span>選択を全解除</span>
+                      </>
+                    ) : (
+                      <>
+                        <Square className="w-3.5 h-3.5" />
+                        <span>未登録を全選択 ({unEnrolledInResults.length})</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
-              <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+
+              {/* 一括登録アクションバー（選択中のみ表示） */}
+              {selectedCourseIds.size > 0 && (
+                <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between gap-2 shadow-xs transition-all">
+                  <div className="text-2xs font-semibold text-indigo-900 dark:text-indigo-200 pl-1">
+                    チェックした科目をまとめて登録
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleBatchEnroll}
+                    className="px-3 py-1.5 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center space-x-1.5 shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>選択した {selectedCourseIds.size} 件を一括追加</span>
+                  </button>
+                </div>
+              )}
+
+              {/* 検索結果スクロールリスト */}
+              <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-center text-xs text-slate-400">
                     {hasSearched ? "該当する科目が見つかりませんでした" : "検索条件を入力してください"}
@@ -333,24 +449,83 @@ export default function MicroPortfolioPage() {
                 ) : (
                   searchResults.map((course) => {
                     const isEnrolled = enrolledCourses.some((item) => item.course.id === course.id);
+                    const isSelected = selectedCourseIds.has(course.id);
+
                     return (
                       <div
                         key={course.id}
-                        className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-indigo-50/30 transition flex items-center justify-between gap-3 text-xs"
+                        onClick={() => !isEnrolled && handleToggleSelect(course.id)}
+                        className={`p-2.5 rounded-xl border transition-all duration-150 flex items-center justify-between gap-3 text-xs ${
+                          isEnrolled
+                            ? 'border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/20 opacity-75 cursor-default'
+                            : isSelected
+                            ? 'border-indigo-400 dark:border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 shadow-xs cursor-pointer'
+                            : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/70 dark:hover:bg-slate-800/70 hover:border-slate-300 cursor-pointer'
+                        }`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-slate-800 dark:text-slate-100 truncate" title={course.course_name}>
-                            {course.course_name}
+                        <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+                          {/* チェックボックスエリア */}
+                          <div className="shrink-0 flex items-center justify-center">
+                            {isEnrolled ? (
+                              <div className="w-4 h-4 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <Check className="w-3 h-3" />
+                              </div>
+                            ) : (
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={() => handleToggleSelect(course.id)}
+                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                              />
+                            )}
                           </div>
-                          <div className="flex items-center gap-2 text-2xs text-slate-500 mt-0.5">
-                            <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
-                              {course.faculty_name}
-                            </span>
-                            <span>{course.credits ?? 2}単位</span>
-                            {course.semester && <span>{course.semester}</span>}
+
+                          {/* 科目情報 */}
+                          <div className="min-w-0 flex-1">
+                            {/* 講義コードバッジ ＆ 学部 ＆ 単位 */}
+                            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                              {course.course_code && (
+                                <span className="font-mono text-2xs px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold">
+                                  #{course.course_code}
+                                </span>
+                              )}
+                              <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-2xs font-medium">
+                                {course.faculty_name}
+                              </span>
+                              <span className="text-2xs text-slate-500 font-medium">{course.credits ?? 2}単位</span>
+                            </div>
+
+                            {/* 科目名 */}
+                            <div className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs" title={course.course_name}>
+                              {course.course_name}
+                            </div>
+
+                            {/* 担当教員 ＆ 開講情報 */}
+                            <div className="flex items-center gap-2 text-2xs text-slate-500 mt-1 flex-wrap">
+                              {course.instructor ? (
+                                <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                                  <User className="w-3 h-3 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[150px]" title={course.instructor.replace(/\n+/g, ', ')}>
+                                    {course.instructor.replace(/\n+/g, ', ')}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">教員未記載</span>
+                              )}
+                              {(course.term_time || course.semester) && (
+                                <>
+                                  <span>•</span>
+                                  <span className="truncate max-w-[150px]" title={course.term_time || course.semester || ''}>
+                                    {course.term_time || course.semester}
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
 
+                        {/* アクション */}
                         {isEnrolled ? (
                           <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-2xs border border-emerald-200 dark:border-emerald-800 shrink-0">
                             <Check className="w-3 h-3" />
@@ -358,8 +533,13 @@ export default function MicroPortfolioPage() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => handleAddCourse(course)}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddCourse(course);
+                            }}
                             className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-2xs transition shadow-xs shrink-0"
+                            title="1科目だけ即座に追加"
                           >
                             <Plus className="w-3 h-3" />
                             <span>追加</span>
@@ -403,17 +583,34 @@ export default function MicroPortfolioPage() {
                     className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 flex items-center justify-between gap-3 text-xs shadow-2xs"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-slate-800 dark:text-slate-100 truncate" title={item.course.course_name}>
+                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                        {item.course.course_code && (
+                          <span className="font-mono text-2xs px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold">
+                            #{item.course.course_code}
+                          </span>
+                        )}
+                        <span className="text-indigo-600 dark:text-indigo-400 font-medium text-2xs">{item.course.faculty_name}</span>
+                        <span className="text-2xs text-slate-400">•</span>
+                        <span className="text-2xs text-slate-500">{item.course.credits ?? 2}単位</span>
+                      </div>
+                      <div className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs" title={item.course.course_name}>
                         {item.course.course_name}
                       </div>
-                      <div className="flex items-center gap-2 text-2xs text-slate-500 mt-0.5">
-                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">{item.course.faculty_name}</span>
-                        <span>•</span>
-                        <span>{item.course.credits ?? 2}単位</span>
-                        {item.course.semester && (
+                      <div className="flex items-center gap-2 text-2xs text-slate-500 mt-1 flex-wrap">
+                        {item.course.instructor && (
+                          <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400">
+                            <User className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate max-w-[130px]" title={item.course.instructor.replace(/\n+/g, ', ')}>
+                              {item.course.instructor.replace(/\n+/g, ', ')}
+                            </span>
+                          </span>
+                        )}
+                        {(item.course.term_time || item.course.semester) && (
                           <>
-                            <span>•</span>
-                            <span>{item.course.semester}</span>
+                            {item.course.instructor && <span>•</span>}
+                            <span className="truncate max-w-[130px]" title={item.course.term_time || item.course.semester || ''}>
+                              {item.course.term_time || item.course.semester}
+                            </span>
                           </>
                         )}
                       </div>

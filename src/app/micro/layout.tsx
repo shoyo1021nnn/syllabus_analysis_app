@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { Panel, Group, Separator } from "react-resizable-panels";
-import { GripVertical, LayoutDashboard, GraduationCap, Sparkles, ArrowLeft, Home, Compass } from "lucide-react";
+import { GripVertical, LayoutDashboard, GraduationCap, Sparkles, Home, Compass, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AgentPanel } from "@/components/AgentPanel";
@@ -87,8 +87,8 @@ export default function MicroLayout({
                 className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs"
                 title="スキルベクトル分析画面へ移動"
               >
-                <span>分析結果へ</span>
-                <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
+                <span>スキル分析</span>
               </Link>
             </div>
           </div>

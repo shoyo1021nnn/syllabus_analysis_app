@@ -1,7 +1,7 @@
 "use client";
 
 import { Panel, Group, Separator } from "react-resizable-panels";
-import { GripVertical, LayoutDashboard, Compass, Sparkles, UserPlus, ArrowLeft, Home } from "lucide-react";
+import { GripVertical, LayoutDashboard, Compass, Sparkles, UserPlus, Home, BarChart3, GraduationCap } from "lucide-react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -74,14 +74,24 @@ export default function MacroLayout({
 
             <span className="text-slate-300 dark:text-slate-700">|</span>
 
-            <Link
-              href="/analytics"
-              className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs"
-              title="スキルベクトル分析画面へ移動"
-            >
-              <span>スキル分析結果へ</span>
-              <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
-            </Link>
+            <div className="flex items-center space-x-1.5">
+              <Link
+                href="/analytics"
+                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs"
+                title="スキルベクトル分析画面へ移動"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
+                <span>スキル分析</span>
+              </Link>
+              <Link
+                href="/micro"
+                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs"
+                title="ミクロな教育支援へ移動"
+              >
+                <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+                <span>ミクロ支援</span>
+              </Link>
+            </div>
           </div>
         </header>
 

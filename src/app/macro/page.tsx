@@ -2,16 +2,27 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { 
+  Compass, 
+  Sparkles, 
+  UserPlus, 
+  ArrowRight, 
+  BookOpen, 
+  Layers, 
+  CheckCircle2,
+  Users,
+  Target,
+  Workflow
+} from 'lucide-react';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
-import { Compass, Sparkles, UserPlus, ArrowRight, BookOpen, Layers, CheckCircle2 } from 'lucide-react';
-import BackButton from '@/components/BackButton';
 
 export default function MacroMenuPage() {
   const { setAnalyticsContext } = useAnalyticsContext();
 
   useEffect(() => {
     setAnalyticsContext({
-      pageTitle: 'マクロな学習支援メニュー',
+      pageTitle: 'マクロな学習支援ポータル',
+      pagePath: '/macro',
       primaryTarget: undefined,
       compareTarget: undefined,
       summaryText: 'マクロな学習支援トップメニュー（3つの最適化・編成シミュレーション機能）',
@@ -49,147 +60,196 @@ export default function MacroMenuPage() {
   }, [setAnalyticsContext]);
 
   return (
-    <div className="w-full h-full flex flex-col p-6 space-y-6 overflow-y-auto bg-slate-50 dark:bg-slate-950">
-      {/* ナビゲーション戻るボタン */}
-      <div className="flex items-center">
-        <BackButton label="ホーム画面に戻る" fallbackHref="/" />
-      </div>
-
-      {/* ページタイトル & 概要 */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-orange-50 dark:bg-orange-950/70 text-orange-600 dark:text-orange-400 rounded-xl border border-orange-200/80 dark:border-orange-800/60">
-            <Layers className="w-6 h-6" />
+    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+      {/* ヒーローセクション */}
+      <div className="bg-linear-to-r from-orange-950 via-orange-900 to-amber-950 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="relative z-10 space-y-4">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-orange-200 border border-white/15 text-xs font-semibold">
+            <Users className="w-4 h-4 text-orange-300" />
+            <span>Macro Learning Support & Multi-Organization Synergy</span>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-              マクロな学習支援
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              単一カリキュラムの分析を超え、組織間の相乗効果（シナジー）を創出する3つの学習支援シミュレーション
-            </p>
-          </div>
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            マクロな学習支援（組織間連携・チーム編成最適化）
+          </h1>
+          <p className="text-orange-100 text-sm max-w-2xl leading-relaxed">
+            単一カリキュラムの分析を超え、組織間で不足スキルを補い合う相乗効果（シナジー）をシミュレーション。
+            スキル補完検索、ベスト・ペア探索、貪欲法チーム編成の3つのアプローチで、教育効果を最大化する最適な連携パートナーや多人数チームを特定します。
+          </p>
         </div>
       </div>
 
-      {/* 3つのメイン機能ボタン（カードグリッド） */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* シミュレーション基盤・ステータスサマリー */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center space-x-2.5">
+            <Layers className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
+              マクロ学習支援のシミュレーション基盤
+            </h2>
+          </div>
+          <span className="text-xs font-semibold text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/60 px-2.5 py-1 rounded-full border border-orange-200 dark:border-orange-800">
+            シナジー最適化アルゴリズム 搭載
+          </span>
+        </div>
 
-        {/* 1. スキル補完検索 */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5">
+          <div className="p-4 rounded-xl bg-orange-50/70 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/60">
+            <div className="text-xs font-medium text-orange-700 dark:text-orange-300">支援アプローチ</div>
+            <div className="text-xl font-black text-orange-950 dark:text-white mt-1">
+              3 手法
+            </div>
+            <p className="text-2xs text-slate-500 mt-0.5">相補探索・ペア探索・多人数貪欲編成</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60">
+            <div className="text-xs font-medium text-amber-700 dark:text-amber-300">結合モデル</div>
+            <div className="text-xl font-black text-amber-950 dark:text-white mt-1">
+              Max / Mean <span className="text-xs font-normal text-slate-500">Pooling</span>
+            </div>
+            <p className="text-2xs text-slate-500 mt-0.5">強み特化型 ＆ 総合底上げ型</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-300">目標水準</div>
+            <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
+              理想ベクトル (3.0)
+            </div>
+            <p className="text-2xs text-slate-500 mt-0.5">全スキル均等高水準を基準に評価</p>
+          </div>
+        </div>
+
+        <div className="mt-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Target className="w-5 h-5 text-orange-500 shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              <strong>推奨アプローチ:</strong> 自学科の手薄なスキルを補強したい場合は「Step 1: スキル補完検索」から連携パートナー候補を探索してください。
+            </p>
+          </div>
+          <Link
+            href="/macro/skill_complementation"
+            className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition shadow-xs shrink-0 ml-4"
+          >
+            探索を開始する
+          </Link>
+        </div>
+      </div>
+
+      {/* 3大機能カード */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* カード 1: スキル補完検索 */}
         <Link
           href="/macro/skill_complementation"
-          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between"
+          className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
         >
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
-                <Compass className="w-6 h-6" />
-              </div>
-              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
-                相補パートナー探索
-              </span>
+            <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center border border-orange-200 dark:border-orange-800/80 group-hover:scale-105 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
+              <Compass className="w-6 h-6" />
             </div>
-
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                1. スキル補完検索
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                自組織の弱点スキル（不足スキル）を補完できるパートナー組織を探索。専門一致＋相補やギャップ補填など多角的アプローチに対応。
+              <span className="text-2xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
+                Step 1: 弱点相補
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors mt-0.5">
+                スキル補完検索
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                自組織の弱点スキル（不足スキル）を補完できるパートナー組織を探索。専門一致＋相補やギャップ補填など多角的アプローチに対応します。
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
             <span>スキル補完検索を開く</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
           </div>
         </Link>
 
-        {/* 2. ベスト・ペア検索 */}
+        {/* カード 2: ベスト・ペア検索 */}
         <Link
           href="/macro/best_pair"
-          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between"
+          className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
         >
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
-                1対1 最高シナジー
-              </span>
+            <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center border border-orange-200 dark:border-orange-800/80 group-hover:scale-105 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
+              <Sparkles className="w-6 h-6" />
             </div>
-
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                2. ベスト・ペア検索
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                2組織が組んだ際に最大のシナジーを発揮する相手を探索。最大値結合（強み特化）と平均値結合（総合力向上）の2方式で比較可能。
+              <span className="text-2xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
+                Step 2: 1対1結合
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors mt-0.5">
+                ベスト・ペア検索
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                2組織が組んだ際に最大のシナジーを発揮する相手を探索。最大値結合（強み特化）と平均値結合（総合力向上）の2方式で比較可能です。
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
             <span>ベスト・ペア検索を開く</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
           </div>
         </Link>
 
-        {/* 3. チーム編成支援 */}
+        {/* カード 3: チーム編成支援 */}
         <Link
           href="/macro/greedy_team"
-          className="group bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between"
+          className="group relative bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 p-6 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
         >
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/60 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
-                <UserPlus className="w-6 h-6" />
-              </div>
-              <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
-                Greedy多人数編成
-              </span>
+            <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center border border-orange-200 dark:border-orange-800/80 group-hover:scale-105 group-hover:bg-orange-600 group-hover:text-white transition-all duration-200 shadow-2xs">
+              <UserPlus className="w-6 h-6" />
             </div>
-
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                3. チーム編成支援
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                貪欲法により、目標人数またはスキル閾値を達成するまで最適なパートナーを1組織ずつ追加。多人数チームの段階的スキル補強を可視化。
+              <span className="text-2xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
+                Step 3: 多人数編成
+              </span>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors mt-0.5">
+                チーム編成支援
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                貪欲法(Greedy Algorithm)により、指定人数または目標スキル閾値を達成するまで最適なパートナーを1組織ずつ追加。多人数カバレッジを最適化します。
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
             <span>チーム編成支援を開く</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
           </div>
         </Link>
 
       </div>
 
-      {/* 理論・背景解説アコーディオン/カード */}
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-          マクロな学習支援の理論的背景
+      {/* 理論・背景解説カード */}
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 text-xs text-slate-600 dark:text-slate-300">
+        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center space-x-2">
+          <BookOpen className="w-4 h-4 text-orange-600" />
+          <span>マクロな学習支援の理論的背景と結合モデル</span>
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600 dark:text-slate-300">
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1 border border-slate-100 dark:border-slate-800">
-            <span className="font-bold text-slate-800 dark:text-slate-100">結合アプローチの定義:</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
+            <span className="font-bold text-slate-800 dark:text-slate-100">① 結合アプローチの定義 (Max vs Mean):</span>
             <p className="leading-relaxed">
-              <strong>最大値結合:</strong> 各組織の突出した強みを最大限に活かすアプローチです。チーム内で誰か一人でも高い専門性を持っていればそのスキルがチーム能力として反映されます。
+              <strong>最大値結合(Max Pooling):</strong> 各組織の突出した強みを最大限に活かすアプローチです。チーム内で誰か一人でも高い専門性を持っていればそのスキルがチーム能力として反映されます。
             </p>
             <p className="leading-relaxed pt-1">
-              <strong>平均値結合:</strong> 組織全員のスキルの平均をとるアプローチです。チーム全体の底上げや共通基盤の充実を評価します。
+              <strong>平均値結合(Mean Pooling):</strong> 組織全員のスキルの平均をとるアプローチです。チーム全体の底上げや共通基盤の充実度を評価します。
             </p>
           </div>
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1 border border-slate-100 dark:border-slate-800">
-            <span className="font-bold text-slate-800 dark:text-slate-100">目標としての理想ベクトル:</span>
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
+            <span className="font-bold text-slate-800 dark:text-slate-100">② 目標としての「理想ベクトル」:</span>
             <p className="leading-relaxed">
-              全24スキルがバランスよく習得できる状態（各次元が均等に高水準なベクトル）を「理想ベクトル」と定義し、連携によってどれだけ理想ベクトルに近づけるかを定量的に評価します。
+              全24スキルがバランスよく習得できる状態（各次元が均等に高水準な3.0を満たすベクトル）を「理想ベクトル」と定義し、連携によってどれだけ理想ベクトルに近づけるかを定量的に評価します。
             </p>
           </div>
         </div>
