@@ -11,8 +11,10 @@
   "dependencies": {
     "@ai-sdk/openai": "^4.0.91",
     "@ai-sdk/react": "^4.0.139",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react-syntax-highlighter": "^15.5.13",
     "ai": "^7.0.136",
     "clsx": "^2.1.1",
@@ -20,21 +22,26 @@
     "echarts-for-react": "^3.0.6",
     "lucide-react": "^1.54.0",
     "next": "16.4.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^2.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.14.3",
     "react-syntax-highlighter": "^16.1.2",
     "remark-gfm": "^4.0.1",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "unpdf": "^1.9.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "pdfkit": "^0.20.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -20,7 +20,8 @@ import {
   Info,
   CheckSquare,
   Square,
-  User
+  User,
+  FileText
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { CourseSkillVector, EnrolledCourse } from "@/types/database";
@@ -32,6 +33,7 @@ import {
 } from "@/lib/vectorUtils";
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
+import GradePdfImportModal from "@/components/micro/GradePdfImportModal";
 
 const STORAGE_KEY = "syllabus_enrolled_courses";
 
@@ -66,19 +68,35 @@ export default function MicroPortfolioPage() {
   // 複数選択ステート
   const [selectedCourseIds, setSelectedCourseIds] = useState<Set<string>>(new Set());
 
+  // PDF取り込みモーダルステート
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+
   // チャートタブ
   const [chartTab, setChartTab] = useState<'both' | 'knowledge' | 'general'>('both');
 
   const { setAnalyticsContext } = useAnalyticsContext();
 
-  // LocalStorageから読み込み
+  // LocalStorageから読み込み（重複データ自動自己修復付き）
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          setEnrolledCourses(parsed);
+          // 重複データの自己修復
+          const seen = new Set<string>();
+          const cleaned: EnrolledCourse[] = [];
+          for (const item of parsed) {
+            const courseId = item?.course?.id;
+            if (courseId && !seen.has(courseId)) {
+              seen.add(courseId);
+              cleaned.push(item);
+            }
+          }
+          setEnrolledCourses(cleaned);
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+          }
         }
       }
     } catch (e) {
@@ -164,6 +182,28 @@ export default function MicroPortfolioPage() {
     }));
     saveCourses([...enrolledCourses, ...newItems]);
     setSelectedCourseIds(new Set());
+  };
+
+  // PDFインポート科目のマージ登録（完全一意化保証）
+  const handleImportPdfCourses = (newCourses: CourseSkillVector[]) => {
+    const now = new Date().toISOString();
+    const existingIds = new Set(enrolledCourses.map((e) => e.course.id));
+    const toAdd: EnrolledCourse[] = [];
+    const addedInBatch = new Set<string>();
+
+    for (const course of newCourses) {
+      if (!existingIds.has(course.id) && !addedInBatch.has(course.id)) {
+        addedInBatch.add(course.id);
+        toAdd.push({
+          course,
+          enrolledAt: now,
+        });
+      }
+    }
+
+    if (toAdd.length > 0) {
+      saveCourses([...enrolledCourses, ...toAdd]);
+    }
   };
 
   // 科目削除
@@ -341,6 +381,34 @@ export default function MicroPortfolioPage() {
         {/* 左側カラム (5/12): 科目セレクター ＆ 登録一覧 */}
         <div className="lg:col-span-5 space-y-6">
           
+          {/* Campusmate 成績照会PDFから一括登録バナー */}
+          <div className="bg-linear-to-r from-indigo-500/10 via-blue-500/10 to-indigo-500/10 dark:from-indigo-950/40 dark:via-blue-950/40 dark:to-indigo-950/40 rounded-2xl border border-indigo-200 dark:border-indigo-800/80 p-4 shadow-xs flex items-center justify-between gap-4">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <span>成績照会PDFから一括インポート</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-3xs">
+                    自動検知
+                  </span>
+                </div>
+                <p className="text-2xs text-slate-500 truncate mt-0.5">
+                  Campusmateの成績PDFから履修科目を自動検知＆確認して登録
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPdfModalOpen(true)}
+              className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center space-x-1.5 shrink-0"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>PDF取込</span>
+            </button>
+          </div>
+
           {/* 科目検索ボックス */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
@@ -577,9 +645,9 @@ export default function MicroPortfolioPage() {
               </div>
             ) : (
               <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
-                {enrolledCourses.map((item) => (
+                {enrolledCourses.map((item, idx) => (
                   <div
-                    key={item.course.id}
+                    key={`${item.course.id}_${idx}`}
                     className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 flex items-center justify-between gap-3 text-xs shadow-2xs"
                   >
                     <div className="min-w-0 flex-1">
@@ -824,6 +892,14 @@ export default function MicroPortfolioPage() {
         </div>
 
       </div>
+
+      {/* 成績照会PDFインポートモーダル */}
+      <GradePdfImportModal
+        isOpen={isPdfModalOpen}
+        onClose={() => setIsPdfModalOpen(false)}
+        enrolledCourses={enrolledCourses}
+        onImportCourses={handleImportPdfCourses}
+      />
     </div>
   );
 }
