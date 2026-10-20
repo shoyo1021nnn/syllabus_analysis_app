@@ -35,11 +35,16 @@ export interface DetectedGradeItem {
   matchedCourse: CourseSkillVector | null;
 }
 
+export interface GradePdfImportItem {
+  course: CourseSkillVector;
+  grade?: string;
+}
+
 interface GradePdfImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   enrolledCourses: EnrolledCourse[];
-  onImportCourses: (courses: CourseSkillVector[]) => void;
+  onImportCourses: (items: GradePdfImportItem[]) => void;
 }
 
 export default function GradePdfImportModal({
@@ -151,7 +156,7 @@ export default function GradePdfImportModal({
 
   // 確定して登録
   const handleConfirmImport = () => {
-    const toImport: CourseSkillVector[] = [];
+    const toImport: GradePdfImportItem[] = [];
     const seenIds = new Set<string>();
 
     detectedItems.forEach((item, idx) => {
@@ -160,7 +165,10 @@ export default function GradePdfImportModal({
       if (item.matchedCourse) {
         if (!seenIds.has(item.matchedCourse.id)) {
           seenIds.add(item.matchedCourse.id);
-          toImport.push(item.matchedCourse);
+          toImport.push({
+            course: item.matchedCourse,
+            grade: item.grade || undefined,
+          });
         }
       } else {
         const uniqueFallbackId = `grade_fallback_${item.courseCode || item.rawCourseName}_${item.year}_${idx}_${Date.now()}`;
@@ -209,7 +217,10 @@ export default function GradePdfImportModal({
             b_11_computer_skills: 1,
             b_12_leadership: 1,
           };
-          toImport.push(fallbackCourse);
+          toImport.push({
+            course: fallbackCourse,
+            grade: item.grade || undefined,
+          });
         }
       }
     });
@@ -430,7 +441,7 @@ export default function GradePdfImportModal({
                                   : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
                               }`}
                             >
-                              評価: {item.grade} {item.isPassed ? "(修得)" : "(不可/未確定)"}
+                              評価: {item.grade}
                             </span>
 
                             {/* 年度・期間 */}

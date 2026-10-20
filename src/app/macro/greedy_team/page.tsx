@@ -537,29 +537,29 @@ function GreedyTeamContent() {
       {/* コントロールパネル */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
         {/* 起点組織選択 */}
-        <div className="p-4 rounded-lg bg-teal-50/50 border border-teal-200 space-y-3">
+        <div className="p-4 rounded-lg bg-orange-50/50 border border-orange-200 space-y-3">
           {/* 大学フィルター (学部・学科レベル時) */}
           {level !== 'university' && universityList.length > 1 && (
-            <div className="pb-2 border-b border-teal-200/60">
+            <div className="pb-2 border-b border-orange-200/60">
               <SearchableSelect
                 label="大学で絞り込み:"
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
                 placeholder="大学名を検索・選択..."
-                colorScheme="teal"
+                colorScheme="orange"
               />
             </div>
           )}
 
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
-                <GraduationCap className="w-4 h-4 text-teal-600" />
+              <span className="text-xs font-bold text-orange-900 flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-orange-600" />
                 起点の組織（リーダー組織）を選択:
               </span>
               {initialRecord && (
-                <span className="text-xs text-teal-700 font-medium">
+                <span className="text-xs text-orange-700 font-medium">
                   科目数: {initialRecord.subject_count}科目
                 </span>
               )}
@@ -568,7 +568,7 @@ function GreedyTeamContent() {
               value={initialId}
               onChange={(e) => setInitialId(e.target.value)}
               disabled={isLoading || filteredDataList.length === 0}
-              className="w-full px-3.5 py-2 text-sm bg-white border border-teal-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none shadow-xs"
+              className="w-full px-3.5 py-2 text-sm bg-white border border-orange-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-xs"
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>

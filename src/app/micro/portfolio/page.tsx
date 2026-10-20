@@ -33,7 +33,7 @@ import {
 } from "@/lib/vectorUtils";
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
-import GradePdfImportModal from "@/components/micro/GradePdfImportModal";
+import GradePdfImportModal, { GradePdfImportItem } from "@/components/micro/GradePdfImportModal";
 
 const STORAGE_KEY = "syllabus_enrolled_courses";
 
@@ -185,18 +185,19 @@ export default function MicroPortfolioPage() {
   };
 
   // PDFインポート科目のマージ登録（完全一意化保証）
-  const handleImportPdfCourses = (newCourses: CourseSkillVector[]) => {
+  const handleImportPdfCourses = (newItems: GradePdfImportItem[]) => {
     const now = new Date().toISOString();
     const existingIds = new Set(enrolledCourses.map((e) => e.course.id));
     const toAdd: EnrolledCourse[] = [];
     const addedInBatch = new Set<string>();
 
-    for (const course of newCourses) {
-      if (!existingIds.has(course.id) && !addedInBatch.has(course.id)) {
-        addedInBatch.add(course.id);
+    for (const item of newItems) {
+      if (!existingIds.has(item.course.id) && !addedInBatch.has(item.course.id)) {
+        addedInBatch.add(item.course.id);
         toAdd.push({
-          course,
+          course: item.course,
           enrolledAt: now,
+          grade: item.grade,
         });
       }
     }
@@ -655,6 +656,11 @@ export default function MicroPortfolioPage() {
                         {item.course.course_code && (
                           <span className="font-mono text-2xs px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-semibold">
                             #{item.course.course_code}
+                          </span>
+                        )}
+                        {item.grade && (
+                          <span className="text-2xs px-1.5 py-0.5 rounded font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                            評価: {item.grade}
                           </span>
                         )}
                         <span className="text-indigo-600 dark:text-indigo-400 font-medium text-2xs">{item.course.faculty_name}</span>

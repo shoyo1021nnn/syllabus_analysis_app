@@ -23,9 +23,18 @@ export interface DetectedGradeItem {
   matchedCourse: CourseSkillVector | null;
 }
 
+// グレード評価文字列の正規化（全角英数→半角英数、大文字化、trim）
+function normalizeGrade(raw: string): string {
+  if (!raw) return "";
+  return raw
+    .trim()
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+    .toUpperCase();
+}
+
 // 合格判定（修得済み判定）
 function checkIsPassed(grade: string): boolean {
-  const g = grade.trim().toUpperCase();
+  const g = normalizeGrade(grade);
   if (!g || g === "*" || g === "F" || g === "D" || g === "否" || g === "不可") {
     return false;
   }
@@ -46,7 +55,9 @@ export async function POST(req: NextRequest) {
 
     // PDFテキスト抽出 (unpdf)
     const { text: pagesText } = await extractText(uint8);
-    const text = Array.isArray(pagesText) ? pagesText.join("\n") : (pagesText || "");
+    const rawText = Array.isArray(pagesText) ? pagesText.join("\n") : (pagesText || "");
+    // 特殊スペース（ノーブレークスペース \u00A0 や全角スペース \u3000 等）を通常の半角空白に統一
+    const text = rawText.replace(/[\u00A0\u3000\u2000-\u200B]/g, " ");
 
     if (!text.trim()) {
       return NextResponse.json({ error: "PDFからテキストを抽出できませんでした" }, { status: 400 });
@@ -55,8 +66,8 @@ export async function POST(req: NextRequest) {
     // 行ごとに分割してパース
     const rawLines = text
       .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+      .map((l: string) => l.trim())
+      .filter((l: string) => l.length > 0);
 
     // 日付 (YYYY/MM/DD) と 講義コード (8桁数字) をアンカーにして、
     // セル内折り返しで分断された行を結合・再構成
@@ -103,7 +114,7 @@ export async function POST(req: NextRequest) {
     // パターン1: 1行にまとまっている場合
     // 例: 学術英語・アカデミックイシューズ 1 S 4.0 2023 前 KED-LCB1153W 23531351 松村 瑞子 2023/08/17
     // 例: 基幹教育セミナー 1 R * 2023 夏学期 KED-KES1111J 23535315 木實 新一 2023/08/27
-    const singleLineRegex = /^(.*?)\s+([0-9]+(?:\.[0-9]+)?)\s+([A-Za-z0-9*合否]+)\s+([0-9*.]+)\s+(20[0-9]{2})\s+(\S+)\s+([A-Z0-9-]{8,15})\s+([0-9]{8})\s+(.*?)\s+([0-9]{4}\/[0-9]{2}\/[0-9]{2})$/;
+    const singleLineRegex = /^(.*?)(?:\s+|(?<=[^\s0-9]))([0-9]+(?:\.[0-9]+)?)\s+([A-Za-z0-9*合否]+)\s+([0-9*.]+)\s+(20[0-9]{2})\s+(\S+)\s+([A-Z0-9-]{8,15})\s+([0-9]{8})\s+(.*?)\s+([0-9]{4}\/[0-9]{2}\/[0-9]{2})$/;
 
     // パターン2: 最終更新日や講義コードが含まれる行を緩やかにキャッチ
     for (let i = 0; i < lines.length; i++) {
@@ -114,7 +125,7 @@ export async function POST(req: NextRequest) {
       if (match) {
         let rawCourseName = match[1].trim();
         const credits = parseFloat(match[2]) || 2;
-        const grade = match[3].trim();
+        const grade = normalizeGrade(match[3]);
         const gp = match[4].trim();
         const year = parseInt(match[5], 10);
         const term = match[6].trim();
@@ -173,7 +184,7 @@ export async function POST(req: NextRequest) {
           let year = 2023;
           let term = "";
           let gp = "*";
-          let grade = "R";
+          let grade = "";
           let credits = 2;
           let nameEndIdx = codeIdx - (numbering ? 2 : 1);
 
@@ -184,14 +195,29 @@ export async function POST(req: NextRequest) {
             if (/^[0-9]+(?:\.[0-9]+)?$/.test(tokens[j]) && j <= 2) {
               credits = parseFloat(tokens[j]) || credits;
             }
-            if (/^[SABCDF R合否*]+$/.test(tokens[j]) && tokens[j].length <= 2) {
-              grade = tokens[j];
+            if (/^[SABCDF R合否*]+$/i.test(tokens[j]) && tokens[j].length <= 2) {
+              grade = normalizeGrade(tokens[j]);
             }
           }
 
-          let rawCourseName = tokens.slice(0, Math.max(1, nameEndIdx - 2)).join("") || tokens[0];
+          let rawCourseName = tokens.slice(0, Math.max(1, nameEndIdx - 2)).join(" ") || tokens[0];
           // 不要な記号除去
-          rawCourseName = rawCourseName.replace(/^[0-9.]+\s*/, "");
+          rawCourseName = rawCourseName.replace(/^[0-9.]+\s*/, "").trim();
+
+          // rawCourseName に末尾の単位数・評価・GP（例: "現代物理学基礎2 A 3.0", "無機物質化学I 1 S 4.0"）が混入している場合を分解抽出
+          const gradeTailRegex = /^(.*?)(?:\s+|(?<=[^\s0-9]))([0-9]+(?:\.[0-9]+)?)\s+([A-Za-z0-9*合否]+)\s+([0-9*.]+)$/;
+          const tailMatch = rawCourseName.match(gradeTailRegex);
+          if (tailMatch) {
+            rawCourseName = tailMatch[1].trim();
+            credits = parseFloat(tailMatch[2]) || credits;
+            grade = normalizeGrade(tailMatch[3]);
+            gp = tailMatch[4].trim();
+          }
+
+          // それでもgradeが取得できなかった場合のデフォルト
+          if (!grade) {
+            grade = "合";
+          }
 
           if (!rawCourseName.includes("分野系列名") && !rawCourseName.includes("科目名")) {
             rawDetected.push({
