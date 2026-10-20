@@ -45,6 +45,7 @@ import {
   Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -299,6 +300,8 @@ function GreedyTeamContent() {
       faculty_name: (d as any).faculty_name,
       department_name: (d as any).department_name,
       vector: extractVector(d),
+      subject_count: d.subject_count,
+      website_url: d.website_url,
     }));
   }, [dataList, initialRecord, filterUniversity, vectorTarget]);
 
@@ -559,9 +562,25 @@ function GreedyTeamContent() {
                 起点の組織（リーダー組織）を選択:
               </span>
               {initialRecord && (
-                <span className="text-xs text-orange-700 font-medium">
-                  科目数: {initialRecord.subject_count}科目
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-orange-700 font-medium">
+                    科目数: {initialRecord.subject_count}科目
+                  </span>
+                  <AcademicUnitInfoButton
+                    target={{
+                      id: initialRecord.id,
+                      universityName: initialRecord.university_name,
+                      facultyName: (initialRecord as any).faculty_name,
+                      departmentName: (initialRecord as any).department_name,
+                      subjectCount: initialRecord.subject_count,
+                      websiteUrl: initialRecord.website_url,
+                      level,
+                      knowledgeVector: initialRecord.knowledge_vector,
+                      generalVector: initialRecord.general_vector,
+                    }}
+                    variant="badge"
+                  />
+                </div>
               )}
             </div>
             <select
@@ -742,6 +761,26 @@ function GreedyTeamContent() {
                   {index === 0 ? '起点' : `#${index + 1}`}
                 </span>
                 <span>{member.label}</span>
+                {(() => {
+                  const cand = member.id === initialRecord.id 
+                    ? initialRecord 
+                    : candidates.find((c) => c.id === member.id);
+                  return (
+                    <AcademicUnitInfoButton
+                      target={{
+                        id: member.id,
+                        universityName: cand?.university_name || member.label,
+                        facultyName: (cand as any)?.faculty_name,
+                        departmentName: (cand as any)?.department_name,
+                        subjectCount: cand?.subject_count,
+                        websiteUrl: cand?.website_url,
+                        level,
+                      }}
+                      variant="icon"
+                      size="2xs"
+                    />
+                  );
+                })()}
               </div>
             ))}
           </div>
@@ -830,7 +869,24 @@ function GreedyTeamContent() {
                     起点
                   </td>
                   <td className="py-2.5 px-3 font-semibold text-slate-800">
-                    {teamResult.initialMember.label}
+                    <div className="flex items-center gap-1.5">
+                      <span>{teamResult.initialMember.label}</span>
+                      <AcademicUnitInfoButton
+                        target={{
+                          id: initialRecord.id,
+                          universityName: initialRecord.university_name,
+                          facultyName: (initialRecord as any).faculty_name,
+                          departmentName: (initialRecord as any).department_name,
+                          subjectCount: initialRecord.subject_count,
+                          websiteUrl: initialRecord.website_url,
+                          level,
+                          knowledgeVector: initialRecord.knowledge_vector,
+                          generalVector: initialRecord.general_vector,
+                        }}
+                        variant="icon"
+                        size="xs"
+                      />
+                    </div>
                   </td>
                   <td className="py-2.5 px-3 text-right font-medium text-slate-600">
                     {(teamResult.baselineScore * 100).toFixed(2)}%
@@ -850,7 +906,27 @@ function GreedyTeamContent() {
                       Step {step.step}
                     </td>
                     <td className="py-2.5 px-3 font-medium text-slate-800">
-                      {step.addedMember.label}
+                      <div className="flex items-center gap-1.5">
+                        <span>{step.addedMember.label}</span>
+                        {(() => {
+                          const cand = candidates.find((c) => c.id === step.addedMember.id);
+                          return (
+                            <AcademicUnitInfoButton
+                              target={{
+                                id: step.addedMember.id,
+                                universityName: cand?.university_name || step.addedMember.label,
+                                facultyName: cand?.faculty_name,
+                                departmentName: cand?.department_name,
+                                subjectCount: cand?.subject_count,
+                                websiteUrl: cand?.website_url,
+                                level,
+                              }}
+                              variant="icon"
+                              size="xs"
+                            />
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="py-2.5 px-3 text-right font-bold text-orange-700">
                       {(step.teamScore * 100).toFixed(2)}%

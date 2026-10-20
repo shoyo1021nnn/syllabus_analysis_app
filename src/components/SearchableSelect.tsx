@@ -9,7 +9,7 @@ export interface SearchableSelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  colorScheme?: 'blue' | 'indigo' | 'rose' | 'teal' | 'orange';
+  colorScheme?: 'blue' | 'indigo' | 'rose' | 'teal' | 'orange' | 'emerald';
   disabled?: boolean;
   className?: string;
 }
@@ -32,6 +32,17 @@ export function SearchableSelect({
   // 配色設定
   const theme = useMemo(() => {
     switch (colorScheme) {
+      case 'emerald':
+        return {
+          label: 'text-emerald-800 dark:text-emerald-300',
+          icon: 'text-emerald-600',
+          border: 'border-emerald-300 dark:border-emerald-700',
+          focusRing: 'focus:ring-emerald-500 focus:border-emerald-500',
+          activeBg: 'bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-100',
+          checkIcon: 'text-emerald-600',
+          badgeBg: 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200',
+          hoverBg: 'hover:bg-emerald-50/70 dark:hover:bg-emerald-950/50',
+        };
       case 'teal':
         return {
           label: 'text-teal-700',

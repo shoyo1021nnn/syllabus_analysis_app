@@ -39,6 +39,7 @@ import {
   Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -291,6 +292,8 @@ function SkillComplementationContent() {
       department_name: (d as any).department_name,
       vector_A: d.knowledge_vector || [],
       vector_B: d.general_vector || [],
+      subject_count: d.subject_count,
+      website_url: d.website_url,
     }));
   }, [dataList, targetRecord, filterUniversity]);
 
@@ -498,9 +501,25 @@ function SkillComplementationContent() {
                 基準組織を選択:
               </span>
               {targetRecord && (
-                <span className="text-xs text-orange-700 font-medium">
-                  科目数: {targetRecord.subject_count}科目
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-orange-700 font-medium">
+                    科目数: {targetRecord.subject_count}科目
+                  </span>
+                  <AcademicUnitInfoButton
+                    target={{
+                      id: targetRecord.id,
+                      universityName: targetRecord.university_name,
+                      facultyName: (targetRecord as any).faculty_name,
+                      departmentName: (targetRecord as any).department_name,
+                      subjectCount: targetRecord.subject_count,
+                      websiteUrl: targetRecord.website_url,
+                      level,
+                      knowledgeVector: targetRecord.knowledge_vector,
+                      generalVector: targetRecord.general_vector,
+                    }}
+                    variant="badge"
+                  />
+                </div>
               )}
             </div>
             <select
@@ -595,11 +614,45 @@ function SkillComplementationContent() {
               <Radar className="w-5 h-5 text-orange-600" />
               スキル相補シミュレーション（基準 vs 選択パートナー vs 補完後）
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              基準: <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
+            <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
+              <span>基準:</span>
+              <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
+              {targetRecord && (
+                <AcademicUnitInfoButton
+                  target={{
+                    id: targetRecord.id,
+                    universityName: targetRecord.university_name,
+                    facultyName: (targetRecord as any).faculty_name,
+                    departmentName: (targetRecord as any).department_name,
+                    subjectCount: targetRecord.subject_count,
+                    websiteUrl: targetRecord.website_url,
+                    level,
+                    knowledgeVector: targetRecord.knowledge_vector,
+                    generalVector: targetRecord.general_vector,
+                  }}
+                  variant="icon"
+                  size="2xs"
+                />
+              )}
               {partnerRecord && (
                 <>
-                  {' '}× 補完候補: <span className="font-semibold text-orange-700">{formatLabel(partnerRecord)}</span>
+                  <span className="text-slate-400">× 補完候補:</span>
+                  <span className="font-semibold text-orange-700">{formatLabel(partnerRecord)}</span>
+                  <AcademicUnitInfoButton
+                    target={{
+                      id: partnerRecord.id,
+                      universityName: partnerRecord.university_name,
+                      facultyName: (partnerRecord as any).faculty_name,
+                      departmentName: (partnerRecord as any).department_name,
+                      subjectCount: partnerRecord.subject_count,
+                      websiteUrl: partnerRecord.website_url,
+                      level,
+                      knowledgeVector: partnerRecord.knowledge_vector,
+                      generalVector: partnerRecord.general_vector,
+                    }}
+                    variant="icon"
+                    size="2xs"
+                  />
                 </>
               )}
             </p>
@@ -700,7 +753,27 @@ function SkillComplementationContent() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 font-medium text-slate-800">
-                      {item.label}
+                      <div className="flex items-center gap-1.5">
+                        <span>{item.label}</span>
+                        {(() => {
+                          const cand = candidates.find((c) => c.id === item.id);
+                          return (
+                            <AcademicUnitInfoButton
+                              target={{
+                                id: item.id,
+                                universityName: cand?.university_name || item.label,
+                                facultyName: cand?.faculty_name,
+                                departmentName: cand?.department_name,
+                                subjectCount: cand?.subject_count,
+                                websiteUrl: cand?.website_url,
+                                level,
+                              }}
+                              variant="icon"
+                              size="xs"
+                            />
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="py-2.5 px-3 text-right font-bold text-orange-700">
                       {item.sort_score.toFixed(4)}

@@ -11,7 +11,8 @@ import {
   ArrowRight, 
   CheckCircle2,
   Layers,
-  GraduationCap
+  GraduationCap,
+  Building2
 } from "lucide-react";
 
 export default function HomePage() {
@@ -29,6 +30,15 @@ export default function HomePage() {
                 Syllabus Analysis App
               </span>
             </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Link
+              href="/universities"
+              className="flex items-center space-x-2 text-xs font-semibold px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-50/50 dark:hover:bg-slate-700 hover:border-emerald-500 transition-colors shadow-xs"
+            >
+              <Building2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>大学・学部・学科の基本情報</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -203,7 +213,43 @@ export default function HomePage() {
               </div>
             </div>
           </Link>
+        </div>
 
+        {/* 大学・学部・学科の基本情報ページ 導線カード */}
+        <div className="max-w-6xl mx-auto w-full">
+          <Link
+            href="/universities"
+            className="group relative block bg-linear-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:shadow-emerald-900/20 border border-slate-700/60 hover:border-emerald-500/50 transition-all duration-300 overflow-hidden"
+          >
+            {/* 背景装飾 */}
+            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-emerald-500/15 to-transparent pointer-events-none" />
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-start sm:items-center space-x-4 sm:space-x-5">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0 group-hover:scale-105 group-hover:bg-emerald-500/30 transition-all duration-300">
+                  <Building2 className="w-7 h-7 sm:w-8 sm:h-8" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
+                      Directory & Profiles
+                    </span>
+                    <span className="text-xs text-slate-400">公式WEBリンク・組織ツリー・科目数</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-emerald-200 transition-colors">
+                    大学・学部・学科の基本情報ページ
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    大学名 ⇒ 学部名 ⇒ 学科名の順番で選択し、開講科目数、公式WEBサイトURL、組織ツリー、シラバススキル特性を網羅的に閲覧できます。
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 shrink-0 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/30 group-hover:translate-x-1 transition-all">
+                <span>基本情報を見る</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* 下部情報カード: 24スキル体系 & L1正規化の解説 */}
