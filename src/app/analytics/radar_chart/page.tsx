@@ -35,6 +35,7 @@ import {
   Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -565,9 +566,26 @@ function RadarChartContent() {
                   基準対象 (青緑)
                 </span>
                 {primaryRecord && (
-                  <span className="text-xs text-teal-700 font-medium flex items-center gap-1">
-                    <BookOpen className="w-3.5 h-3.5" /> 科目数: {primaryRecord.subject_count}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-teal-700 font-medium flex items-center gap-1">
+                      <BookOpen className="w-3.5 h-3.5" /> 科目数: {primaryRecord.subject_count}
+                    </span>
+                    <AcademicUnitInfoButton
+                      target={{
+                        id: primaryRecord.id,
+                        universityName: primaryRecord.university_name,
+                        facultyName: (primaryRecord as any).faculty_name,
+                        departmentName: (primaryRecord as any).department_name,
+                        subjectCount: primaryRecord.subject_count,
+                        websiteUrl: primaryRecord.website_url,
+                        level,
+                        knowledgeVector: primaryRecord.knowledge_vector,
+                        generalVector: primaryRecord.general_vector,
+                      }}
+                      variant="badge"
+                      size="2xs"
+                    />
+                  </div>
                 )}
               </div>
               <select
@@ -616,9 +634,26 @@ function RadarChartContent() {
                   <span>比較対象を追加 (橙)</span>
                 </button>
                 {isCompareEnabled && compareRecord && (
-                  <span className="text-xs text-orange-700 font-medium flex items-center gap-1">
-                    <BookOpen className="w-3.5 h-3.5" /> 科目数: {compareRecord.subject_count}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-orange-700 font-medium flex items-center gap-1">
+                      <BookOpen className="w-3.5 h-3.5" /> 科目数: {compareRecord.subject_count}
+                    </span>
+                    <AcademicUnitInfoButton
+                      target={{
+                        id: compareRecord.id,
+                        universityName: compareRecord.university_name,
+                        facultyName: (compareRecord as any).faculty_name,
+                        departmentName: (compareRecord as any).department_name,
+                        subjectCount: compareRecord.subject_count,
+                        websiteUrl: compareRecord.website_url,
+                        level,
+                        knowledgeVector: compareRecord.knowledge_vector,
+                        generalVector: compareRecord.general_vector,
+                      }}
+                      variant="badge"
+                      size="2xs"
+                    />
+                  </div>
                 )}
               </div>
               <select
@@ -721,9 +756,26 @@ function RadarChartContent() {
         {/* 基準対象 Topスキル */}
         {primaryRecord && (
           <div className="p-4 bg-white rounded-xl border border-teal-200 shadow-sm">
-            <div className="flex items-center space-x-2 text-xs font-bold text-teal-800 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
-              <span>{formatLabel(primaryRecord)} の強み・特徴</span>
+            <div className="flex items-center justify-between text-xs font-bold text-teal-800 mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
+                <span>{formatLabel(primaryRecord)} の強み・特徴</span>
+              </div>
+              <AcademicUnitInfoButton
+                target={{
+                  id: primaryRecord.id,
+                  universityName: primaryRecord.university_name,
+                  facultyName: (primaryRecord as any).faculty_name,
+                  departmentName: (primaryRecord as any).department_name,
+                  subjectCount: primaryRecord.subject_count,
+                  websiteUrl: primaryRecord.website_url,
+                  level,
+                  knowledgeVector: primaryRecord.knowledge_vector,
+                  generalVector: primaryRecord.general_vector,
+                }}
+                variant="icon"
+                size="xs"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
@@ -756,9 +808,26 @@ function RadarChartContent() {
         {/* 比較対象 Topスキル */}
         {isCompareEnabled && compareRecord && (
           <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-sm">
-            <div className="flex items-center space-x-2 text-xs font-bold text-orange-800 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
-              <span>{formatLabel(compareRecord)} の強み・特徴</span>
+            <div className="flex items-center justify-between text-xs font-bold text-orange-800 mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
+                <span>{formatLabel(compareRecord)} の強み・特徴</span>
+              </div>
+              <AcademicUnitInfoButton
+                target={{
+                  id: compareRecord.id,
+                  universityName: compareRecord.university_name,
+                  facultyName: (compareRecord as any).faculty_name,
+                  departmentName: (compareRecord as any).department_name,
+                  subjectCount: compareRecord.subject_count,
+                  websiteUrl: compareRecord.website_url,
+                  level,
+                  knowledgeVector: compareRecord.knowledge_vector,
+                  generalVector: compareRecord.general_vector,
+                }}
+                variant="icon"
+                size="xs"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">

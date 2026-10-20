@@ -15,6 +15,7 @@ export interface SkillVectorDepartment {
   subject_count: number;
   knowledge_vector: number[]; // 12次元 (double precision[])
   general_vector: number[];   // 12次元 (double precision[])
+  website_url?: string | null;
 }
 
 export interface SkillVectorFaculty {
@@ -24,6 +25,7 @@ export interface SkillVectorFaculty {
   subject_count: number;
   knowledge_vector: number[]; // 12次元
   general_vector: number[];   // 12次元
+  website_url?: string | null;
 }
 
 export interface SkillVectorUniversity {
@@ -32,6 +34,7 @@ export interface SkillVectorUniversity {
   subject_count: number;
   knowledge_vector: number[]; // 12次元
   general_vector: number[];   // 12次元
+  website_url?: string | null;
 }
 
 // 共通扱い用ユニオン / 階層種別
@@ -80,6 +83,8 @@ export interface SimilarityCandidate {
   faculty_name?: string;
   department_name?: string;
   vector: number[];
+  subject_count?: number;
+  website_url?: string | null;
 }
 
 export interface SimilarityScoreItem {
@@ -90,6 +95,8 @@ export interface SimilarityScoreItem {
   department_name?: string;
   score: number; // 類似度スコア（指標により意味が異なる）
   rank: number;  // 順位 (1, 2, 3...)
+  subject_count?: number;
+  website_url?: string | null;
 }
 
 export interface SkillDefinition {

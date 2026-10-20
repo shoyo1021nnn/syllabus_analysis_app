@@ -41,6 +41,7 @@ import {
   Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -297,6 +298,8 @@ function BestPairContent() {
       faculty_name: (d as any).faculty_name,
       department_name: (d as any).department_name,
       vector: extractVector(d),
+      subject_count: d.subject_count,
+      website_url: d.website_url,
     }));
   }, [dataList, targetRecord, filterUniversity, vectorTarget]);
 
@@ -519,9 +522,25 @@ function BestPairContent() {
                 基準組織を選択:
               </span>
               {targetRecord && (
-                <span className="text-xs text-orange-700 font-medium">
-                  科目数: {targetRecord.subject_count}科目
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-orange-700 font-medium">
+                    科目数: {targetRecord.subject_count}科目
+                  </span>
+                  <AcademicUnitInfoButton
+                    target={{
+                      id: targetRecord.id,
+                      universityName: targetRecord.university_name,
+                      facultyName: (targetRecord as any).faculty_name,
+                      departmentName: (targetRecord as any).department_name,
+                      subjectCount: targetRecord.subject_count,
+                      websiteUrl: targetRecord.website_url,
+                      level,
+                      knowledgeVector: targetRecord.knowledge_vector,
+                      generalVector: targetRecord.general_vector,
+                    }}
+                    variant="badge"
+                  />
+                </div>
               )}
             </div>
             <select
@@ -741,7 +760,27 @@ function BestPairContent() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 font-medium text-slate-800">
-                      {item.label}
+                      <div className="flex items-center gap-1.5">
+                        <span>{item.label}</span>
+                        {(() => {
+                          const cand = candidates.find((c) => c.id === item.id);
+                          return (
+                            <AcademicUnitInfoButton
+                              target={{
+                                id: item.id,
+                                universityName: cand?.university_name || item.label,
+                                facultyName: cand?.faculty_name,
+                                departmentName: cand?.department_name,
+                                subjectCount: cand?.subject_count,
+                                websiteUrl: cand?.website_url,
+                                level,
+                              }}
+                              variant="icon"
+                              size="xs"
+                            />
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="py-2.5 px-3 text-right font-bold text-orange-700">
                       {(item.pair_score * 100).toFixed(2)}%

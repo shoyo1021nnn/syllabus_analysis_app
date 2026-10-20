@@ -7,6 +7,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AgentPanel } from "@/components/AgentPanel";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
+import { AcademicUnitModalProvider } from "@/context/AcademicUnitModalContext";
+import AcademicUnitInfoModal from "@/components/AcademicUnitInfoModal";
 
 const NAV_TABS = [
     { href: '/analytics', label: '分析メニュー', icon: LayoutDashboard, exact: true },
@@ -24,8 +26,9 @@ export default function AnalyticsLayout({
 
     return (
         <AnalyticsProvider>
-            <div className="h-screen w-full bg-background flex flex-col">
-            {/* グローバルヘッダー */}
+            <AcademicUnitModalProvider>
+                <div className="h-screen w-full bg-background flex flex-col">
+                {/* グローバルヘッダー */}
             <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-xs z-10 shrink-0">
                 <div className="flex items-center space-x-4">
                     <Link 
@@ -131,7 +134,10 @@ export default function AnalyticsLayout({
 
                 </Group>
             </main>
-        </div>
+                </div>
+                {/* 学部・学科基本情報モーダル */}
+                <AcademicUnitInfoModal />
+            </AcademicUnitModalProvider>
         </AnalyticsProvider>
     );
 }

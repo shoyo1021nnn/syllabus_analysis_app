@@ -37,6 +37,7 @@ import {
   GraduationCap 
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -308,6 +309,8 @@ function SimilarityPageContent() {
       faculty_name: (item as any).faculty_name,
       department_name: (item as any).department_name,
       vector: extractVector(item),
+      subject_count: item.subject_count,
+      website_url: item.website_url,
     }));
   }, [dataList, targetRecord, filterUniversity, vectorTarget]);
 
@@ -502,9 +505,25 @@ function SimilarityPageContent() {
                 基準{level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科'}を選択:
               </span>
               {targetRecord && (
-                <span className="text-xs text-teal-700 font-medium">
-                  科目数: {targetRecord.subject_count}科目
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-teal-700 font-medium">
+                    科目数: {targetRecord.subject_count}科目
+                  </span>
+                  <AcademicUnitInfoButton
+                    target={{
+                      id: targetRecord.id,
+                      universityName: targetRecord.university_name,
+                      facultyName: (targetRecord as any).faculty_name,
+                      departmentName: (targetRecord as any).department_name,
+                      subjectCount: targetRecord.subject_count,
+                      websiteUrl: targetRecord.website_url,
+                      level,
+                      knowledgeVector: targetRecord.knowledge_vector,
+                      generalVector: targetRecord.general_vector,
+                    }}
+                    variant="badge"
+                  />
+                </div>
               )}
             </div>
             <select
@@ -598,8 +617,25 @@ function SimilarityPageContent() {
             <BarChart2 className="w-5 h-5 text-teal-600" />
             Top 10 類似度ランキング
           </h2>
-          <span className="text-xs text-slate-400">
-            基準: {formatLabel(targetRecord)} (L1正規化計算)
+          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+            <span>基準: {formatLabel(targetRecord)} (L1正規化計算)</span>
+            {targetRecord && (
+              <AcademicUnitInfoButton
+                target={{
+                  id: targetRecord.id,
+                  universityName: targetRecord.university_name,
+                  facultyName: (targetRecord as any).faculty_name,
+                  departmentName: (targetRecord as any).department_name,
+                  subjectCount: targetRecord.subject_count,
+                  websiteUrl: targetRecord.website_url,
+                  level,
+                  knowledgeVector: targetRecord.knowledge_vector,
+                  generalVector: targetRecord.general_vector,
+                }}
+                variant="icon"
+                size="2xs"
+              />
+            )}
           </span>
         </div>
 
@@ -658,7 +694,22 @@ function SimilarityPageContent() {
                       {item.university_name}
                     </td>
                     <td className="py-2.5 px-3">
-                      {targetDeptName}
+                      <div className="flex items-center gap-1.5">
+                        <span>{targetDeptName}</span>
+                        <AcademicUnitInfoButton
+                          target={{
+                            id: item.id,
+                            universityName: item.university_name,
+                            facultyName: item.faculty_name,
+                            departmentName: item.department_name,
+                            subjectCount: item.subject_count,
+                            websiteUrl: item.website_url,
+                            level,
+                          }}
+                          variant="icon"
+                          size="xs"
+                        />
+                      </div>
                     </td>
                     <td className="py-2.5 px-3 text-right font-bold text-teal-700">
                       {item.score.toFixed(4)}

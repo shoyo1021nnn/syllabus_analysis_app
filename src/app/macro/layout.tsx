@@ -7,6 +7,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AgentPanel } from "@/components/AgentPanel";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
+import { AcademicUnitModalProvider } from "@/context/AcademicUnitModalContext";
+import AcademicUnitInfoModal from "@/components/AcademicUnitInfoModal";
 
 const MACRO_NAV_TABS = [
   { href: '/macro', label: '学習支援メニュー', icon: LayoutDashboard, exact: true },
@@ -24,7 +26,8 @@ export default function MacroLayout({
 
   return (
     <AnalyticsProvider>
-      <div className="h-screen w-full bg-background flex flex-col">
+      <AcademicUnitModalProvider>
+        <div className="h-screen w-full bg-background flex flex-col">
         {/* グローバルヘッダー */}
         <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-xs z-10 shrink-0">
           <div className="flex items-center space-x-4">
@@ -129,7 +132,10 @@ export default function MacroLayout({
             </Panel>
           </Group>
         </main>
-      </div>
+        </div>
+        {/* 学部・学科基本情報モーダル */}
+        <AcademicUnitInfoModal />
+      </AcademicUnitModalProvider>
     </AnalyticsProvider>
   );
 }

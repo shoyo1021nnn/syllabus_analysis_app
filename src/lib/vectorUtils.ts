@@ -167,6 +167,8 @@ export function calculateSimilarityRanking(
     university_name: string;
     faculty_name?: string;
     department_name?: string;
+    subject_count?: number;
+    website_url?: string | null;
     score: number;
   }> = [];
 
@@ -199,6 +201,8 @@ export function calculateSimilarityRanking(
       university_name: item.university_name,
       faculty_name: item.faculty_name,
       department_name: item.department_name,
+      subject_count: item.subject_count,
+      website_url: item.website_url,
       score,
     });
   }
