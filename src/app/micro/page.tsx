@@ -51,24 +51,32 @@ export default function MicroIndexPage() {
   // AIエージェント用コンテキストを更新
   useEffect(() => {
     if (!isLoaded) return;
+    const isEn = language === 'en';
     setAnalyticsContext({
-      pageTitle: "ミクロな学習支援ポータル",
+      pageTitle: t('micro.hub.pageTitle', 'ミクロな学習支援ポータル'),
       pagePath: "/micro",
-      summaryText: `学生個人の履修状況とスキル累積ポートフォリオのトップ画面。現在登録済み科目数: ${enrolledCourses.length}科目、総単位数: ${profile.totalCredits}単位。`,
+      summaryText: isEn
+        ? `Top portal for student course enrollment and cumulative skill portfolio. Currently enrolled: ${enrolledCourses.length} courses, Total: ${profile.totalCredits} credits.`
+        : `学生個人の履修状況とスキル累積ポートフォリオのトップ画面。現在登録済み科目数: ${enrolledCourses.length}科目、総単位数: ${profile.totalCredits}単位。`,
       details: {
         enrolledCount: enrolledCourses.length,
         totalCredits: profile.totalCredits,
-        topStrengths: profile.strengths.map((s) => `${s.nameJa} (${s.score}点)`),
-        weaknesses: profile.weaknesses.map((s) => `${s.nameJa} (${s.score}点)`),
+        topStrengths: profile.strengths.map((s) => `${isEn ? (s.nameEn || s.nameJa) : s.nameJa} (${s.score}pt)`),
+        weaknesses: profile.weaknesses.map((s) => `${isEn ? (s.nameEn || s.nameJa) : s.nameJa} (${s.score}pt)`),
       },
-      presetQuestions: [
+      presetQuestions: isEn ? [
+        "What kind of analysis can I perform in Micro Learning Support?",
+        "How are my 24-dimensional skills calculated from enrolled courses?",
+        "What criteria are used to recommend courses for filling skill gaps?",
+        "What strengths can be expected from my currently enrolled courses?",
+      ] : [
         "ミクロな学習支援ではどのような分析ができますか？",
         "履修科目を登録するとスキルはどのように計算されますか？",
         "弱点スキルを補う科目はどのような基準で推薦されますか？",
         "現在登録されている履修内容から見込める強みは？",
       ],
     });
-  }, [isLoaded, enrolledCourses.length, profile.totalCredits, setAnalyticsContext]);
+  }, [isLoaded, enrolledCourses.length, profile.totalCredits, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">

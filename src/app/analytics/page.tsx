@@ -25,11 +25,11 @@ export default function AnalyticsIndexPage() {
 
   useEffect(() => {
     setAnalyticsContext({
-      pageTitle: 'スキルベクトル分析ポータル',
+      pageTitle: t('analytics.hub.pageTitle', 'スキルベクトル分析ポータル'),
       pagePath: '/analytics',
       primaryTarget: undefined,
       compareTarget: undefined,
-      summaryText: 'シラバス分析ダッシュボードのトップポータル（3つの客観的分析機能を提供）',
+      summaryText: t('analytics.hub.summaryText', 'シラバス分析ダッシュボードのトップポータル（3つの客観的分析機能を提供）'),
       details: {
         availableFeatures: [
           { name: 'K-meansクラスタリング', path: '/analytics/clustering', purpose: '全国の学科のスキル分布をPCAで2次元に縮約・散布図表示し、全体傾向やグループ分けを把握' },
@@ -50,7 +50,7 @@ export default function AnalyticsIndexPage() {
         'L1正規化によってどのようなバイアスが排除されますか？',
       ],
     });
-  }, [setAnalyticsContext]);
+  }, [setAnalyticsContext, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
@@ -226,19 +226,23 @@ export default function AnalyticsIndexPage() {
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 text-xs text-slate-600 dark:text-slate-300">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center space-x-2">
           <CheckCircle2 className="w-4 h-4 text-teal-600" />
-          <span>L1正規化による客観的評価と24スキル体系の意義</span>
+          <span>{t('analytics.hub.theory.title', 'L1正規化による客観的評価と24スキル体系の意義')}</span>
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
-            <span className="font-bold text-slate-800 dark:text-slate-100">① 科目数バイアスの完全排除 (L1正規化):</span>
+            <span className="font-bold text-slate-800 dark:text-slate-100">
+              {t('analytics.hub.theory.l1Title', '① 科目数バイアスの完全排除 (L1正規化):')}
+            </span>
             <p className="leading-relaxed">
-              開講科目数が多い大規模大学と、少数精鋭の単科大学・小規模学科をそのまま比較すると科目数による偏りが生じます。本システムでは全スキル値の総和が100%となるようL1正規化を適用し、カリキュラムの「重み付け配分比率」として公平に比較します。
+              {t('analytics.hub.theory.l1Desc', '開講科目数が多い大規模大学と、少数精鋭の単科大学・小規模学科をそのまま比較すると科目数による偏りが生じます。本システムでは全スキル値の総和が100%となるようL1正規化を適用し、カリキュラムの「重み付け配分比率」として公平に比較します。')}
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
-            <span className="font-bold text-slate-800 dark:text-slate-100">② 専門知識(A群)と汎用スキル(B群)の網羅:</span>
+            <span className="font-bold text-slate-800 dark:text-slate-100">
+              {t('analytics.hub.theory.taxonomyTitle', '② 専門知識(A群)と汎用スキル(B群)の網羅:')}
+            </span>
             <p className="leading-relaxed">
-              工学、ICT、自然科学、人文学などの学問領域（A群12項目）だけでなく、批判的思考、問題解決、チームワーク、倫理観といった社会で普遍的に求められる汎用ソフトスキル（B群12項目）を分離・統合して評価できます。
+              {t('analytics.hub.theory.taxonomyDesc', '工学、ICT、自然科学、人文学などの学問領域（A群12項目）だけでなく、批判的思考、問題解決、チームワーク、倫理観といった社会で普遍的に求められる汎用ソフトスキル（B群12項目）を分離・統合して評価できます。')}
             </p>
           </div>
         </div>

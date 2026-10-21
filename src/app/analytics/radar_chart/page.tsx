@@ -110,6 +110,7 @@ function RadarChartContent() {
   const queryCompareUniv = searchParams.get('compareUniv');
   const { setAnalyticsContext } = useAnalyticsContext();
   const { language, t } = useLanguage();
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -123,8 +124,8 @@ function RadarChartContent() {
   const [compareId, setCompareId] = useState<string>('');
 
   // 大学フィルター (基準・比較それぞれ)
-  const [primaryUnivFilter, setPrimaryUnivFilter] = useState<string>('全ての大学');
-  const [compareUnivFilter, setCompareUnivFilter] = useState<string>('全ての大学');
+  const [primaryUnivFilter, setPrimaryUnivFilter] = useState<string>(allUnivLabel);
+  const [compareUnivFilter, setCompareUnivFilter] = useState<string>(allUnivLabel);
 
   // 表示モード & 正規化
   const [viewMode, setViewMode] = useState<ViewMode>('split');
@@ -200,8 +201,8 @@ function RadarChartContent() {
 
     // 選択された基準対象の大学に合わせて大学フィルターを同期（リスト外リセットを防止）
     const pRecord = dataList.find((d) => d.id === finalPrimaryId);
-    if (pRecord && primaryUnivFilter !== '全ての大学' && primaryUnivFilter !== pRecord.university_name) {
-      setPrimaryUnivFilter('全ての大学');
+    if (pRecord && primaryUnivFilter !== allUnivLabel && primaryUnivFilter !== '全ての大学' && primaryUnivFilter !== 'All Universities' && primaryUnivFilter !== pRecord.university_name) {
+      setPrimaryUnivFilter(allUnivLabel);
     }
 
     // 2. 比較対象 (compare) の決定
@@ -231,16 +232,22 @@ function RadarChartContent() {
 
     // 選択された比較対象の大学に合わせて大学フィルターを同期
     const cRecord = dataList.find((d) => d.id === targetCompareId);
-    if (cRecord && compareUnivFilter !== '全ての大学' && compareUnivFilter !== cRecord.university_name) {
-      setCompareUnivFilter('全ての大学');
+    if (cRecord && compareUnivFilter !== allUnivLabel && compareUnivFilter !== '全ての大学' && compareUnivFilter !== 'All Universities' && compareUnivFilter !== cRecord.university_name) {
+      setCompareUnivFilter(allUnivLabel);
     }
-  }, [dataList, queryPrimaryId, queryCompareId, queryDept, queryUniv, queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv]);
+  }, [dataList, queryPrimaryId, queryCompareId, queryDept, queryUniv, queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv, allUnivLabel]);
 
   // レベル変更時に大学フィルターをリセット
   useEffect(() => {
-    setPrimaryUnivFilter('全ての大学');
-    setCompareUnivFilter('全ての大学');
-  }, [level]);
+    setPrimaryUnivFilter(allUnivLabel);
+    setCompareUnivFilter(allUnivLabel);
+  }, [level, allUnivLabel]);
+
+  // 言語切替時に「全ての大学」ラベルを追従
+  useEffect(() => {
+    setPrimaryUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
+    setCompareUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
+  }, [allUnivLabel]);
 
   // 大学一覧リスト
   const universityList = useMemo(() => {
@@ -248,24 +255,24 @@ function RadarChartContent() {
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return ['全ての大学', ...Array.from(set)];
-  }, [dataList]);
+    return [allUnivLabel, ...Array.from(set)];
+  }, [dataList, allUnivLabel]);
 
   // 基準対象用の大学絞り込みリスト
   const filteredPrimaryList = useMemo(() => {
-    if (level === 'university' || primaryUnivFilter === '全ての大学') {
+    if (level === 'university' || primaryUnivFilter === allUnivLabel || primaryUnivFilter === '全ての大学' || primaryUnivFilter === 'All Universities') {
       return dataList;
     }
     return dataList.filter((d) => d.university_name === primaryUnivFilter);
-  }, [dataList, level, primaryUnivFilter]);
+  }, [dataList, level, primaryUnivFilter, allUnivLabel]);
 
   // 比較対象用の大学絞り込みリスト
   const filteredCompareList = useMemo(() => {
-    if (level === 'university' || compareUnivFilter === '全ての大学') {
+    if (level === 'university' || compareUnivFilter === allUnivLabel || compareUnivFilter === '全ての大学' || compareUnivFilter === 'All Universities') {
       return dataList;
     }
     return dataList.filter((d) => d.university_name === compareUnivFilter);
-  }, [dataList, level, compareUnivFilter]);
+  }, [dataList, level, compareUnivFilter, allUnivLabel]);
 
   // 大学フィルター切替時に選択中IDがリスト外なら先頭を選択
   useEffect(() => {
@@ -440,7 +447,7 @@ function RadarChartContent() {
     presets.push(`カリキュラム改善のための具体的なアクションプランは？`);
 
     setAnalyticsContext({
-      pageTitle: 'スキルレーダーチャート',
+      pageTitle: t('analytics.radar.pageTitle', 'スキルレーダーチャート'),
       primaryTarget: primaryName,
       compareTarget: compareName || undefined,
       summaryText: `${primaryName} のシラバススキル分析（${compareName ? `vs ${compareName}` : '単体表示'}）`,
@@ -476,13 +483,14 @@ function RadarChartContent() {
     compareTopK5,
     compareTopG5,
     setAnalyticsContext,
+    t,
   ]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       {/* ナビゲーション戻るボタン */}
       <div className="flex items-center">
-        <BackButton label="分析メニューに戻る" fallbackHref="/analytics" />
+        <BackButton label={t('common.backToMenu', '分析メニューに戻る')} fallbackHref="/analytics" />
       </div>
 
       {/* ページタイトル & 概要 */}
@@ -493,10 +501,10 @@ function RadarChartContent() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-              スキルレーダーチャート分析
+              {t('analytics.radar.heading', 'スキルレーダーチャート分析')}
             </h1>
             <p className="text-sm text-slate-500">
-              シラバスから抽出した知識関連スキル(12項目)と汎用スキル(12項目)のバランスを比較・可視化します
+              {t('analytics.radar.subtitle', 'シラバスから抽出した知識関連スキル(12項目)と汎用スキル(12項目)のバランスを比較・可視化します')}
             </p>
           </div>
         </div>

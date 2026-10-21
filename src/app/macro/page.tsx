@@ -23,11 +23,11 @@ export default function MacroMenuPage() {
 
   useEffect(() => {
     setAnalyticsContext({
-      pageTitle: 'マクロな学習支援ポータル',
+      pageTitle: t('macro.hub.pageTitle', 'マクロな学習支援ポータル'),
       pagePath: '/macro',
       primaryTarget: undefined,
       compareTarget: undefined,
-      summaryText: 'マクロな学習支援トップメニュー（3つの最適化・編成シミュレーション機能）',
+      summaryText: t('macro.hub.summaryText', 'マクロな学習支援トップメニュー（3つの最適化・編成シミュレーション機能）'),
       details: {
         availableFeatures: [
           {
@@ -59,7 +59,7 @@ export default function MacroMenuPage() {
         '理想ベクトルとのギャップを埋める補完アプローチとは何ですか？'
       ],
     });
-  }, [setAnalyticsContext]);
+  }, [setAnalyticsContext, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
@@ -96,7 +96,9 @@ export default function MacroMenuPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5">
           <div className="p-4 rounded-xl bg-orange-50/70 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/60">
-            <div className="text-xs font-medium text-orange-700 dark:text-orange-300">支援アプローチ</div>
+            <div className="text-xs font-medium text-orange-700 dark:text-orange-300">
+              {t('macro.hub.approachLabel', '支援アプローチ')}
+            </div>
             <div className="text-xl font-black text-orange-950 dark:text-white mt-1">
               3 Approaches
             </div>
@@ -112,7 +114,9 @@ export default function MacroMenuPage() {
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300">目標水準</div>
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              {t('macro.hub.targetLevelLabel', '目標水準')}
+            </div>
             <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
               Ideal Vector (3.0)
             </div>

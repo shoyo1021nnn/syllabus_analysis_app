@@ -3,6 +3,7 @@
 import React from 'react';
 import { Info, Building2 } from 'lucide-react';
 import { useAcademicUnitModal, AcademicUnitTarget } from '@/context/AcademicUnitModalContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface AcademicUnitInfoButtonProps {
   target: AcademicUnitTarget;
@@ -17,9 +18,11 @@ export default function AcademicUnitInfoButton({
   variant = 'icon',
   size = 'xs',
   className = '',
-  label = '基本情報',
+  label,
 }: AcademicUnitInfoButtonProps) {
   const { openUnitInfo } = useAcademicUnitModal();
+  const { t } = useLanguage();
+  const displayLabel = label ?? t('common.academicInfo', '基本情報');
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -35,11 +38,11 @@ export default function AcademicUnitInfoButton({
         type="button"
         onClick={handleClick}
         className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-semibold bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-teal-950/70 text-slate-600 hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300 border border-slate-200 hover:border-teal-300 dark:border-slate-700 dark:hover:border-teal-700 transition shadow-2xs cursor-pointer ${className}`}
-        title={`「${displayName}」の基本情報を表示`}
-        aria-label={`「${displayName}」の基本情報を表示`}
+        title={`${displayName} - ${t('common.viewAcademicInfo', '基本情報を表示')}`}
+        aria-label={`${displayName} - ${t('common.viewAcademicInfo', '基本情報を表示')}`}
       >
         <Building2 className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
-        <span>{label}</span>
+        <span>{displayLabel}</span>
       </button>
     );
   }
@@ -50,11 +53,11 @@ export default function AcademicUnitInfoButton({
         type="button"
         onClick={handleClick}
         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/80 dark:hover:bg-teal-900 text-teal-700 hover:text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 transition shadow-2xs cursor-pointer ${className}`}
-        title={`「${displayName}」の基本情報を表示`}
-        aria-label={`「${displayName}」の基本情報を表示`}
+        title={`${displayName} - ${t('common.viewAcademicInfo', '基本情報を表示')}`}
+        aria-label={`${displayName} - ${t('common.viewAcademicInfo', '基本情報を表示')}`}
       >
         <Building2 className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
-        <span>{label}</span>
+        <span>{displayLabel}</span>
       </button>
     );
   }

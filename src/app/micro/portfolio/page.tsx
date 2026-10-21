@@ -320,10 +320,13 @@ export default function MicroPortfolioPage() {
   // AIエージェントコンテキスト更新
   useEffect(() => {
     if (!isLoaded) return;
+    const isEn = language === 'en';
     setAnalyticsContext({
-      pageTitle: "履修・スキルポートフォリオ",
+      pageTitle: t('micro.portfolio.title', '履修・スキルポートフォリオ'),
       pagePath: "/micro/portfolio",
-      summaryText: `学生個人の履修登録と24次元スキル累積レーダーチャート。登録科目数: ${enrolledCourses.length}科目、総単位数: ${profile.totalCredits}単位。`,
+      summaryText: isEn
+        ? `Student course enrollment and 24-dimensional cumulative skill radar charts. Enrolled: ${enrolledCourses.length} courses, Total: ${profile.totalCredits} credits.`
+        : `学生個人の履修登録と24次元スキル累積レーダーチャート。登録科目数: ${enrolledCourses.length}科目、総単位数: ${profile.totalCredits}単位。`,
       details: {
         enrolledCount: enrolledCourses.length,
         totalCredits: profile.totalCredits,
@@ -332,17 +335,22 @@ export default function MicroPortfolioPage() {
           faculty: c.course.faculty_name,
           credits: c.course.credits,
         })),
-        strengths: profile.strengths.map((s) => `${s.nameJa} (累積${s.score}点)`),
-        weaknesses: profile.weaknesses.map((s) => `${s.nameJa} (累積${s.score}点)`),
+        strengths: profile.strengths.map((s) => `${isEn ? (s.nameEn || s.nameJa) : s.nameJa} (${isEn ? 'Cumulative' : '累積'} ${s.score}pt)`),
+        weaknesses: profile.weaknesses.map((s) => `${isEn ? (s.nameEn || s.nameJa) : s.nameJa} (${isEn ? 'Cumulative' : '累積'} ${s.score}pt)`),
       },
-      presetQuestions: [
+      presetQuestions: isEn ? [
+        "Analyze the strengths and features of my current skill accumulation.",
+        "What kind of courses should I focus on to supplement my skill gaps?",
+        "What advice do you have for next semester to balance my skills?",
+        "Tell me more about the growth potential in generic competencies (Group B).",
+      ] : [
         "私の現在のスキル蓄積における強みと特徴を分析して",
         "不足しているスキルを補うためにはどのような科目を意識すべき？",
         "この履修状況でバランスを整えるための次学期のアドバイスは？",
         "汎用スキル（B系列）の伸びしろについて詳しく教えて",
       ],
     });
-  }, [isLoaded, enrolledCourses, profile, setAnalyticsContext]);
+  }, [isLoaded, enrolledCourses, profile, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16">

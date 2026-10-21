@@ -207,10 +207,22 @@ function SimilarityPageContent() {
     fetchData();
   }, [level]);
 
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
+
   // レベル変更時に大学フィルターをリセット
   useEffect(() => {
-    setSelectedUnivFilter('全ての大学');
-  }, [level]);
+    setSelectedUnivFilter(allUnivLabel);
+  }, [level, allUnivLabel]);
+
+  // 言語切替時に「全ての大学」ラベルを追従
+  useEffect(() => {
+    setSelectedUnivFilter((prev) => {
+      if (prev === '全ての大学' || prev === 'All Universities') {
+        return allUnivLabel;
+      }
+      return prev;
+    });
+  }, [allUnivLabel]);
 
   // 大学一覧リスト
   const universityList = useMemo(() => {
@@ -218,16 +230,16 @@ function SimilarityPageContent() {
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return ['全ての大学', ...Array.from(set)];
-  }, [dataList]);
+    return [allUnivLabel, ...Array.from(set)];
+  }, [dataList, allUnivLabel]);
 
   // 大学フィルター適用後の基準選択肢
   const filteredDataList = useMemo(() => {
-    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+    if (level === 'university' || selectedUnivFilter === allUnivLabel || selectedUnivFilter === '全ての大学' || selectedUnivFilter === 'All Universities') {
       return dataList;
     }
     return dataList.filter((d) => d.university_name === selectedUnivFilter);
-  }, [dataList, level, selectedUnivFilter]);
+  }, [dataList, level, selectedUnivFilter, allUnivLabel]);
 
   // 2. 初期基準IDの設定（URLクエリ優先、または先頭要素）
   useEffect(() => {
@@ -430,7 +442,7 @@ function SimilarityPageContent() {
     presets.push(`「${targetLabel}」と類似度が低い学科との違いや差別化ポイントは？`);
 
     setAnalyticsContext({
-      pageTitle: '類似度計算ランキング',
+      pageTitle: t('analytics.similarity.pageTitle', '類似度計算ランキング'),
       primaryTarget: targetLabel,
       summaryText: `基準対象: ${targetLabel}（計算指標: ${currentMetricName}、対象スキル: ${vectorTarget}）`,
       details: {
@@ -451,13 +463,13 @@ function SimilarityPageContent() {
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, rankingResults, metric, vectorTarget, dataList, setAnalyticsContext]);
+  }, [targetRecord, rankingResults, metric, vectorTarget, dataList, setAnalyticsContext, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       {/* ナビゲーション戻るボタン */}
       <div className="flex items-center">
-        <BackButton label="分析メニューに戻る" fallbackHref="/analytics" />
+        <BackButton label={t('common.backToMenu', '分析メニューに戻る')} fallbackHref="/analytics" />
       </div>
 
       {/* ページタイトル & 概要 */}
@@ -468,10 +480,10 @@ function SimilarityPageContent() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-              類似度計算ランキング分析
+              {t('analytics.similarity.heading', '類似度計算ランキング分析')}
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              基準学科のスキル構成比（L1正規化ベクトル）をもとに、全国の学科との類似度をリアルタイム算出します
+              {t('analytics.similarity.subtitle', '基準学科のスキル構成比（L1正規化ベクトル）をもとに、全国の学科との類似度をリアルタイム算出します')}
             </p>
           </div>
         </div>
@@ -490,7 +502,7 @@ function SimilarityPageContent() {
           {level !== 'university' && universityList.length > 1 && (
             <div className="pb-2 border-b border-teal-200/60">
               <SearchableSelect
-                label={t('universities.univFilter', '大学で絞り込み:')}
+                label={t('common.filterUniv', '大学で絞り込み:')}
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
@@ -617,10 +629,12 @@ function SimilarityPageContent() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <BarChart2 className="w-5 h-5 text-teal-600" />
-            Top 10 類似度ランキング
+            {t('analytics.similarity.rankingHeading', 'Top 10 類似度ランキング')}
           </h2>
           <span className="text-xs text-slate-400 flex items-center gap-1.5">
-            <span>基準: {formatLabel(targetRecord)} (L1正規化計算)</span>
+            <span>
+              {t('analytics.similarity.rankingSub', '基準: {name}（L1正規化計算）').replace('{name}', formatLabel(targetRecord))}
+            </span>
             {targetRecord && (
               <AcademicUnitInfoButton
                 target={{

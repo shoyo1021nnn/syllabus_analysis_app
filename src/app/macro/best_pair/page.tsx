@@ -444,7 +444,7 @@ function BestPairContent() {
     presets.push(`カリキュラム連携で「1対1のベストペア」を組む際の教育ガバナンス上のアドバイスは？`);
 
     setAnalyticsContext({
-      pageTitle: 'ベスト・ペア検索',
+      pageTitle: t('macro.bestPair.title', 'ベスト・ペア検索'),
       primaryTarget: targetLabel,
       compareTarget: partnerRecord ? formatLabel(partnerRecord) : undefined,
       summaryText: `基準対象: ${targetLabel} のベスト・ペア探索（結合方法: ${combineMethod === 'max' ? '最大値結合' : '平均値結合'}、対象: ${vectorTarget}）`,
@@ -463,12 +463,12 @@ function BestPairContent() {
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, partnerRecord, rankingResults, combineMethod, vectorTarget, metric, setAnalyticsContext]);
+  }, [targetRecord, partnerRecord, rankingResults, combineMethod, vectorTarget, metric, setAnalyticsContext, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       <div className="flex items-center">
-        <BackButton label={t('common.back', '学習支援メニューに戻る')} fallbackHref="/macro" />
+        <BackButton label={t('common.backToMacro', '学習支援メニューに戻る')} fallbackHref="/macro" />
       </div>
 
       {/* ヘッダーカード */}

@@ -421,7 +421,7 @@ function SkillComplementationContent() {
     presets.push(`弱点スキルを補強するために、大学間連携で配慮すべき注意点は何ですか？`);
 
     setAnalyticsContext({
-      pageTitle: 'スキル補完検索',
+      pageTitle: t('macro.complementation.title', 'スキル補完検索'),
       primaryTarget: targetLabel,
       compareTarget: partnerRecord ? formatLabel(partnerRecord) : undefined,
       summaryText: `基準対象: ${targetLabel} のスキル補完検索（アプローチ: ${approachNames[approach]}）`,
@@ -441,13 +441,13 @@ function SkillComplementationContent() {
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, partnerRecord, rankingResults, approach, metric, setAnalyticsContext]);
+  }, [targetRecord, partnerRecord, rankingResults, approach, metric, setAnalyticsContext, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       {/* 戻るボタン */}
       <div className="flex items-center">
-        <BackButton label={t('common.back', '学習支援メニューに戻る')} fallbackHref="/macro" />
+        <BackButton label={t('common.backToMacro', '学習支援メニューに戻る')} fallbackHref="/macro" />
       </div>
 
       {/* ヘッダーカード */}

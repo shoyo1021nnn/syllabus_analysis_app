@@ -188,7 +188,7 @@ export default function ClusteringPage() {
     presets.push(`シルエットスコア（${activeRun?.silhouette_score?.toFixed(3) || '-'}）から見る分類妥当性の評価は？`);
 
     setAnalyticsContext({
-      pageTitle: 'K-means クラスタリング',
+      pageTitle: t('analytics.clustering.pageTitle', 'K-means クラスタリング'),
       primaryTarget: selectedTargetName,
       summaryText: `k=${activeRun?.k || 3} による学科スキルクラスタリング分析（総学科数: ${points.length}件）`,
       details: {
@@ -209,13 +209,13 @@ export default function ClusteringPage() {
       },
       presetQuestions: presets,
     });
-  }, [activeRun, selectedPoint, points.length, setAnalyticsContext]);
+  }, [activeRun, selectedPoint, points.length, setAnalyticsContext, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       {/* ナビゲーション戻るボタン */}
       <div className="flex items-center">
-        <BackButton label="分析メニューに戻る" fallbackHref="/analytics" />
+        <BackButton label={t('common.backToMenu', '分析メニューに戻る')} fallbackHref="/analytics" />
       </div>
 
       {/* ページタイトル & 概要 */}
@@ -227,10 +227,10 @@ export default function ClusteringPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-                K-means クラスタリング & PCAマップ
+                {t('analytics.clustering.heading', 'K-means クラスタリング & PCAマップ')}
               </h1>
               <p className="text-sm text-slate-500">
-                24次元スキルベクトルを主成分分析(PCA)で2次元に縮約し、学科の分布とスキルグループを可視化します
+                {t('analytics.clustering.subtitle', '24次元スキルベクトルを主成分分析(PCA)で2次元に縮約し、学科の分布とスキルグループを可視化します')}
               </p>
             </div>
           </div>
@@ -359,7 +359,7 @@ export default function ClusteringPage() {
                 className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 transition shadow-xs border border-teal-200"
               >
                 <Users className="w-3.5 h-3.5 text-teal-600" />
-                <span>類似学科を探す</span>
+                <span>{t('analytics.clustering.findSimilar', '類似学科を探す')}</span>
               </Link>
             </div>
           </div>

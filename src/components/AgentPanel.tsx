@@ -21,26 +21,23 @@ export function AgentPanel() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isLoading = status === 'submitted' || status === 'streaming';
 
-    // 表示するプリセット質問を決定 (言語に応じて ja / en の辞書から切り替え)
+    // 表示するプリセット質問を決定 (画面側指定を最優先、未指定時は言語とパスに応じた辞書プリセット)
     const presetQuestions = useMemo(() => {
-        let key: keyof typeof ja.agent.presets = 'default';
-        if (pathname?.includes('portfolio')) key = 'micro_portfolio';
-        else if (pathname?.includes('recommendation')) key = 'micro_recommendation';
-        else if (pathname?.includes('radar_chart')) key = 'radar_chart';
-        else if (pathname?.includes('clustering')) key = 'clustering';
-        else if (pathname?.includes('similarity')) key = 'similarity';
-
-        // 英語モード時は英語辞書のプリセットを優先
-        if (language === 'en') {
-            return en.agent.presets[key];
-        }
-
-        // 日本語モード時は画面側から個別指定されていればそれを優先
+        // 画面側から個別指定されていれば最優先（各画面で言語連動済み）
         if (contextData.presetQuestions && contextData.presetQuestions.length > 0) {
             return contextData.presetQuestions;
         }
 
-        return ja.agent.presets[key];
+        let key: keyof typeof ja.agent.presets = 'default';
+        if (pathname?.includes('portfolio')) key = 'micro_portfolio';
+        else if (pathname?.includes('recommendation')) key = 'micro_recommendation';
+        else if (pathname?.includes('micro')) key = 'micro_hub';
+        else if (pathname?.includes('radar_chart')) key = 'radar_chart';
+        else if (pathname?.includes('clustering')) key = 'clustering';
+        else if (pathname?.includes('similarity')) key = 'similarity';
+        else if (pathname?.includes('macro')) key = 'macro_hub';
+
+        return language === 'en' ? en.agent.presets[key] : ja.agent.presets[key];
     }, [contextData.presetQuestions, pathname, language]);
 
     // メッセージが増えたら一番下まで自動スクロール

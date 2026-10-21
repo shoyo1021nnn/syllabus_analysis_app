@@ -483,7 +483,7 @@ function GreedyTeamContent() {
     presets.push(`これ以上のメンバー追加で得られるスキルの限界収穫逓減についての評価は？`);
 
     setAnalyticsContext({
-      pageTitle: 'チーム編成支援',
+      pageTitle: t('macro.greedyTeam.title', 'チーム編成支援'),
       primaryTarget: initialLabel,
       summaryText: `起点: ${initialLabel} のGreedyチーム編成シミュレーション（${teamResult.teamMembers.length}組織、スコア: ${(teamResult.finalScore * 100).toFixed(1)}%）`,
       details: {
@@ -503,12 +503,12 @@ function GreedyTeamContent() {
       },
       presetQuestions: presets,
     });
-  }, [teamResult, searchMode, combineMethod, setAnalyticsContext]);
+  }, [teamResult, searchMode, combineMethod, setAnalyticsContext, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       <div className="flex items-center">
-        <BackButton label={t('common.back', '学習支援メニューに戻る')} fallbackHref="/macro" />
+        <BackButton label={t('common.backToMacro', '学習支援メニューに戻る')} fallbackHref="/macro" />
       </div>
 
       {/* ヘッダーカード */}

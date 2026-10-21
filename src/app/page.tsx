@@ -268,10 +268,10 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">
-                L1正規化による客観的評価
+                {t('home.theory.l1Title', 'L1正規化による客観的評価')}
               </h3>
               <p className="leading-relaxed">
-                総科目数の差（大規模大学と小規模大学の科目数格差）によるバイアスを排除するため、全スキル構成比の合計が100%となるようL1正規化を適用し、公平な比較を実現しています。
+                {t('home.theory.l1Desc', '総科目数の差（大規模大学と小規模大学の科目数格差）によるバイアスを排除するため、全スキル構成比の合計が100%となるようL1正規化を適用し、公平な比較を実現しています。')}
               </p>
             </div>
           </div>
@@ -282,10 +282,10 @@ export default function HomePage() {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">
-                24スキル体系（知識12群・汎用12群）
+                {t('home.theory.taxonomyTitle', '24スキル体系（知識12群・汎用12群）')}
               </h3>
               <p className="leading-relaxed">
-                専門知識に関するA群12項目（ICT、自然科学、人文学等）と、社会で活用する汎用スキルに関するB群12項目（論理思考、問題解決、チームワーク等）を網羅的に捉えます。
+                {t('home.theory.taxonomyDesc', '専門知識に関するA群12項目（ICT、自然科学、人文学等）と、社会で活用する汎用スキルに関するB群12項目（論理思考、問題解決、チームワーク等）を網羅的に捉えます。')}
               </p>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function HomePage() {
 
       {/* フッター */}
       <footer className="w-full border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-400">
-        <p>© Syllabus Analysis App - 大学シラバス・カリキュラム分析 ＆ マクロな学習支援システム</p>
+        <p>{t('home.footer', '© Syllabus Analysis App - 大学シラバス・カリキュラム分析 ＆ マクロな学習支援システム')}</p>
       </footer>
     </div>
   );
