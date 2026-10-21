@@ -866,14 +866,14 @@ export function recommendCoursesForPersonalGaps(
         ];
 
     // この科目が持つ24スキル一覧
-    const courseSkills: Array<{ code: string; nameJa: string; value: number }> = [
-      ...KNOWLEDGE_SKILLS.map((s, idx) => ({ code: s.code, nameJa: s.nameJa, value: Number(kVec[idx]) || 0 })),
-      ...GENERAL_SKILLS.map((s, idx) => ({ code: s.code, nameJa: s.nameJa, value: Number(gVec[idx]) || 0 })),
+    const courseSkills: Array<{ code: string; nameJa: string; nameEn?: string; value: number }> = [
+      ...KNOWLEDGE_SKILLS.map((s, idx) => ({ code: s.code, nameJa: s.nameJa, nameEn: s.nameEn, value: Number(kVec[idx]) || 0 })),
+      ...GENERAL_SKILLS.map((s, idx) => ({ code: s.code, nameJa: s.nameJa, nameEn: s.nameEn, value: Number(gVec[idx]) || 0 })),
     ];
 
     // 不足スキルに対する補填スコア合計
     let gapGainSum = 0;
-    const targetedSkills: Array<{ code: string; nameJa: string; gain: number }> = [];
+    const targetedSkills: Array<{ code: string; nameJa: string; nameEn?: string; gain: number }> = [];
 
     for (const cs of courseSkills) {
       if (weakCodes.has(cs.code) && cs.value > 0) {
@@ -881,6 +881,7 @@ export function recommendCoursesForPersonalGaps(
         targetedSkills.push({
           code: cs.code,
           nameJa: cs.nameJa,
+          nameEn: cs.nameEn,
           gain: cs.value,
         });
       }
@@ -896,6 +897,7 @@ export function recommendCoursesForPersonalGaps(
       targetedSkills.push({
         code: sc.code,
         nameJa: sc.nameJa,
+        nameEn: sc.nameEn,
         gain: sc.value,
       });
     }
@@ -935,7 +937,7 @@ export function simulateCourseAddition(
 ): {
   simulatedKnowledge: number[];
   simulatedGeneral: number[];
-  gains: Array<{ code: string; nameJa: string; before: number; after: number; diff: number }>;
+  gains: Array<{ code: string; nameJa: string; nameEn?: string; before: number; after: number; diff: number }>;
 } {
   const kVec = Array.isArray(candidateCourse.knowledge_vector) && candidateCourse.knowledge_vector.length === 12
     ? candidateCourse.knowledge_vector
@@ -958,7 +960,7 @@ export function simulateCourseAddition(
   const simK = currentProfile.cumulativeKnowledgeVector.map((val, i) => val + (Number(kVec[i]) || 0));
   const simG = currentProfile.cumulativeGeneralVector.map((val, i) => val + (Number(gVec[i]) || 0));
 
-  const gains: Array<{ code: string; nameJa: string; before: number; after: number; diff: number }> = [];
+  const gains: Array<{ code: string; nameJa: string; nameEn?: string; before: number; after: number; diff: number }> = [];
 
   KNOWLEDGE_SKILLS.forEach((s, i) => {
     const diff = Number(kVec[i]) || 0;
@@ -966,6 +968,7 @@ export function simulateCourseAddition(
       gains.push({
         code: s.code,
         nameJa: s.nameJa,
+        nameEn: s.nameEn,
         before: currentProfile.cumulativeKnowledgeVector[i] || 0,
         after: simK[i],
         diff,
@@ -979,6 +982,7 @@ export function simulateCourseAddition(
       gains.push({
         code: s.code,
         nameJa: s.nameJa,
+        nameEn: s.nameEn,
         before: currentProfile.cumulativeGeneralVector[i] || 0,
         after: simG[i],
         diff,

@@ -195,6 +195,7 @@ export interface CourseRecommendationItem {
   targetedSkills: Array<{
     code: string;
     nameJa: string;
+    nameEn?: string;
     gain: number;          // 獲得見込みスコア
   }>;
 }

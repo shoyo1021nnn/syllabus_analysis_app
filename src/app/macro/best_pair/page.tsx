@@ -468,7 +468,7 @@ function BestPairContent() {
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       <div className="flex items-center">
-        <BackButton label="学習支援メニューに戻る" fallbackHref="/macro" />
+        <BackButton label={t('common.back', '学習支援メニューに戻る')} fallbackHref="/macro" />
       </div>
 
       {/* ヘッダーカード */}
@@ -480,15 +480,15 @@ function BestPairContent() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-                ベスト・ペア検索
+                {t('macro.bestPair.title', 'ベスト・ペア検索')}
               </h1>
               <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
-                <span>1対1 最大相乗効果</span>
+                <span>{t('macro.bestPair.badge', '1対1 最大相乗効果')}</span>
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              2組織が連携した際に最大のシナジー（理想ベクトルへの近接）を生み出すベストパートナーを探索
+              {t('macro.bestPair.subtitle', '2組織が連携した際に最大のシナジー（理想ベクトルへの近接）を生み出すベストパートナーを探索')}
             </p>
           </div>
         </div>
@@ -507,11 +507,11 @@ function BestPairContent() {
           {level !== 'university' && universityList.length > 1 && (
             <div className="pb-2 border-b border-orange-200/60">
               <SearchableSelect
-                label="大学で絞り込み:"
+                label={t('macro.bestPair.filterUniv', '大学で絞り込み:')}
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
-                placeholder="大学名を検索・選択..."
+                placeholder={t('complementation.searchPlaceholder', '大学名を検索・選択...')}
                 colorScheme="orange"
               />
             </div>
@@ -521,12 +521,12 @@ function BestPairContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
               <span className="text-xs font-bold text-orange-900 flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-orange-600" />
-                基準組織を選択:
+                {t('macro.bestPair.selectBaseOrg', '基準組織を選択:')}
               </span>
               {targetRecord && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-orange-700 font-medium">
-                    科目数: {targetRecord.subject_count}科目
+                    {targetRecord.subject_count} {t('common.subjectCount', '科目')}
                   </span>
                   <AcademicUnitInfoButton
                     target={{
@@ -553,7 +553,7 @@ function BestPairContent() {
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {formatLabel(item)} ({item.subject_count}科目)
+                  {formatLabel(item)} ({item.subject_count} {t('common.subjectCount', '科目')})
                 </option>
               ))}
             </select>
@@ -565,63 +565,63 @@ function BestPairContent() {
           {/* 結合方法 */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Sliders className="w-3.5 h-3.5 text-orange-500" /> 結合方法:
+              <Sliders className="w-3.5 h-3.5 text-orange-500" /> {t('macro.bestPair.combineMethod', '結合方法:')}
             </label>
             <select
               value={combineMethod}
               onChange={(e) => setCombineMethod(e.target.value as 'max' | 'mean')}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="max">最大値結合 (各組織の強みを活かす)</option>
-              <option value="mean">平均値結合 (チーム全体の底上げ)</option>
+              <option value="max">{t('macro.bestPair.methodMax', '最大値結合 (各組織の強みを活かす)')}</option>
+              <option value="mean">{t('macro.bestPair.methodMean', '平均値結合 (チーム全体の底上げ)')}</option>
             </select>
           </div>
 
           {/* 対象スキル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> 対象スキル:
+              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> {t('macro.bestPair.targetSkills', '対象スキル:')}
             </label>
             <select
               value={vectorTarget}
               onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="all">全24スキル統合 (知識+汎用)</option>
-              <option value="knowledge">知識関連スキルのみ (12項目)</option>
-              <option value="general">汎用スキルのみ (12項目)</option>
+              <option value="all">{t('macro.bestPair.skillsAll', '全24スキル統合 (知識+汎用)')}</option>
+              <option value="knowledge">{t('macro.bestPair.skillsKnowledge', '知識関連スキルのみ (12項目)')}</option>
+              <option value="general">{t('macro.bestPair.skillsGeneral', '汎用スキルのみ (12項目)')}</option>
             </select>
           </div>
 
           {/* 大学絞り込み */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-slate-500" /> 大学絞り込み:
+              <Filter className="w-3.5 h-3.5 text-slate-500" /> {t('macro.bestPair.filterUniv', '大学絞り込み:')}
             </label>
             <select
               value={filterUniversity}
               onChange={(e) => setFilterUniversity(e.target.value as TargetFilter)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="all">すべての大学</option>
-              <option value="diff">他大学のみ (同一大学除く)</option>
-              <option value="same">同一大学のみ</option>
+              <option value="all">{t('macro.bestPair.filterAll', 'すべての大学')}</option>
+              <option value="diff">{t('macro.bestPair.filterDiff', '他大学のみ (同一大学除く)')}</option>
+              <option value="same">{t('macro.bestPair.filterSame', '同一大学のみ')}</option>
             </select>
           </div>
 
           {/* 階層レベル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-slate-500" /> 階層レベル:
+              <Layers className="w-3.5 h-3.5 text-slate-500" /> {t('macro.bestPair.hierarchy', '階層レベル:')}
             </label>
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="department">学科レベル</option>
-              <option value="faculty">学部レベル</option>
-              <option value="university">大学レベル</option>
+              <option value="department">{t('common.level.department', '学科レベル')}</option>
+              <option value="faculty">{t('common.level.faculty', '学部レベル')}</option>
+              <option value="university">{t('common.level.university', '大学レベル')}</option>
             </select>
           </div>
         </div>
@@ -631,29 +631,29 @@ function BestPairContent() {
       {currentPairItem && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-medium">基準組織の単独スコア</span>
+            <span className="text-xs text-slate-500 font-medium">{t('macro.bestPair.baselineScore', '基準組織の単独スコア')}</span>
             <div className="text-xl font-bold text-slate-800 mt-1">
               {(currentPairItem.baseline_score * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-slate-400 mt-0.5 block">理想ベクトル(均等高水準)への近さ</span>
+            <span className="text-2xs text-slate-400 mt-0.5 block">{t('macro.bestPair.baselineDesc', '理想ベクトル(均等高水準)への近さ')}</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-2xs bg-orange-50/20">
-            <span className="text-xs text-orange-700 font-bold">ベストペア結合後スコア</span>
+            <span className="text-xs text-orange-700 font-bold">{t('macro.bestPair.pairScore', 'ベストペア結合後スコア')}</span>
             <div className="text-xl font-bold text-orange-600 mt-1">
               {(currentPairItem.pair_score * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-orange-600/80 mt-0.5 block">{combineMethod === 'max' ? '最大値結合' : '平均値結合'}</span>
+            <span className="text-2xs text-orange-600/80 mt-0.5 block">{combineMethod === 'max' ? t('macro.bestPair.methodMax', '最大値結合') : t('macro.bestPair.methodMean', '平均値結合')}</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs bg-emerald-50/20">
             <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> スコア向上度 (相乗効果)
+              <TrendingUp className="w-3.5 h-3.5" /> {t('macro.bestPair.improvementScore', 'スコア向上度 (相乗効果)')}
             </span>
             <div className="text-xl font-bold text-emerald-600 mt-1">
               +{((currentPairItem.improvement) * 100).toFixed(1)} pt
             </div>
-            <span className="text-2xs text-emerald-600/80 mt-0.5 block">単独時からの改善幅</span>
+            <span className="text-2xs text-emerald-600/80 mt-0.5 block">{t('macro.bestPair.diffDesc', '単独時からの改善幅')}</span>
           </div>
         </div>
       )}
@@ -664,13 +664,13 @@ function BestPairContent() {
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <RadarIcon className="w-5 h-5 text-orange-600" />
-              ベストペア結合 レーダーチャート比較
+              {t('macro.bestPair.chartTitle', 'ベストペア結合 レーダーチャート比較')}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              基準: <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
+              {t('charts.radar.baseOrg', '基準')}: <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
               {partnerRecord && (
                 <>
-                  {' '}× パートナー: <span className="font-semibold text-orange-700">{formatLabel(partnerRecord)}</span>
+                  {' '}× {t('macro.bestPair.partnerCandidate', 'パートナー')}: <span className="font-semibold text-orange-700">{formatLabel(partnerRecord)}</span>
                 </>
               )}
             </p>
@@ -708,8 +708,8 @@ function BestPairContent() {
         </div>
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
-          <span>💡 結合方法「{combineMethod === 'max' ? '最大値結合 (各々の強み重視)' : '平均値結合 (総合底上げ)'}」による合成結果が緑の線で表示されます。</span>
-          <span>結合方式: <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? '最大値結合 (Max)' : '平均値結合 (Mean)'}</strong></span>
+          <span>💡 結合方法「{combineMethod === 'max' ? t('macro.bestPair.methodMax', '最大値結合') : t('macro.bestPair.methodMean', '平均値結合')}」による合成結果が緑の線で表示されます。</span>
+          <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? 'Max' : 'Mean'}</strong></span>
         </div>
       </div>
 
@@ -718,14 +718,14 @@ function BestPairContent() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-slate-800">
-              ベスト・ペア候補 ランキング (Top 20)
+              {t('macro.bestPair.pairRankingTitle', 'ベスト・ペア候補 ランキング (Top 20)')}
             </h3>
             <p className="text-xs text-slate-500">
-              行をクリックすると、上部のレーダーチャートに対比表示されます
+              {t('macro.bestPair.rankingDesc', '行をクリックすると、上部のレーダーチャートに対比表示されます')}
             </p>
           </div>
           <span className="text-xs text-slate-400">
-            対象候補数: {candidates.length}件
+            {candidates.length} {t('common.subjectCount', '件')}
           </span>
         </div>
 
@@ -733,11 +733,11 @@ function BestPairContent() {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 text-xs font-semibold">
-                <th className="py-2.5 px-3 w-14 text-center">順位</th>
-                <th className="py-2.5 px-3">大学・学部・学科名</th>
-                <th className="py-2.5 px-3 w-32 text-right">ペア結合スコア</th>
-                <th className="py-2.5 px-3 w-28 text-right">向上幅 (Δ)</th>
-                <th className="py-2.5 px-3 w-24 text-center">アクション</th>
+                <th className="py-2.5 px-3 w-14 text-center">{t('macro.bestPair.tableRank', '順位')}</th>
+                <th className="py-2.5 px-3">{t('macro.bestPair.tableOrg', '大学・学部・学科名')}</th>
+                <th className="py-2.5 px-3 w-32 text-right">{t('macro.bestPair.tableScore', 'ペア結合スコア')}</th>
+                <th className="py-2.5 px-3 w-28 text-right">{t('macro.bestPair.tableDiff', '向上幅 (Δ)')}</th>
+                <th className="py-2.5 px-3 w-24 text-center">{t('macro.bestPair.tableAction', 'アクション')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
@@ -803,7 +803,7 @@ function BestPairContent() {
                             : 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
                         }`}
                       >
-                        <span>{isSelected ? '表示中' : '選択'}</span>
+                        <span>{isSelected ? t('macro.bestPair.showing', '表示中') : t('macro.bestPair.select', '選択')}</span>
                       </button>
                     </td>
                   </tr>

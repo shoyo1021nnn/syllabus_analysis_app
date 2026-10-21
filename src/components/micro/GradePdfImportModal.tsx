@@ -18,6 +18,7 @@ import {
   Award
 } from "lucide-react";
 import { CourseSkillVector, EnrolledCourse } from "@/types/database";
+import { useLanguage } from "@/context/LanguageContext";
 
 export interface DetectedGradeItem {
   id: string;
@@ -53,6 +54,7 @@ export default function GradePdfImportModal({
   enrolledCourses,
   onImportCourses,
 }: GradePdfImportModalProps) {
+  const { t } = useLanguage();
   const [step, setStep] = useState<"upload" | "confirm">("upload");
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export default function GradePdfImportModal({
   // ファイルアップロード＆解析処理
   const handleFileUpload = async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".pdf")) {
-      setErrorMessage("PDF形式のファイルを選択してください。");
+      setErrorMessage(t('modal.gradePdf.errorPdfOnly'));
       return;
     }
 
@@ -89,7 +91,7 @@ export default function GradePdfImportModal({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "PDFの解析に失敗しました。");
+        throw new Error(data.error || t('modal.gradePdf.errorParse'));
       }
 
       const items: DetectedGradeItem[] = data.detectedItems || [];
@@ -110,7 +112,7 @@ export default function GradePdfImportModal({
       setStep("confirm");
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || "PDF解析処理中にエラーが発生しました。");
+      setErrorMessage(err.message || t('modal.gradePdf.errorParse'));
     } finally {
       setIsUploading(false);
     }
@@ -251,13 +253,13 @@ export default function GradePdfImportModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Campusmate 成績照会PDFの一括取り込み</span>
+                <span>{t('modal.gradePdf.title')}</span>
                 <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-2xs">
-                  AI自動解析
+                  {t('modal.gradePdf.aiBadge')}
                 </span>
               </h2>
               <p className="text-2xs text-slate-500">
-                成績照会PDFから履修済み科目を自動抽出し、シラバスデータと照合して一括登録します。
+                {t('modal.gradePdf.subtitle')}
               </p>
             </div>
           </div>
@@ -311,10 +313,10 @@ export default function GradePdfImportModal({
                   <div className="py-6 flex flex-col items-center justify-center space-y-3">
                     <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
                     <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                      PDFを解析し、シラバスデータと照合中...
+                      {t('modal.gradePdf.parsingDesc')}
                     </div>
                     <p className="text-2xs text-slate-400">
-                      講義コード・ナンバリング・教員名を抽出しています
+                      {t('modal.gradePdf.parsingSub')}
                     </p>
                   </div>
                 ) : (
@@ -324,10 +326,10 @@ export default function GradePdfImportModal({
                     </div>
                     <div>
                       <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                        ここに成績照会のPDFファイルをドラッグ＆ドロップ
+                        {t('modal.gradePdf.dropTitle')}
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        またはクリックしてファイルを選択（.pdf）
+                        {t('modal.gradePdf.dropSub')}
                       </p>
                     </div>
                   </div>
@@ -338,29 +340,29 @@ export default function GradePdfImportModal({
               <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-600 dark:text-slate-300 space-y-2">
                 <div className="font-bold text-indigo-950 dark:text-indigo-200 flex items-center space-x-1.5">
                   <Info className="w-4 h-4 text-indigo-600" />
-                  <span>Campusmateからの出力手順</span>
+                  <span>{t('modal.gradePdf.guideTitle')}</span>
                 </div>
                 <ol className="list-decimal list-inside space-y-1 text-2xs text-slate-600 dark:text-slate-400 pl-1">
-                  <li>Campusmateにログインし、<strong>「成績照会」</strong>画面を開きます。</li>
-                  <li>ブラウザの印刷機能（Ctrl + P または ⌘ + P）を開き、送信先を<strong>「PDFとして保存」</strong>にします。</li>
-                  <li>保存したPDFファイルを上記枠内にアップロードしてください。</li>
+                  <li>{t('modal.gradePdf.step1')}</li>
+                  <li>{t('modal.gradePdf.step2')}</li>
+                  <li>{t('modal.gradePdf.step3')}</li>
                 </ol>
                 <div className="text-3xs text-slate-400 dark:text-slate-500 pt-1 border-t border-indigo-100/60 dark:border-indigo-900/40">
-                  ※ 学籍番号や個人情報は一切外部・サーバーに保存されません。
+                  {t('modal.gradePdf.privacyNote')}
                 </div>
               </div>
             </div>
           ) : (
-            /* Step 2: 検出結果の確認＆登録画面（ユーザーに尋ねるスタイル） */
+            /* Step 2: 検出結果の確認＆登録画面 */
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                 <div>
                   <div className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>検出された履修科目 ({detectedItems.length}件)</span>
+                    <span>{t('modal.gradePdf.detectedTitle').replace('{{count}}', String(detectedItems.length))}</span>
                   </div>
                   <p className="text-2xs text-slate-500 mt-0.5">
-                    シラバスDBと照合しました。登録する科目を確認・選択してください。
+                    {t('modal.gradePdf.detectedDesc')}
                   </p>
                 </div>
 
@@ -373,12 +375,12 @@ export default function GradePdfImportModal({
                   {selectedIds.size === detectedItems.length ? (
                     <>
                       <CheckSquare className="w-3.5 h-3.5" />
-                      <span>選択全解除</span>
+                      <span>{t('modal.gradePdf.deselectAll')}</span>
                     </>
                   ) : (
                     <>
                       <Square className="w-3.5 h-3.5" />
-                      <span>未登録を全選択</span>
+                      <span>{t('modal.gradePdf.selectAll')}</span>
                     </>
                   )}
                 </button>
@@ -409,7 +411,7 @@ export default function GradePdfImportModal({
                         <div className="pt-0.5 shrink-0">
                           {isAlreadyEnrolled ? (
                             <span className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-3xs font-bold">
-                              済
+                              ✓
                             </span>
                           ) : (
                             <input
@@ -441,22 +443,22 @@ export default function GradePdfImportModal({
                                   : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
                               }`}
                             >
-                              評価: {item.grade}
+                              {t('modal.gradePdf.gradeLabel')} {item.grade}
                             </span>
 
                             {/* 年度・期間 */}
                             <span className="text-2xs text-slate-500">
-                              {item.year}年度 {item.term}
+                              {item.year} {item.term}
                             </span>
 
                             {/* 照合ステータスバッジ */}
                             {item.matchedCourse ? (
                               <span className="text-3xs px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 font-medium">
-                                シラバス照合済 ({item.matchStatus === "exact" ? "コード一致" : "ナンバリング/教員一致"})
+                                {item.matchStatus === "exact" ? t('modal.gradePdf.syllabusMatchedExact') : t('modal.gradePdf.syllabusMatchedApprox')}
                               </span>
                             ) : (
                               <span className="text-3xs px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-medium">
-                                過年度科目 (情報保持登録)
+                                {t('modal.gradePdf.pastYearCourse')}
                               </span>
                             )}
                           </div>
@@ -472,7 +474,7 @@ export default function GradePdfImportModal({
                             !/^[A-Z0-9-]+$/.test(item.rawCourseName) &&
                             item.rawCourseName.length > 2 && (
                               <div className="text-3xs text-slate-400">
-                                PDF記載名: {item.rawCourseName}
+                                {t('modal.gradePdf.pdfCourseName')} {item.rawCourseName}
                               </div>
                             )}
 
@@ -484,7 +486,7 @@ export default function GradePdfImportModal({
                                 <span>{item.instructor}</span>
                               </span>
                             )}
-                            <span>{item.credits}単位</span>
+                            <span>{item.credits}{t('modal.gradePdf.credits')}</span>
                             {item.numbering && (
                               <span className="text-slate-400">({item.numbering})</span>
                             )}
@@ -494,7 +496,7 @@ export default function GradePdfImportModal({
                         {/* 登録状態 */}
                         {isAlreadyEnrolled && (
                           <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold text-2xs shrink-0">
-                            登録済
+                            {t('modal.gradePdf.alreadyEnrolled')}
                           </span>
                         )}
                       </div>
@@ -510,7 +512,7 @@ export default function GradePdfImportModal({
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
           {step === "upload" ? (
             <div className="text-2xs text-slate-400">
-              PDFファイルをアップロードして解析を開始します
+              {t('modal.gradePdf.uploadPrompt')}
             </div>
           ) : (
             <button
@@ -518,7 +520,7 @@ export default function GradePdfImportModal({
               onClick={() => setStep("upload")}
               className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium"
             >
-              ← 別のPDFをアップロード
+              {t('modal.gradePdf.anotherPdf')}
             </button>
           )}
 
@@ -528,7 +530,7 @@ export default function GradePdfImportModal({
               onClick={handleClose}
               className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
-              キャンセル
+              {t('modal.gradePdf.cancel')}
             </button>
 
             {step === "confirm" && (
@@ -539,7 +541,7 @@ export default function GradePdfImportModal({
                 className="px-5 py-2 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-bold transition shadow-md disabled:opacity-50 flex items-center space-x-1.5"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>選択した {selectedIds.size} 件を履修登録する</span>
+                <span>{t('modal.gradePdf.confirmImport').replace('{{count}}', String(selectedIds.size))}</span>
               </button>
             )}
           </div>

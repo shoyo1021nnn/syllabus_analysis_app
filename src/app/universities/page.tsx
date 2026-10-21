@@ -10,6 +10,7 @@ import {
 } from '@/types/database';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useAcademicUnitModal } from '@/context/AcademicUnitModalContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { KNOWLEDGE_SKILLS, GENERAL_SKILLS } from '@/lib/vectorUtils';
 import { 
   Building2, 
@@ -95,6 +96,7 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 ];
 
 export default function UniversitiesPage() {
+  const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
   const { openUnitInfo } = useAcademicUnitModal();
 
@@ -262,7 +264,10 @@ export default function UniversitiesPage() {
   const getTopSkills = (vec: number[] = [], skills: typeof KNOWLEDGE_SKILLS, count = 3) => {
     if (!vec || vec.length === 0) return [];
     return vec
-      .map((val, idx) => ({ name: skills[idx]?.nameJa || '', val }))
+      .map((val, idx) => ({ 
+        name: language === 'en' ? (skills[idx]?.nameEn || skills[idx]?.nameJa || '') : (skills[idx]?.nameJa || ''), 
+        val 
+      }))
       .sort((a, b) => b.val - a.val)
       .slice(0, count);
   };
@@ -277,22 +282,30 @@ export default function UniversitiesPage() {
       ? `【${selectedUnivName}】${selectedFacName}`
       : `【${selectedUnivName}】`;
 
-    const presets = [
+    const isEn = language === 'en';
+    const presets = isEn ? [
+      `Tell me about the faculty & department structure and scale of "${selectedUnivName}"`,
+      ...(currentFac ? [`What are the characteristics of "${selectedUnivName} ${currentFac.faculty_name}"?`] : []),
+      ...(currentDept ? [
+        `What are the curriculum and syllabus skill strengths of "${currentDept.department_name}"?`,
+        `Which departments in other universities have a curriculum similar to "${currentDept.department_name}"?`,
+      ] : []),
+    ] : [
       `「${selectedUnivName}」の学部・学科構成の特徴と全体規模を教えて`,
+      ...(currentFac ? [`「${selectedUnivName} ${currentFac.faculty_name}」の学科構成と科目数の特徴は？`] : []),
+      ...(currentDept ? [
+        `「${currentDept.department_name}」のカリキュラムとシラバススキルの強みは？`,
+        `「${currentDept.department_name}」と類似したカリキュラムを持つ他大学の学科は？`,
+      ] : []),
     ];
-    if (currentFac) {
-      presets.push(`「${selectedUnivName} ${currentFac.faculty_name}」の学科構成と科目数の特徴は？`);
-    }
-    if (currentDept) {
-      presets.push(`「${currentDept.department_name}」のカリキュラムとシラバススキルの強みは？`);
-      presets.push(`「${currentDept.department_name}」と類似したカリキュラムを持つ他大学の学科は？`);
-    }
 
     setAnalyticsContext({
-      pageTitle: '大学・学部・学科の基本情報ページ',
+      pageTitle: t('universities.title'),
       pagePath: '/universities',
       primaryTarget: currentTitle,
-      summaryText: `大学・学部・学科の基本情報ディレクトリ（現在選択中: ${currentTitle}）`,
+      summaryText: isEn 
+        ? `Academic units and website directory (Currently selected: ${currentTitle})`
+        : `大学・学部・学科の基本情報ディレクトリ（現在選択中: ${currentTitle}）`,
       details: {
         university: {
           name: selectedUnivName,
@@ -314,7 +327,7 @@ export default function UniversitiesPage() {
       },
       presetQuestions: presets,
     });
-  }, [selectedUnivName, selectedFacName, selectedDeptId, currentUniv, currentFac, currentDept, currentFaculties, currentDepartments, setAnalyticsContext]);
+  }, [selectedUnivName, selectedFacName, selectedDeptId, currentUniv, currentFac, currentDept, currentFaculties, currentDepartments, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
@@ -324,13 +337,13 @@ export default function UniversitiesPage() {
         <div className="relative z-10 space-y-2.5">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-emerald-200 border border-white/15 text-xs font-semibold">
             <Building2 className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Academic Units & Website Directory</span>
+            <span>{t('universities.badge')}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            大学・学部・学科の基本情報ページ
+            {t('universities.title')}
           </h1>
           <p className="text-emerald-100 text-xs sm:text-sm max-w-2xl leading-relaxed">
-            大学名 ⇒ 学部名 ⇒ 学科名の順に選択することで、開講科目数や公式WEBサイトURL、学科構成ツリー、シラバススキル特性を順次確認できます。
+            {t('universities.subtitle')}
           </p>
         </div>
       </div>
@@ -342,14 +355,14 @@ export default function UniversitiesPage() {
       <div className="bg-white dark:bg-slate-900 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center space-x-2 text-xs overflow-x-auto">
         <span className="font-semibold text-slate-500 flex items-center gap-1 shrink-0">
           <Layers className="w-3.5 h-3.5 text-emerald-600" />
-          現在の選択階層:
+          {t('universities.currentHierarchy')}
         </span>
         <span className="text-slate-300 dark:text-slate-700">|</span>
         <button
           onClick={() => {}}
           className="font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 shrink-0"
         >
-          {selectedUnivName || '大学未選択'}
+          {selectedUnivName || t('universities.unselectedUniv')}
         </button>
         {selectedFacName && (
           <>
@@ -382,11 +395,11 @@ export default function UniversitiesPage() {
               1
             </span>
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
-              STEP 1: 大学を選択
+              {t('universities.step1Title')}
             </h2>
           </div>
           <span className="text-xs text-slate-500">
-            全 {universityNames.length} 大学
+            {t('universities.totalUnivCount').replace('{{count}}', String(universityNames.length))}
           </span>
         </div>
 
@@ -394,18 +407,18 @@ export default function UniversitiesPage() {
         <div className="space-y-3">
           <div className="max-w-md">
             <SearchableSelect
-              label="大学名を選択・検索:"
+              label={t('universities.selectUnivLabel')}
               options={universityNames}
               value={selectedUnivName}
               onChange={handleSelectUniversity}
-              placeholder="大学名を検索..."
+              placeholder={t('universities.searchUnivPlaceholder')}
               colorScheme="emerald"
             />
           </div>
 
           {/* クイック切替ピル */}
           <div className="flex flex-wrap gap-1.5 pt-1">
-            <span className="text-2xs text-slate-400 self-center mr-1">クイック切替:</span>
+            <span className="text-2xs text-slate-400 self-center mr-1">{t('universities.quickSwitch')}</span>
             {universityNames.slice(0, 7).map((univ) => {
               const isActive = univ === selectedUnivName;
               return (
@@ -435,7 +448,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    大学基本情報
+                    {t('universities.univInfoTitle')}
                   </div>
                   <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
                     {currentUniv.university_name}
@@ -452,41 +465,41 @@ export default function UniversitiesPage() {
                   className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm hover:shadow-md hover:shadow-emerald-700/25 transition shrink-0"
                 >
                   <Globe className="w-3.5 h-3.5" />
-                  <span>大学公式WEBサイトを開く</span>
+                  <span>{t('universities.openUnivOfficial')}</span>
                   <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
                 </a>
               ) : (
-                <span className="text-2xs text-slate-400">公式WEBサイト未登録</span>
+                <span className="text-2xs text-slate-400">{t('universities.unregisteredUrl')}</span>
               )}
             </div>
 
             {/* スペック指標カード */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">総開講科目数</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.totalCourses')}</span>
                 <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {currentUniv.subject_count?.toLocaleString()} <span className="text-2xs font-normal">科目</span>
+                  {currentUniv.subject_count?.toLocaleString()} <span className="text-2xs font-normal">{t('universities.coursesUnit')}</span>
                 </div>
               </div>
 
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">学部数</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.facultiesCount')}</span>
                 <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {currentFaculties.length} <span className="text-2xs font-normal">学部</span>
+                  {currentFaculties.length} <span className="text-2xs font-normal">{t('universities.facultiesUnit')}</span>
                 </div>
               </div>
 
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">学科総数</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.departmentsTotal')}</span>
                 <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {departments.filter((d) => d.university_name === selectedUnivName).length} <span className="text-2xs font-normal">学科</span>
+                  {departments.filter((d) => d.university_name === selectedUnivName).length} <span className="text-2xs font-normal">{t('universities.departmentsUnit')}</span>
                 </div>
               </div>
 
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">公式URL状況</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.officialUrlStatus')}</span>
                 <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 truncate mt-1">
-                  {currentUniv.website_url ? '登録完了 (直通可)' : '未登録'}
+                  {currentUniv.website_url ? t('universities.urlRegistered') : t('universities.urlUnregistered')}
                 </div>
               </div>
             </div>
@@ -504,11 +517,11 @@ export default function UniversitiesPage() {
               2
             </span>
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
-              STEP 2: 学部を選択（{selectedUnivName}）
+              {t('universities.step2Title').replace('{{univ}}', selectedUnivName)}
             </h2>
           </div>
           <span className="text-xs text-slate-500">
-            全 {currentFaculties.length} 学部
+            {t('universities.totalFacultiesCount').replace('{{count}}', String(currentFaculties.length))}
           </span>
         </div>
 
@@ -535,7 +548,7 @@ export default function UniversitiesPage() {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
-                        {deptCount} 学科
+                        {deptCount} {t('universities.departmentsUnit')}
                       </span>
                       {isSelected && (
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -547,8 +560,8 @@ export default function UniversitiesPage() {
                   </div>
 
                   <div className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-700/60">
-                    <span>{fac.subject_count} 科目</span>
-                    <span className="text-2xs text-slate-400">{isSelected ? '選択中' : '選択 →'}</span>
+                    <span>{fac.subject_count} {t('universities.coursesUnit')}</span>
+                    <span className="text-2xs text-slate-400">{isSelected ? t('universities.selectedStatus') : t('universities.selectAction')}</span>
                   </div>
                 </button>
               );
@@ -556,7 +569,7 @@ export default function UniversitiesPage() {
           </div>
         ) : (
           <div className="text-xs text-slate-400 py-4 text-center">
-            この大学に登録されている学部データがありません。
+            {t('universities.noFaculties')}
           </div>
         )}
 
@@ -570,7 +583,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    学部基本情報
+                    {t('universities.facInfoTitle')}
                   </div>
                   <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
                     {selectedUnivName} {currentFac.faculty_name}
@@ -587,34 +600,34 @@ export default function UniversitiesPage() {
                   className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md hover:shadow-emerald-600/25 transition shrink-0"
                 >
                   <Globe className="w-3.5 h-3.5" />
-                  <span>学部公式WEBサイトを開く</span>
+                  <span>{t('universities.openFacOfficial')}</span>
                   <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
                 </a>
               ) : (
-                <span className="text-2xs text-slate-400">公式WEBサイト未登録</span>
+                <span className="text-2xs text-slate-400">{t('universities.unregisteredUrl')}</span>
               )}
             </div>
 
             {/* スペック指標カード */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">学部総科目数</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.facTotalCourses')}</span>
                 <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  {currentFac.subject_count?.toLocaleString()} <span className="text-2xs font-normal">科目</span>
+                  {currentFac.subject_count?.toLocaleString()} <span className="text-2xs font-normal">{t('universities.coursesUnit')}</span>
                 </div>
               </div>
 
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">所属学科数</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.affiliatedDepts')}</span>
                 <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-                  {currentDepartments.length} <span className="text-2xs font-normal">学科</span>
+                  {currentDepartments.length} <span className="text-2xs font-normal">{t('universities.departmentsUnit')}</span>
                 </div>
               </div>
 
               <div className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-emerald-200/60 dark:border-slate-700">
-                <span className="text-2xs font-semibold text-slate-500">公式URL状況</span>
+                <span className="text-2xs font-semibold text-slate-500">{t('universities.officialUrlStatus')}</span>
                 <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 truncate mt-1">
-                  {currentFac.website_url ? '登録完了 (直通可)' : '未登録'}
+                  {currentFac.website_url ? t('universities.urlRegistered') : t('universities.urlUnregistered')}
                 </div>
               </div>
             </div>
@@ -632,11 +645,11 @@ export default function UniversitiesPage() {
               3
             </span>
             <h2 className="text-base font-bold text-slate-900 dark:text-white">
-              STEP 3: 学科を選択（{selectedFacName}）
+              {t('universities.step3Title').replace('{{fac}}', selectedFacName)}
             </h2>
           </div>
           <span className="text-xs text-slate-500">
-            全 {currentDepartments.length} 学科
+            {t('universities.totalDeptsCount').replace('{{count}}', String(currentDepartments.length))}
           </span>
         </div>
 
@@ -662,18 +675,18 @@ export default function UniversitiesPage() {
                       {dept.department_name}
                     </div>
                     <div className="text-2xs text-slate-500">
-                      開講科目: <strong className="text-emerald-700 dark:text-emerald-400">{dept.subject_count}科目</strong>
+                      {t('universities.deptTotalCourses')} <strong className="text-emerald-700 dark:text-emerald-400">{dept.subject_count}{t('universities.coursesUnit')}</strong>
                     </div>
                   </div>
 
                   <div className="shrink-0 flex items-center space-x-1">
                     {isSelected ? (
                       <span className="text-2xs font-bold text-emerald-800 bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full">
-                        詳細表示中
+                        {t('universities.detailShowing')}
                       </span>
                     ) : (
                       <span className="text-2xs text-slate-400 hover:text-emerald-600">
-                        詳細 →
+                        {t('universities.detailAction')}
                       </span>
                     )}
                   </div>
@@ -683,7 +696,7 @@ export default function UniversitiesPage() {
           </div>
         ) : (
           <div className="text-xs text-slate-400 py-4 text-center">
-            この学部に登録されている学科データがありません。
+            {t('universities.noDepts')}
           </div>
         )}
 
@@ -697,7 +710,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    学科詳細基本情報
+                    {t('universities.deptInfoTitle')}
                   </div>
                   <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
                     {currentDept.department_name}
@@ -717,11 +730,11 @@ export default function UniversitiesPage() {
                   className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md hover:shadow-emerald-600/25 transition shrink-0"
                 >
                   <Globe className="w-3.5 h-3.5" />
-                  <span>学科公式WEBサイトを開く</span>
+                  <span>{t('universities.openDeptOfficial')}</span>
                   <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
                 </a>
               ) : (
-                <span className="text-2xs text-slate-400">公式WEBサイト未登録</span>
+                <span className="text-2xs text-slate-400">{t('universities.unregisteredUrl')}</span>
               )}
             </div>
 
@@ -730,9 +743,9 @@ export default function UniversitiesPage() {
               <div className="p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-emerald-200/60 dark:border-slate-700 flex items-center space-x-3">
                 <BookOpen className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
-                  <span className="text-2xs font-semibold text-slate-500">学科開講科目数</span>
+                  <span className="text-2xs font-semibold text-slate-500">{t('universities.deptCourses')}</span>
                   <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    {currentDept.subject_count} <span className="text-xs font-normal">科目</span>
+                    {currentDept.subject_count} <span className="text-xs font-normal">{t('universities.coursesUnit')}</span>
                   </div>
                 </div>
               </div>
@@ -740,7 +753,7 @@ export default function UniversitiesPage() {
               <div className="p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-emerald-200/60 dark:border-slate-700 flex items-center space-x-3">
                 <Layers className="w-5 h-5 text-emerald-700 shrink-0" />
                 <div>
-                  <span className="text-2xs font-semibold text-slate-500">所属学部</span>
+                  <span className="text-2xs font-semibold text-slate-500">{t('universities.affiliatedFac')}</span>
                   <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
                     {selectedFacName}
                   </div>
@@ -750,9 +763,9 @@ export default function UniversitiesPage() {
               <div className="p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-emerald-200/60 dark:border-slate-700 flex items-center space-x-3">
                 <Globe className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div className="min-w-0">
-                  <span className="text-2xs font-semibold text-slate-500">公式URL</span>
+                  <span className="text-2xs font-semibold text-slate-500">{t('universities.officialUrl')}</span>
                   <div className="text-xs font-mono text-slate-600 dark:text-slate-300 truncate">
-                    {currentDept.website_url || '未登録'}
+                    {currentDept.website_url || t('universities.unregisteredUrl')}
                   </div>
                 </div>
               </div>
@@ -769,14 +782,14 @@ export default function UniversitiesPage() {
                 <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-emerald-200/60 dark:border-slate-700 shadow-2xs space-y-3">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-emerald-600" />
-                    シラバスから抽出された主要スキル特性 (Top 3)
+                    {t('universities.topSkillsTitle')}
                   </span>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     {/* 専門知識A群 */}
                     <div className="space-y-1.5">
                       <span className="text-2xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                        専門知識スキル (A群)
+                        {t('universities.knowledgeGroup')}
                       </span>
                       <div className="space-y-1">
                         {topK.map((s, idx) => (
@@ -791,7 +804,7 @@ export default function UniversitiesPage() {
                     {/* 汎用B群 */}
                     <div className="space-y-1.5">
                       <span className="text-2xs font-bold uppercase tracking-wider text-green-800 dark:text-green-300">
-                        汎用スキル (B群)
+                        {t('universities.generalGroup')}
                       </span>
                       <div className="space-y-1">
                         {topG.map((s, idx) => (
@@ -809,27 +822,27 @@ export default function UniversitiesPage() {
 
             {/* 他機能へのクイックアクションボタン */}
             <div className="pt-2 flex flex-wrap items-center justify-end gap-2.5 border-t border-emerald-100 dark:border-slate-800">
-              <span className="text-2xs text-slate-400 mr-1">この学科を分析:</span>
+              <span className="text-2xs text-slate-400 mr-1">{t('universities.analyzeDept')}</span>
               <Link
                 href={`/analytics/radar_chart?primaryUniv=${encodeURIComponent(selectedUnivName)}&primaryDept=${encodeURIComponent(currentDept.department_name)}`}
                 className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 dark:hover:bg-emerald-900 transition border border-emerald-200 dark:border-emerald-800 shadow-2xs"
               >
                 <Radar className="w-3.5 h-3.5" />
-                <span>レーダーチャートで見る</span>
+                <span>{t('universities.viewRadar')}</span>
               </Link>
               <Link
                 href={`/analytics/similarity?primaryUniv=${encodeURIComponent(selectedUnivName)}&primaryDept=${encodeURIComponent(currentDept.department_name)}`}
                 className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 dark:hover:bg-emerald-900 transition border border-emerald-200 dark:border-emerald-800 shadow-2xs"
               >
                 <GitCompare className="w-3.5 h-3.5" />
-                <span>類似学科を探す</span>
+                <span>{t('universities.findSimilar')}</span>
               </Link>
               <Link
                 href={`/macro/skill_complementation?univ=${encodeURIComponent(selectedUnivName)}&dept=${encodeURIComponent(currentDept.department_name)}`}
                 className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 hover:bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200 dark:hover:bg-green-900 transition border border-green-200 dark:border-green-800 shadow-2xs"
               >
                 <Compass className="w-3.5 h-3.5" />
-                <span>スキル補完を探す</span>
+                <span>{t('universities.findComplementation')}</span>
               </Link>
             </div>
           </div>

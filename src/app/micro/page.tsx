@@ -18,10 +18,12 @@ import {
 import { EnrolledCourse } from "@/types/database";
 import { calculatePersonalSkillProfile } from "@/lib/vectorUtils";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const STORAGE_KEY = "syllabus_enrolled_courses";
 
 export default function MicroIndexPage() {
+  const { t, language } = useLanguage();
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { setAnalyticsContext } = useAnalyticsContext();
@@ -76,15 +78,13 @@ export default function MicroIndexPage() {
         <div className="relative z-10 space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-indigo-200 border border-white/15 text-xs font-semibold">
             <GraduationCap className="w-4 h-4 text-indigo-300" />
-            <span>Personal Learning Portfolio & Course Recommendation</span>
+            <span>{t('micro.hub.badge', 'Personal Learning Portfolio & Course Recommendation')}</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">
-            ミクロな学習支援（個人向け履修・スキル分析）
+            {t('micro.hub.title', 'ミクロな学習支援（個人向け履修・スキル分析）')}
           </h1>
           <p className="text-indigo-100 text-sm max-w-2xl leading-relaxed">
-            九州大学全12学部および基幹教育科目（全5,903科目）のシラバス分析データを活用。
-            あなたが履修した科目を選択することで、獲得した24次元スキルがリアルタイムに蓄積・可視化され、
-            自分に不足しているスキルを効率的に補完できる推奨科目を自動計算します。
+            {t('micro.hub.subtitle', '九州大学全12学部および基幹教育科目（全5,903科目）のシラバス分析データを活用。あなたが履修した科目を選択することで、獲得した24次元スキルがリアルタイムに蓄積・可視化され、自分に不足しているスキルを効率的に補完できる推奨科目を自動計算します。')}
           </p>
         </div>
       </div>
@@ -95,37 +95,39 @@ export default function MicroIndexPage() {
           <div className="flex items-center space-x-2.5">
             <Award className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
-              現在のあなたの履修ステータス
+              {t('micro.hub.statusTitle', '現在のあなたの履修ステータス')}
             </h2>
           </div>
           <Link
             href="/micro/portfolio"
             className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-semibold inline-flex items-center space-x-1"
           >
-            <span>履修科目を編集・追加する</span>
+            <span>{t('micro.hub.editCourses', '履修科目を編集・追加する')}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5">
           <div className="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60">
-            <div className="text-xs font-medium text-indigo-700 dark:text-indigo-300">登録済み科目数</div>
+            <div className="text-xs font-medium text-indigo-700 dark:text-indigo-300">{t('micro.hub.enrolledCountLabel', '登録済み科目数')}</div>
             <div className="text-2xl font-black text-indigo-950 dark:text-white mt-1">
-              {enrolledCourses.length} <span className="text-xs font-normal text-slate-500">科目</span>
+              {enrolledCourses.length} <span className="text-xs font-normal text-slate-500">{t('common.subjectCount', '科目')}</span>
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60">
-            <div className="text-xs font-medium text-blue-700 dark:text-blue-300">獲得単位数（推定）</div>
+            <div className="text-xs font-medium text-blue-700 dark:text-blue-300">{t('micro.hub.creditsLabel', '獲得単位数（推定）')}</div>
             <div className="text-2xl font-black text-blue-950 dark:text-white mt-1">
-              {profile.totalCredits} <span className="text-xs font-normal text-slate-500">単位</span>
+              {profile.totalCredits} <span className="text-xs font-normal text-slate-500">{t('micro.portfolio.credits', '単位')}</span>
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60">
-            <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">現在の筆頭スキル</div>
+            <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">{t('micro.hub.topSkillLabel', '現在の筆頭スキル')}</div>
             <div className="text-base font-bold text-emerald-950 dark:text-emerald-100 mt-1 truncate">
-              {profile.strengths.length > 0 ? profile.strengths[0].nameJa : "未登録"}
+              {profile.strengths.length > 0 
+                ? (language === 'en' ? profile.strengths[0].nameEn || profile.strengths[0].nameJa : profile.strengths[0].nameJa)
+                : t('micro.hub.notEnrolled', '未登録')}
             </div>
           </div>
         </div>
@@ -135,19 +137,19 @@ export default function MicroIndexPage() {
             <div className="flex items-center space-x-3">
               <AlertCircle className="w-5 h-5 text-indigo-500 shrink-0" />
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                まだ履修科目が登録されていません。まずは「履修・スキルポートフォリオ」から受講済み科目を追加しましょう。
+                {t('micro.hub.noCoursesNotice', 'まだ履修科目が登録されていません。まずは「履修・スキルポートフォリオ」から受講済み科目を追加しましょう。')}
               </p>
             </div>
             <Link
               href="/micro/portfolio"
               className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-xs shrink-0 ml-4"
             >
-              科目を登録する
+              {t('micro.hub.addCoursesBtn', '科目を登録する')}
             </Link>
           </div>
         ) : (
           <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-500 font-medium">登録科目プレビュー:</span>
+            <span className="text-slate-500 font-medium">{t('micro.hub.previewLabel', '登録科目プレビュー:')}</span>
             {enrolledCourses.slice(0, 5).map((e) => (
               <span
                 key={e.course.id}
@@ -157,7 +159,9 @@ export default function MicroIndexPage() {
               </span>
             ))}
             {enrolledCourses.length > 5 && (
-              <span className="text-slate-400">他 {enrolledCourses.length - 5} 科目</span>
+              <span className="text-slate-400">
+                {language === 'en' ? `+${enrolledCourses.length - 5} more` : `他 ${enrolledCourses.length - 5} 科目`}
+              </span>
             )}
           </div>
         )}
@@ -176,19 +180,19 @@ export default function MicroIndexPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">
-                Step 1: 蓄積 ＆ 可視化
+                {t('micro.hub.cards.portfolio.step', 'Step 1: 蓄積 ＆ 可視化')}
               </span>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors mt-0.5">
-                履修・スキルポートフォリオ
+                {t('micro.hub.cards.portfolio.title', '履修・スキルポートフォリオ')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                5,903科目から受講した科目を自在に検索・チェック。履修科目のスキル値が累積加算され、知識A群・汎用B群の2面レーダーチャートで現在のスキルバランスを直感的に把握できます。
+                {t('micro.hub.cards.portfolio.desc', '5,903科目から受講した科目を自在に検索・チェック。履修科目のスキル値が累積加算され、知識A群・汎用B群の2面レーダーチャートで現在のスキルバランスを直感的に把握できます。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs">
-            <span>ポートフォリオを開く</span>
+            <span>{t('micro.hub.cards.portfolio.action', 'ポートフォリオを開く')}</span>
             <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -206,19 +210,19 @@ export default function MicroIndexPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">
-                Step 2: ギャップ分析 ＆ 補完
+                {t('micro.hub.cards.recommendation.step', 'Step 2: ギャップ分析 ＆ 補完')}
               </span>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors mt-0.5">
-                不足スキル補完・科目推薦
+                {t('micro.hub.cards.recommendation.title', '不足スキル補完・科目推薦')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                あなたの手薄なスキル項目を自動検出し、それを集中的に補完できる科目をランキング提示。履修シミュレーターで「もし履修したらどう伸びるか」を事前確認できます。
+                {t('micro.hub.cards.recommendation.desc', 'あなたの手薄なスキル項目を自動検出し、それを集中的に補完できる科目をランキング提示。履修シミュレーターで「もし履修したらどう伸びるか」を事前確認できます。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 flex items-center justify-between text-blue-600 dark:text-blue-400 font-bold text-xs">
-            <span>科目推薦シミュレーターを開く</span>
+            <span>{t('micro.hub.cards.recommendation.action', '科目推薦シミュレーターを開く')}</span>
             <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -230,11 +234,10 @@ export default function MicroIndexPage() {
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 text-xs text-slate-600 dark:text-slate-300">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center space-x-2">
           <TrendingUp className="w-4 h-4 text-indigo-600" />
-          <span>スキル累積加算（案B）による成長実感</span>
+          <span>{t('micro.hub.theoryTitle', 'スキル累積加算（案B）による成長実感')}</span>
         </h3>
         <p className="leading-relaxed">
-          本ミクロ支援システムでは、科目を履修するごとに各科目が持つ24次元のスキル値（0〜9点）が加算され、個人のスキル多角形が外側へと成長していきます。
-          単なる平均比率ではなく、「どれだけ多様な専門知識や汎用能力を学んだか」がダイナミックに可視化されるため、自己の学習成果の客観的な振り返りや、次学期の履修計画立案に役立てることができます。
+          {t('micro.hub.theoryDesc', '本ミクロ支援システムでは、科目を履修するごとに各科目が持つ24次元のスキル値（0〜9点）が加算され、個人のスキル多角形が外側へと成長していきます。単なる平均比率ではなく、「どれだけ多様な専門知識や汎用能力を学んだか」がダイナミックに可視化されるため、自己の学習成果の客観的な振り返りや、次学期の履修計画立案に役立てることができます。')}
         </p>
       </div>
     </div>

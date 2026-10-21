@@ -514,30 +514,30 @@ function RadarChartContent() {
           <div className="flex flex-wrap items-center gap-3">
             {/* 階層レベル切り替え */}
             <div className="flex items-center space-x-1.5">
-              <span className="text-xs font-semibold text-slate-600">階層:</span>
+              <span className="text-xs font-semibold text-slate-600">{t('analytics.radar.levelLabel', '階層:')}</span>
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
               >
-                <option value="department">学科レベル</option>
-                <option value="faculty">学部レベル</option>
-                <option value="university">大学レベル</option>
+                <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
+                <option value="faculty">{t('common.facultyLevel', '学部レベル')}</option>
+                <option value="university">{t('common.universityLevel', '大学レベル')}</option>
               </select>
             </div>
 
             {/* 表示モード */}
             <div className="flex items-center space-x-1.5">
-              <span className="text-xs font-semibold text-slate-600">表示形式:</span>
+              <span className="text-xs font-semibold text-slate-600">{t('analytics.radar.viewModeLabel', '表示形式:')}</span>
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value as ViewMode)}
                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
               >
-                <option value="split">知識・汎用 2分割 (12角形×2)</option>
-                <option value="combined">統合表示 (24角形)</option>
-                <option value="knowledge">知識関連スキルのみ (12角形)</option>
-                <option value="general">汎用スキルのみ (12角形)</option>
+                <option value="split">{t('analytics.radar.split', '知識・汎用 2分割 (12角形×2)')}</option>
+                <option value="combined">{t('analytics.radar.combined', '統合表示 (24角形)')}</option>
+                <option value="knowledge">{t('analytics.radar.knowledgeOnly', '知識関連スキルのみ (12角形)')}</option>
+                <option value="general">{t('analytics.radar.generalOnly', '汎用スキルのみ (12角形)')}</option>
               </select>
             </div>
           </div>
@@ -551,11 +551,11 @@ function RadarChartContent() {
             {level !== 'university' && universityList.length > 1 && (
               <div className="pb-2 border-b border-teal-200/60">
                 <SearchableSelect
-                  label="大学絞り込み (基準):"
+                  label={t('analytics.radar.univFilterPrimary', '大学絞り込み (基準):')}
                   options={universityList}
                   value={primaryUnivFilter}
                   onChange={setPrimaryUnivFilter}
-                  placeholder="大学名を検索・選択..."
+                  placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
                   colorScheme="teal"
                 />
               </div>
@@ -565,12 +565,12 @@ function RadarChartContent() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
-                  基準対象 (青緑)
+                  {t('analytics.radar.primaryTarget', '基準対象 (青緑)')}
                 </span>
                 {primaryRecord && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-teal-700 font-medium flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5" /> 科目数: {primaryRecord.subject_count}
+                      <BookOpen className="w-3.5 h-3.5" /> {t('common.subjectCount', '科目数')}: {primaryRecord.subject_count}
                     </span>
                     <AcademicUnitInfoButton
                       target={{
@@ -611,11 +611,11 @@ function RadarChartContent() {
             {isCompareEnabled && level !== 'university' && universityList.length > 1 && (
               <div className="pb-2 border-b border-orange-200/60">
                 <SearchableSelect
-                  label="大学絞り込み (比較):"
+                  label={t('analytics.radar.univFilterCompare', '大学絞り込み (比較):')}
                   options={universityList}
                   value={compareUnivFilter}
                   onChange={setCompareUnivFilter}
-                  placeholder="大学名を検索・選択..."
+                  placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
                   colorScheme="orange"
                 />
               </div>
@@ -633,12 +633,12 @@ function RadarChartContent() {
                   ) : (
                     <Square className="w-4 h-4 text-slate-400" />
                   )}
-                  <span>比較対象を追加 (橙)</span>
+                  <span>{t('analytics.radar.compareTarget', '比較対象 (橙)')}</span>
                 </button>
                 {isCompareEnabled && compareRecord && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-orange-700 font-medium flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5" /> 科目数: {compareRecord.subject_count}
+                      <BookOpen className="w-3.5 h-3.5" /> {t('common.subjectCount', '科目数')}: {compareRecord.subject_count}
                     </span>
                     <AcademicUnitInfoButton
                       target={{
@@ -761,7 +761,7 @@ function RadarChartContent() {
             <div className="flex items-center justify-between text-xs font-bold text-teal-800 mb-2">
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
-                <span>{formatLabel(primaryRecord)} の強み・特徴</span>
+                <span>{formatLabel(primaryRecord)} {t('analytics.radar.strengthsOf', 'の強み・特徴')}</span>
               </div>
               <AcademicUnitInfoButton
                 target={{
@@ -782,7 +782,7 @@ function RadarChartContent() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-teal-600" /> 知識スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-teal-600" /> {t('analytics.radar.knowledgeTop3', '知識スキル Top 3')}
                 </div>
                 {primaryTopK.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
@@ -794,7 +794,7 @@ function RadarChartContent() {
 
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-teal-600" /> 汎用スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-teal-600" /> {t('analytics.radar.generalTop3', '汎用スキル Top 3')}
                 </div>
                 {primaryTopG.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
@@ -813,7 +813,7 @@ function RadarChartContent() {
             <div className="flex items-center justify-between text-xs font-bold text-orange-800 mb-2">
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-orange-600"></span>
-                <span>{formatLabel(compareRecord)} の強み・特徴</span>
+                <span>{formatLabel(compareRecord)} {t('analytics.radar.strengthsOf', 'の強み・特徴')}</span>
               </div>
               <AcademicUnitInfoButton
                 target={{
@@ -834,7 +834,7 @@ function RadarChartContent() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-orange-600" /> 知識スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-orange-600" /> {t('analytics.radar.knowledgeTop3', '知識スキル Top 3')}
                 </div>
                 {compareTopK.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">
@@ -846,7 +846,7 @@ function RadarChartContent() {
 
               <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                 <div className="text-slate-500 font-semibold mb-1 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-orange-600" /> 汎用スキル Top 3
+                  <TrendingUp className="w-3.5 h-3.5 text-orange-600" /> {t('analytics.radar.generalTop3', '汎用スキル Top 3')}
                 </div>
                 {compareTopG.map((s, i) => (
                   <div key={i} className="flex justify-between text-slate-700 py-0.5">

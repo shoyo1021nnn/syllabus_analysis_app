@@ -16,9 +16,11 @@ import {
   Globe
 } from 'lucide-react';
 import { useAcademicUnitModal } from '@/context/AcademicUnitModalContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { KNOWLEDGE_SKILLS, GENERAL_SKILLS } from '@/lib/vectorUtils';
 
 export default function AcademicUnitInfoModal() {
+  const { language, t } = useLanguage();
   const { 
     isOpen, 
     targetUnit, 
@@ -55,18 +57,28 @@ export default function AcademicUnitInfoModal() {
   const topKnowledgeSkills = useMemo(() => {
     if (!targetUnit?.knowledgeVector || targetUnit.knowledgeVector.length === 0) return [];
     return targetUnit.knowledgeVector
-      .map((val, idx) => ({ name: KNOWLEDGE_SKILLS[idx]?.nameJa || `A-${idx+1}`, val }))
+      .map((val, idx) => ({ 
+        name: language === 'en' 
+          ? (KNOWLEDGE_SKILLS[idx]?.nameEn || KNOWLEDGE_SKILLS[idx]?.nameJa || `A-${idx+1}`) 
+          : (KNOWLEDGE_SKILLS[idx]?.nameJa || `A-${idx+1}`), 
+        val 
+      }))
       .sort((a, b) => b.val - a.val)
       .slice(0, 3);
-  }, [targetUnit?.knowledgeVector]);
+  }, [targetUnit?.knowledgeVector, language]);
 
   const topGeneralSkills = useMemo(() => {
     if (!targetUnit?.generalVector || targetUnit.generalVector.length === 0) return [];
     return targetUnit.generalVector
-      .map((val, idx) => ({ name: GENERAL_SKILLS[idx]?.nameJa || `B-${idx+1}`, val }))
+      .map((val, idx) => ({ 
+        name: language === 'en' 
+          ? (GENERAL_SKILLS[idx]?.nameEn || GENERAL_SKILLS[idx]?.nameJa || `B-${idx+1}`) 
+          : (GENERAL_SKILLS[idx]?.nameJa || `B-${idx+1}`), 
+        val 
+      }))
       .sort((a, b) => b.val - a.val)
       .slice(0, 3);
-  }, [targetUnit?.generalVector]);
+  }, [targetUnit?.generalVector, language]);
 
   if (!isOpen || !targetUnit) return null;
 
@@ -121,7 +133,7 @@ export default function AcademicUnitInfoModal() {
           <button
             onClick={closeUnitInfo}
             className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 dark:hover:text-slate-200 dark:hover:bg-slate-700 transition shrink-0"
-            aria-label="閉じる"
+            aria-label={t('modal.unitInfo.close')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -139,11 +151,11 @@ export default function AcademicUnitInfoModal() {
               </div>
               <div>
                 <span className="text-xs font-semibold text-teal-700 dark:text-teal-400">
-                  開講科目数
+                  {t('modal.unitInfo.subjectsCount')}
                 </span>
                 <div className="text-2xl font-black text-slate-900 dark:text-slate-100">
                   {subjectCount !== undefined ? `${subjectCount.toLocaleString()}` : '—'}
-                  <span className="text-xs font-medium text-slate-500 ml-1">科目</span>
+                  <span className="text-xs font-medium text-slate-500 ml-1">{t('modal.unitInfo.coursesUnit')}</span>
                 </div>
               </div>
             </div>
@@ -155,10 +167,10 @@ export default function AcademicUnitInfoModal() {
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">
-                  区分・組織階層
+                  {t('modal.unitInfo.categoryLevel')}
                 </span>
                 <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                  {departmentName ? '学科単位' : facultyName ? '学部単位' : '大学全体'}
+                  {departmentName ? t('modal.unitInfo.levelDepartment') : facultyName ? t('modal.unitInfo.levelFaculty') : t('modal.unitInfo.levelUniversity')}
                 </div>
                 <div className="text-xs text-slate-500 truncate">
                   {facultyName ? `${facultyName}` : `${universityName}`}
@@ -172,15 +184,15 @@ export default function AcademicUnitInfoModal() {
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
                 <Globe className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                公式WEBサイト（リンク）
+                {t('modal.unitInfo.officialSite')}
               </span>
               {websiteUrl ? (
                 <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  登録済み
+                  {t('modal.unitInfo.registered')}
                 </span>
               ) : (
                 <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                  未登録
+                  {t('modal.unitInfo.unregistered')}
                 </span>
               )}
             </div>
@@ -196,13 +208,13 @@ export default function AcademicUnitInfoModal() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-sm hover:shadow-md hover:shadow-teal-600/20 transition shrink-0"
                 >
-                  <span>公式WEBサイトを開く</span>
+                  <span>{t('modal.unitInfo.openOfficialSite')}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             ) : (
               <p className="text-xs text-slate-400 py-1">
-                現在この組織の公式WEBページURLは未登録です。
+                {t('modal.unitInfo.noWebsiteUrl')}
               </p>
             )}
           </div>
@@ -213,16 +225,16 @@ export default function AcademicUnitInfoModal() {
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-orange-500" />
-                  {facultyName} の学科構成ツリー（全 {siblingDepartments.length} 学科）
+                  {t('modal.unitInfo.siblingTreeTitle').replace('{{faculty}}', facultyName).replace('{{count}}', String(siblingDepartments.length))}
                 </h3>
                 <span className="text-2xs text-slate-400">
-                  クリックで切り替え
+                  {t('modal.unitInfo.clickToSwitch')}
                 </span>
               </div>
 
               {isLoadingSiblings ? (
                 <div className="py-4 text-center text-xs text-slate-400">
-                  学科ツリーを読み込み中...
+                  {t('modal.unitInfo.loadingSiblings')}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
@@ -262,7 +274,7 @@ export default function AcademicUnitInfoModal() {
                             ? 'bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 font-semibold' 
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                         }`}>
-                          {s.subjectCount}科目
+                          {s.subjectCount}{t('modal.unitInfo.coursesUnit')}
                         </span>
                       </button>
                     );
@@ -277,14 +289,14 @@ export default function AcademicUnitInfoModal() {
             <div className="p-4 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 shadow-xs space-y-3">
               <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-teal-600" />
-                シラバスから抽出された主要スキル特性 (Top 3)
+                {t('modal.unitInfo.topSkillsTitle')}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 {/* 知識スキルTop3 */}
                 {topKnowledgeSkills.length > 0 && (
                   <div className="space-y-1.5">
                     <span className="font-semibold text-slate-500 dark:text-slate-400 text-2xs uppercase tracking-wider">
-                      専門知識スキル (A群)
+                      {t('modal.unitInfo.knowledgeGroup')}
                     </span>
                     <div className="space-y-1">
                       {topKnowledgeSkills.map((s, idx) => (
@@ -300,7 +312,7 @@ export default function AcademicUnitInfoModal() {
                 {topGeneralSkills.length > 0 && (
                   <div className="space-y-1.5">
                     <span className="font-semibold text-slate-500 dark:text-slate-400 text-2xs uppercase tracking-wider">
-                      汎用スキル (B群)
+                      {t('modal.unitInfo.generalGroup')}
                     </span>
                     <div className="space-y-1">
                       {topGeneralSkills.map((s, idx) => (
@@ -324,7 +336,7 @@ export default function AcademicUnitInfoModal() {
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 hover:bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300 dark:hover:bg-teal-900 transition border border-teal-200 dark:border-teal-800"
             >
               <Radar className="w-3.5 h-3.5" />
-              <span>レーダーチャートで見る</span>
+              <span>{t('modal.unitInfo.viewRadar')}</span>
             </Link>
 
             <Link
@@ -333,7 +345,7 @@ export default function AcademicUnitInfoModal() {
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700"
             >
               <GitCompare className="w-3.5 h-3.5" />
-              <span>類似学科を探す</span>
+              <span>{t('modal.unitInfo.findSimilar')}</span>
             </Link>
 
             <button
@@ -341,7 +353,7 @@ export default function AcademicUnitInfoModal() {
               onClick={closeUnitInfo}
               className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition"
             >
-              閉じる
+              {t('modal.unitInfo.close')}
             </button>
           </div>
 

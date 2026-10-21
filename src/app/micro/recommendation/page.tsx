@@ -30,6 +30,7 @@ import {
 } from "@/lib/vectorUtils";
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const STORAGE_KEY = "syllabus_enrolled_courses";
 
@@ -75,6 +76,7 @@ export default function MicroRecommendationPage() {
   // シミュレーション対象科目
   const [simulatedCourse, setSimulatedCourse] = useState<CourseSkillVector | null>(null);
 
+  const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
 
   // LocalStorageから履修科目リスト取得
@@ -198,64 +200,67 @@ export default function MicroRecommendationPage() {
   }, [profile, simulationResult]);
 
   const indicatorsKnowledge = useMemo(() => {
-    return getRadarIndicators('knowledge', { max: maxVal, language: 'ja' });
-  }, [maxVal]);
+    return getRadarIndicators('knowledge', { max: maxVal, language });
+  }, [maxVal, language]);
 
   const indicatorsGeneral = useMemo(() => {
-    return getRadarIndicators('general', { max: maxVal, language: 'ja' });
-  }, [maxVal]);
+    return getRadarIndicators('general', { max: maxVal, language });
+  }, [maxVal, language]);
 
   const seriesKnowledge: RadarSeriesItem[] = useMemo(() => {
     const list: RadarSeriesItem[] = [
       {
-        name: "現在",
+        name: t('charts.radar.current'),
         value: profile.cumulativeKnowledgeVector,
         color: "#6366f1", // indigo
       }
     ];
     if (simulationResult) {
       list.push({
-        name: "仮追加後 (シミュレーション)",
+        name: t('charts.radar.simulated'),
         value: simulationResult.simulatedKnowledge,
         color: "#10b981", // emerald
       });
     }
     return list;
-  }, [profile.cumulativeKnowledgeVector, simulationResult]);
+  }, [profile.cumulativeKnowledgeVector, simulationResult, t]);
 
   const seriesGeneral: RadarSeriesItem[] = useMemo(() => {
     const list: RadarSeriesItem[] = [
       {
-        name: "現在",
+        name: t('charts.radar.current'),
         value: profile.cumulativeGeneralVector,
         color: "#3b82f6", // blue
       }
     ];
     if (simulationResult) {
       list.push({
-        name: "仮追加後 (シミュレーション)",
+        name: t('charts.radar.simulated'),
         value: simulationResult.simulatedGeneral,
         color: "#10b981", // emerald
       });
     }
     return list;
-  }, [profile.cumulativeGeneralVector, simulationResult]);
+  }, [profile.cumulativeGeneralVector, simulationResult, t]);
 
   // AIエージェントコンテキスト更新
   useEffect(() => {
     if (!isLoaded) return;
+    const isEn = language === 'en';
     setAnalyticsContext({
-      pageTitle: "不足スキル補完・科目推薦",
+      pageTitle: t('micro.recommendation.title'),
       pagePath: "/micro/recommendation",
-      summaryText: `学生個人の不足スキルを補填するための推奨科目一覧画面。現在の不足スキル: ${profile.weaknesses.map((w) => w.nameJa).join(', ')}。現在${recommendations.length}件の推奨科目を算出中。`,
+      summaryText: isEn
+        ? `Course recommendation page based on student skill gaps. Current gaps: ${profile.weaknesses.map((w) => w.nameEn || w.nameJa).join(', ')}. Computing ${recommendations.length} recommendations.`
+        : `学生個人の不足スキルを補填するための推奨科目一覧画面。現在の不足スキル: ${profile.weaknesses.map((w) => w.nameJa).join(', ')}。現在${recommendations.length}件の推奨科目を算出中。`,
       details: {
         enrolledCount: enrolledCourses.length,
-        weaknesses: profile.weaknesses.map((w) => `${w.nameJa} (現在${w.score}点)`),
+        weaknesses: profile.weaknesses.map((w) => `${isEn ? (w.nameEn || w.nameJa) : w.nameJa} (${t('micro.recommendation.currentScore')} ${w.score}pt)`),
         simulatedCourse: simulatedCourse ? {
           name: simulatedCourse.course_name,
           faculty: simulatedCourse.faculty_name,
           credits: simulatedCourse.credits,
-          gains: simulationResult?.gains.map((g) => `${g.nameJa}: +${g.diff}`),
+          gains: simulationResult?.gains.map((g) => `${isEn ? (g.nameEn || g.nameJa) : g.nameJa}: +${g.diff}`),
         } : null,
         topRecommendations: recommendations.slice(0, 3).map((r) => ({
           name: r.course.course_name,
@@ -263,7 +268,14 @@ export default function MicroRecommendationPage() {
           matchScore: `${r.matchScore}%`,
         })),
       },
-      presetQuestions: [
+      presetQuestions: isEn ? [
+        "Which of the recommended courses fills my skill gaps most efficiently?",
+        simulatedCourse 
+          ? `How much will my skills grow if I take "${simulatedCourse.course_name}"?`
+          : "Which general education courses boost generic competencies most?",
+        "Are there any specific term or prerequisite considerations for filling my gaps?",
+        "Should I prioritize filling specialized knowledge or generic competencies first?",
+      ] : [
         "提示された推薦科目の中で最も効率的に弱点を埋められるものはどれ？",
         simulatedCourse 
           ? `「${simulatedCourse.course_name}」を履修するとどのスキルがどの程度伸びますか？`
@@ -272,7 +284,7 @@ export default function MicroRecommendationPage() {
         "専門知識と汎用スキルのどちらを優先して補うべき？",
       ],
     });
-  }, [isLoaded, enrolledCourses.length, profile.weaknesses, simulatedCourse, simulationResult, recommendations, setAnalyticsContext]);
+  }, [isLoaded, enrolledCourses.length, profile.weaknesses, simulatedCourse, simulationResult, recommendations, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16">
@@ -281,13 +293,13 @@ export default function MicroRecommendationPage() {
         <div>
           <div className="inline-flex items-center space-x-2 text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">
             <Sparkles className="w-4 h-4" />
-            <span>ミクロな学習支援 &gt; Step 2</span>
+            <span>{t('micro.recommendation.badge')}</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            不足スキル補完・科目推薦
+            {t('micro.recommendation.title')}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            あなたの弱点・手薄なスキル項目を自動検出し、九州大学のシラバス群から最も効率的に補填できる科目を推薦します。
+            {t('micro.recommendation.subtitle')}
           </p>
         </div>
 
@@ -296,7 +308,7 @@ export default function MicroRecommendationPage() {
           className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs self-start sm:self-auto"
         >
           <GraduationCap className="w-4 h-4 text-indigo-600" />
-          <span>履修ポートフォリオに戻る</span>
+          <span>{t('micro.recommendation.backToPortfolio')}</span>
         </Link>
       </div>
 
@@ -306,35 +318,35 @@ export default function MicroRecommendationPage() {
           <div className="flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 text-rose-500" />
             <h2 className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-              補完対象となるあなたの不足スキル (ギャップ)
+              {t('micro.recommendation.gapTitle')}
             </h2>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-2xs text-slate-400">重点対象:</span>
+            <span className="text-2xs text-slate-400">{t('micro.recommendation.targetLabel')}</span>
             <button
               onClick={() => setTargetCategory('all')}
               className={`px-2.5 py-1 rounded text-2xs font-semibold transition ${targetCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}
             >
-              全スキル
+              {t('micro.recommendation.categoryAll')}
             </button>
             <button
               onClick={() => setTargetCategory('knowledge')}
               className={`px-2.5 py-1 rounded text-2xs font-semibold transition ${targetCategory === 'knowledge' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}
             >
-              専門知識 (A群)
+              {t('micro.recommendation.categoryKnowledge')}
             </button>
             <button
               onClick={() => setTargetCategory('general')}
               className={`px-2.5 py-1 rounded text-2xs font-semibold transition ${targetCategory === 'general' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}
             >
-              汎用スキル (B群)
+              {t('micro.recommendation.categoryGeneral')}
             </button>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 pt-3">
           {profile.weaknesses.length === 0 ? (
-            <span className="text-xs text-slate-400">履修科目が登録されると不足スキルが判定されます</span>
+            <span className="text-xs text-slate-400">{t('micro.recommendation.gapEmpty')}</span>
           ) : (
             profile.weaknesses.map((w) => (
               <div
@@ -342,8 +354,8 @@ export default function MicroRecommendationPage() {
                 className="px-3 py-1.5 rounded-xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-center space-x-2 text-xs"
               >
                 <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                <span className="font-bold text-slate-800 dark:text-slate-100">{w.nameJa}</span>
-                <span className="text-2xs text-rose-600 dark:text-rose-400 font-semibold">現在 {w.score}pt</span>
+                <span className="font-bold text-slate-800 dark:text-slate-100">{language === 'en' ? (w.nameEn || w.nameJa) : w.nameJa}</span>
+                <span className="text-2xs text-rose-600 dark:text-rose-400 font-semibold">{t('micro.recommendation.currentScore')} {w.score}pt</span>
               </div>
             ))
           )}
@@ -361,34 +373,36 @@ export default function MicroRecommendationPage() {
             <div className="flex items-center space-x-3 text-xs">
               <Filter className="w-4 h-4 text-slate-400 shrink-0" />
               <div className="flex items-center space-x-2">
-                <span className="text-slate-500 font-medium">学部:</span>
+                <span className="text-slate-500 font-medium">{t('micro.recommendation.filterFaculty')}</span>
                 <select
                   value={facultyFilter}
                   onChange={(e) => setFacultyFilter(e.target.value)}
                   className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs text-slate-800 dark:text-slate-100"
                 >
                   {FACULTIES_LIST.map((f) => (
-                    <option key={f} value={f}>{f}</option>
+                    <option key={f} value={f}>{f === 'すべて' ? t('common.all') : f}</option>
                   ))}
                 </select>
               </div>
 
               <div className="flex items-center space-x-2">
-                <span className="text-slate-500 font-medium">学期:</span>
+                <span className="text-slate-500 font-medium">{t('micro.recommendation.filterSemester')}</span>
                 <select
                   value={semesterFilter}
                   onChange={(e) => setSemesterFilter(e.target.value)}
                   className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs text-slate-800 dark:text-slate-100"
                 >
                   {SEMESTERS_LIST.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>{s === 'すべて' ? t('common.all') : s}</option>
                   ))}
                 </select>
               </div>
             </div>
 
             <div className="text-2xs text-slate-400">
-              {isLoadingCourses ? "推薦計算中..." : `上位 ${recommendations.length} 科目を表示`}
+              {isLoadingCourses
+                ? t('micro.recommendation.calculating')
+                : t('micro.recommendation.displayCount').replace('{{count}}', String(recommendations.length))}
             </div>
           </div>
 
@@ -396,11 +410,11 @@ export default function MicroRecommendationPage() {
           <div className="space-y-3">
             {isLoadingCourses ? (
               <div className="p-12 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-                シラバスデータを分析し、あなたに最適な補完科目を計算しています...
+                {t('micro.recommendation.loadingDesc')}
               </div>
             ) : recommendations.length === 0 ? (
               <div className="p-12 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                条件に一致する推薦科目が見つかりませんでした。絞り込み条件を緩和してください。
+                {t('micro.recommendation.noCourses')}
               </div>
             ) : (
               recommendations.map((item, index) => {
@@ -431,7 +445,7 @@ export default function MicroRecommendationPage() {
                             {item.course.faculty_name}
                           </span>
                           <span className="text-2xs text-slate-400">
-                            {item.course.credits ?? 2}単位
+                            {item.course.credits ?? 2}{t('micro.recommendation.credits')}
                           </span>
                         </div>
 
@@ -447,7 +461,7 @@ export default function MicroRecommendationPage() {
                               </span>
                             </span>
                           ) : (
-                            <span className="text-slate-400">教員未記載</span>
+                            <span className="text-slate-400">{t('micro.recommendation.noInstructor')}</span>
                           )}
                           {(item.course.term_time || item.course.semester) && (
                             <>
@@ -462,7 +476,7 @@ export default function MicroRecommendationPage() {
 
                       {/* 適合度スコアバッジ */}
                       <div className="text-right shrink-0">
-                        <div className="text-2xs font-semibold text-slate-400">補完適合度</div>
+                        <div className="text-2xs font-semibold text-slate-400">{t('micro.recommendation.gapFillScore')}</div>
                         <div className="text-lg font-black text-blue-600 dark:text-blue-400">
                           {item.matchScore}%
                         </div>
@@ -471,13 +485,13 @@ export default function MicroRecommendationPage() {
 
                     {/* この科目で伸びる主要スキル */}
                     <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800">
-                      <span className="text-2xs text-slate-400 font-medium">獲得見込み:</span>
+                      <span className="text-2xs text-slate-400 font-medium">{t('micro.recommendation.targetedGains')}</span>
                       {item.targetedSkills.map((ts) => (
                         <span
                           key={ts.code}
                           className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900 text-2xs font-semibold"
                         >
-                          {ts.nameJa} <strong className="text-blue-900 dark:text-blue-200">+{ts.gain}pt</strong>
+                          {language === 'en' ? (ts.nameEn || ts.nameJa) : ts.nameJa} <strong className="text-blue-900 dark:text-blue-200">+{ts.gain}pt</strong>
                         </span>
                       ))}
                     </div>
@@ -493,7 +507,7 @@ export default function MicroRecommendationPage() {
                         }`}
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>{isSimulated ? "シミュレーション中 (解除)" : "仮追加してシミュレーション"}</span>
+                        <span>{isSimulated ? t('micro.recommendation.simulatedButton') : t('micro.recommendation.simulateButton')}</span>
                       </button>
 
                       <button
@@ -508,12 +522,12 @@ export default function MicroRecommendationPage() {
                         {isEnrolled ? (
                           <>
                             <Check className="w-3.5 h-3.5" />
-                            <span>履修登録済み</span>
+                            <span>{t('micro.recommendation.enrolledBadge')}</span>
                           </>
                         ) : (
                           <>
                             <Plus className="w-3.5 h-3.5" />
-                            <span>正式に履修追加</span>
+                            <span>{t('micro.recommendation.enrollButton')}</span>
                           </>
                         )}
                       </button>
@@ -533,10 +547,10 @@ export default function MicroRecommendationPage() {
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
               <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
                 <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
-                <span>履修シミュレーター (Before / After)</span>
+                <span>{t('micro.recommendation.simulatorTitle')}</span>
               </h2>
               <p className="text-2xs text-slate-500 mt-0.5">
-                科目を仮追加すると、スキルの伸び（エメラルド色の線）がリアルタイムに重なります
+                {t('micro.recommendation.simulatorDesc')}
               </p>
             </div>
 
@@ -544,13 +558,13 @@ export default function MicroRecommendationPage() {
               <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-2xs font-bold text-emerald-800 dark:text-emerald-300">
-                    シミュレーション対象科目
+                    {t('micro.recommendation.simulatedCourseTitle')}
                   </span>
                   <button
                     onClick={() => setSimulatedCourse(null)}
                     className="text-2xs text-slate-400 hover:text-slate-600"
                   >
-                    解除
+                    {t('micro.recommendation.cancelSimulation')}
                   </button>
                 </div>
                 <div className="space-y-1">
@@ -577,14 +591,14 @@ export default function MicroRecommendationPage() {
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {simulationResult?.gains.slice(0, 3).map((g) => (
                     <span key={g.code} className="text-2xs bg-white dark:bg-slate-800 px-2 py-0.5 rounded text-emerald-700 font-bold border border-emerald-100">
-                      {g.nameJa}: +{g.diff}pt ({g.before} → {g.after})
+                      {language === 'en' ? (g.nameEn || g.nameJa) : g.nameJa}: +{g.diff}pt ({g.before} → {g.after})
                     </span>
                   ))}
                 </div>
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-xs text-slate-400">
-                左の一覧から「仮追加してシミュレーション」をクリックすると、スキルの変化が確認できます
+                {t('micro.recommendation.simulatorEmptyDesc')}
               </div>
             )}
 
@@ -592,7 +606,7 @@ export default function MicroRecommendationPage() {
             <div className="space-y-4 pt-2">
               <div className="bg-slate-50/60 dark:bg-slate-800/30 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
                 <div className="text-center text-2xs font-bold text-indigo-700 dark:text-indigo-300 mb-1">
-                  専門知識スキル (A系列)
+                  {t('charts.radar.specializedSkills')}
                 </div>
                 <div className="h-64">
                   <RadarChart
@@ -606,7 +620,7 @@ export default function MicroRecommendationPage() {
 
               <div className="bg-slate-50/60 dark:bg-slate-800/30 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
                 <div className="text-center text-2xs font-bold text-blue-700 dark:text-blue-300 mb-1">
-                  汎用スキル (B系列)
+                  {t('charts.radar.genericSkills')}
                 </div>
                 <div className="h-64">
                   <RadarChart
@@ -627,7 +641,7 @@ export default function MicroRecommendationPage() {
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-md flex items-center justify-center space-x-1.5"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>この科目を履修リストに正式登録する</span>
+                  <span>{t('micro.recommendation.registerFormally')}</span>
                 </button>
               </div>
             )}

@@ -508,7 +508,7 @@ function GreedyTeamContent() {
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       <div className="flex items-center">
-        <BackButton label="学習支援メニューに戻る" fallbackHref="/macro" />
+        <BackButton label={t('common.back', '学習支援メニューに戻る')} fallbackHref="/macro" />
       </div>
 
       {/* ヘッダーカード */}
@@ -520,15 +520,15 @@ function GreedyTeamContent() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-                チーム編成支援 (Greedy Team Build)
+                {t('macro.greedyTeam.title', 'チーム編成支援 (Greedy Team Build)')}
               </h1>
               <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
-                <span>貪欲法による最適編成</span>
+                <span>{t('macro.greedyTeam.badge', '貪欲法による最適編成')}</span>
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              指定人数またはスキル閾値を達成するまで、不足を最も補えるパートナーを1組織ずつ貪欲に追加シミュレーション
+              {t('macro.greedyTeam.subtitle', '指定人数またはスキル閾値を達成するまで、不足を最も補えるパートナーを1組織ずつ貪欲に追加シミュレーション')}
             </p>
           </div>
         </div>
@@ -547,11 +547,11 @@ function GreedyTeamContent() {
           {level !== 'university' && universityList.length > 1 && (
             <div className="pb-2 border-b border-orange-200/60">
               <SearchableSelect
-                label="大学で絞り込み:"
+                label={t('macro.bestPair.filterUniv', '大学で絞り込み:')}
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
-                placeholder="大学名を検索・選択..."
+                placeholder={t('complementation.searchPlaceholder', '大学名を検索・選択...')}
                 colorScheme="orange"
               />
             </div>
@@ -561,12 +561,12 @@ function GreedyTeamContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
               <span className="text-xs font-bold text-orange-900 flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-orange-600" />
-                起点の組織（リーダー組織）を選択:
+                {t('macro.greedyTeam.originOrg', '起点の組織（リーダー組織）を選択:')}
               </span>
               {initialRecord && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-orange-700 font-medium">
-                    科目数: {initialRecord.subject_count}科目
+                    {initialRecord.subject_count} {t('common.subjectCount', '科目')}
                   </span>
                   <AcademicUnitInfoButton
                     target={{
@@ -593,7 +593,7 @@ function GreedyTeamContent() {
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {formatLabel(item)} ({item.subject_count}科目)
+                  {formatLabel(item)} ({item.subject_count} {t('common.subjectCount', '科目')})
                 </option>
               ))}
             </select>
@@ -605,15 +605,15 @@ function GreedyTeamContent() {
           {/* 探索モード */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Sliders className="w-3.5 h-3.5 text-orange-500" /> 探索モード:
+              <Sliders className="w-3.5 h-3.5 text-orange-500" /> {t('macro.greedyTeam.searchMode', '探索モード:')}
             </label>
             <select
               value={searchMode}
               onChange={(e) => setSearchMode(e.target.value as 'team_size' | 'threshold')}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="team_size">人数指定モード (固定人数)</option>
-              <option value="threshold">閾値達成モード (目標到達まで)</option>
+              <option value="team_size">{t('macro.greedyTeam.modeTeamSize', '人数指定モード (固定人数)')}</option>
+              <option value="threshold">{t('macro.greedyTeam.modeThreshold', '閾値達成モード (目標到達まで)')}</option>
             </select>
           </div>
 
@@ -621,16 +621,16 @@ function GreedyTeamContent() {
           {searchMode === 'team_size' ? (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-orange-500" /> 目標チーム人数:
+                <Users className="w-3.5 h-3.5 text-orange-500" /> {t('macro.greedyTeam.targetSize', '目標チーム人数:')}
               </label>
               <select
                 value={targetTeamSize}
                 onChange={(e) => setTargetTeamSize(Number(e.target.value))}
                 className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
               >
-                <option value={2}>2{levelUnit}チーム (+1{levelUnit}追加)</option>
-                <option value={3}>3{levelUnit}チーム (+2{levelUnit}追加)</option>
-                <option value={4}>4{levelUnit}チーム (標準)</option>
+                <option value={2}>2{levelUnit}チーム (+1{levelUnit})</option>
+                <option value={3}>3{levelUnit}チーム (+2{levelUnit})</option>
+                <option value={4}>4{levelUnit}チーム</option>
                 <option value={5}>5{levelUnit}チーム</option>
                 <option value={6}>6{levelUnit}チーム</option>
               </select>
@@ -638,17 +638,17 @@ function GreedyTeamContent() {
           ) : (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                <Target className="w-3.5 h-3.5 text-orange-500" /> 目標スコア閾値:
+                <Target className="w-3.5 h-3.5 text-orange-500" /> {t('macro.greedyTeam.targetThreshold', '目標スコア閾値:')}
               </label>
               <select
                 value={targetThreshold}
                 onChange={(e) => setTargetThreshold(Number(e.target.value))}
                 className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
               >
-                <option value={0.85}>85% 到達</option>
-                <option value={0.90}>90% 到達</option>
-                <option value={0.93}>93% 到達</option>
-                <option value={0.95}>95% 到達 (高度)</option>
+                <option value={0.85}>85%</option>
+                <option value={0.90}>90%</option>
+                <option value={0.93}>93%</option>
+                <option value={0.95}>95%</option>
               </select>
             </div>
           )}
@@ -656,47 +656,47 @@ function GreedyTeamContent() {
           {/* 結合方法 */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> 結合方法:
+              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> {t('macro.greedyTeam.combineMethod', '結合方法:')}
             </label>
             <select
               value={combineMethod}
               onChange={(e) => setCombineMethod(e.target.value as 'max' | 'mean')}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="max">最大値結合 (強み集約)</option>
-              <option value="mean">平均値結合 (総合底上げ)</option>
+              <option value="max">{t('macro.greedyTeam.methodMax', '最大値結合 (強み集約)')}</option>
+              <option value="mean">{t('macro.greedyTeam.methodMean', '平均値結合 (総合底上げ)')}</option>
             </select>
           </div>
 
           {/* 対象スキル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-slate-500" /> 対象スキル:
+              <Layers className="w-3.5 h-3.5 text-slate-500" /> {t('macro.greedyTeam.targetSkills', '対象スキル:')}
             </label>
             <select
               value={vectorTarget}
               onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="all">全24スキル統合</option>
-              <option value="knowledge">知識関連 (12項目)</option>
-              <option value="general">汎用スキル (12項目)</option>
+              <option value="all">{t('macro.greedyTeam.skillsAll', '全24スキル統合')}</option>
+              <option value="knowledge">{t('macro.greedyTeam.skillsKnowledge', '知識関連 (12項目)')}</option>
+              <option value="general">{t('macro.greedyTeam.skillsGeneral', '汎用スキル (12項目)')}</option>
             </select>
           </div>
 
           {/* 階層レベル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-slate-500" /> 階層レベル:
+              <Filter className="w-3.5 h-3.5 text-slate-500" /> {t('macro.greedyTeam.hierarchy', '階層レベル:')}
             </label>
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="department">学科レベル</option>
-              <option value="faculty">学部レベル</option>
-              <option value="university">大学レベル</option>
+              <option value="department">{t('common.level.department', '学科レベル')}</option>
+              <option value="faculty">{t('common.level.faculty', '学部レベル')}</option>
+              <option value="university">{t('common.level.university', '大学レベル')}</option>
             </select>
           </div>
         </div>
@@ -706,38 +706,38 @@ function GreedyTeamContent() {
       {teamResult && (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-medium">初期単独スコア</span>
+            <span className="text-xs text-slate-500 font-medium">{t('macro.greedyTeam.initialSoloScore', '初期単独スコア')}</span>
             <div className="text-xl font-bold text-slate-800 mt-1">
               {(teamResult.baselineScore * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-slate-400 mt-0.5 block">起点組織のみ</span>
+            <span className="text-2xs text-slate-400 mt-0.5 block">{t('macro.greedyTeam.initialOrigin', '起点組織')}</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-2xs bg-orange-50/20">
-            <span className="text-xs text-orange-700 font-bold">最終チームスコア</span>
+            <span className="text-xs text-orange-700 font-bold">{t('macro.greedyTeam.finalTeamScore', '最終チームスコア')}</span>
             <div className="text-xl font-bold text-orange-600 mt-1">
               {(teamResult.finalScore * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-orange-600/80 mt-0.5 block">{teamResult.teamMembers.length}{levelUnit}合成</span>
+            <span className="text-2xs text-orange-600/80 mt-0.5 block">{teamResult.teamMembers.length}{levelUnit}</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs bg-emerald-50/20">
             <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> 総合向上幅
+              <TrendingUp className="w-3.5 h-3.5" /> {t('macro.greedyTeam.totalImprovement', '総合向上幅')}
             </span>
             <div className="text-xl font-bold text-emerald-600 mt-1">
               +{((teamResult.finalScore - teamResult.baselineScore) * 100).toFixed(1)} pt
             </div>
-            <span className="text-2xs text-emerald-600/80 mt-0.5 block">チーム効果</span>
+            <span className="text-2xs text-emerald-600/80 mt-0.5 block">{t('macro.greedyTeam.balanceScore', 'チーム効果')}</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-medium">編成ステータス</span>
+            <span className="text-xs text-slate-500 font-medium">{t('macro.greedyTeam.status', '編成ステータス')}</span>
             <div className="text-sm font-bold text-slate-800 mt-2 flex items-center gap-1.5">
               <span className={`w-2.5 h-2.5 rounded-full ${teamResult.reachedThreshold ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
-              <span>{teamResult.reachedThreshold ? '目標閾値達成' : `${teamResult.teamMembers.length}${levelUnit}編成完了`}</span>
+              <span>{teamResult.reachedThreshold ? t('macro.greedyTeam.statusReached', '目標閾値達成') : `${teamResult.teamMembers.length}${levelUnit} ${t('macro.greedyTeam.statusCompleted', '編成完了')}`}</span>
             </div>
-            <span className="text-2xs text-slate-400 mt-0.5 block">{combineMethod === 'max' ? '最大値結合' : '平均値結合'}</span>
+            <span className="text-2xs text-slate-400 mt-0.5 block">{combineMethod === 'max' ? t('macro.greedyTeam.methodMax', '最大値結合') : t('macro.greedyTeam.methodMean', '平均値結合')}</span>
           </div>
         </div>
       )}
@@ -747,7 +747,7 @@ function GreedyTeamContent() {
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <Users className="w-4 h-4 text-orange-600" />
-            編成されたチームメンバー ({teamResult.teamMembers.length}{levelUnit}):
+            {t('macro.greedyTeam.teamMembersTitle', '編成されたチームメンバー')} ({teamResult.teamMembers.length}{levelUnit}):
           </span>
           <div className="flex flex-wrap gap-2 pt-1">
             {teamResult.teamMembers.map((member, index) => (
@@ -760,7 +760,7 @@ function GreedyTeamContent() {
                 }`}
               >
                 <span className="text-2xs px-1.5 py-0.2 rounded-full bg-white font-bold border border-slate-200">
-                  {index === 0 ? '起点' : `#${index + 1}`}
+                  {index === 0 ? t('macro.greedyTeam.initialOrigin', '起点') : `#${index + 1}`}
                 </span>
                 <span>{member.label}</span>
                 {(() => {
@@ -795,10 +795,10 @@ function GreedyTeamContent() {
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <RadarIcon className="w-5 h-5 text-orange-600" />
-              チームスキルバランス推移 レーダーチャート
+              {t('macro.greedyTeam.chartTitle', 'チームスキルバランス推移 レーダーチャート')}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              起点単体 vs 各ステップ追加メンバー vs 最終チーム合成ベクトル
+              {t('macro.greedyTeam.chartSubtitle', '起点単体 vs 各ステップ追加メンバー vs 最終チーム合成ベクトル')}
             </p>
           </div>
         </div>
@@ -835,7 +835,7 @@ function GreedyTeamContent() {
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
           <span>💡 各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。</span>
-          <span>結合方式: <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? '最大値結合 (Max)' : '平均値結合 (Mean)'}</strong></span>
+          <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? 'Max' : 'Mean'}</strong></span>
         </div>
       </div>
 
@@ -845,10 +845,10 @@ function GreedyTeamContent() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-800">
-                ステップごとの追加ログ ＆ スキル補強詳細
+                {t('macro.greedyTeam.stepTableTitle', 'ステップごとの追加ログ ＆ スキル補強詳細')}
               </h3>
               <p className="text-xs text-slate-500">
-                貪欲法により、各ステップで最もチームスコアを向上させた組織が選定されています
+                {t('macro.greedyTeam.stepTableDesc', '貪欲法により、各ステップで最もチームスコアを向上させた組織が選定されています')}
               </p>
             </div>
           </div>
@@ -857,18 +857,18 @@ function GreedyTeamContent() {
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 text-xs font-semibold">
-                  <th className="py-2.5 px-3 w-16 text-center">ステップ</th>
-                  <th className="py-2.5 px-3">追加された組織</th>
-                  <th className="py-2.5 px-3 w-28 text-right">チームスコア</th>
-                  <th className="py-2.5 px-3 w-28 text-right">向上幅 (Δ)</th>
-                  <th className="py-2.5 px-3">特に大きく強化されたスキル Top 3</th>
+                  <th className="py-2.5 px-3 w-16 text-center">{t('macro.greedyTeam.tableRank', 'ステップ')}</th>
+                  <th className="py-2.5 px-3">{t('macro.greedyTeam.tableOrg', '追加された組織')}</th>
+                  <th className="py-2.5 px-3 w-28 text-right">{t('macro.greedyTeam.tableScore', 'チームスコア')}</th>
+                  <th className="py-2.5 px-3 w-28 text-right">{t('macro.greedyTeam.tableDiff', '向上幅 (Δ)')}</th>
+                  <th className="py-2.5 px-3">{t('macro.greedyTeam.tableTopSkills', '特に大きく強化されたスキル Top 3')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
                 {/* Step 0: 起点組織 */}
                 <tr className="bg-teal-50/40">
                   <td className="py-2.5 px-3 text-center font-bold text-teal-700">
-                    起点
+                    {t('macro.greedyTeam.initialOrigin', '起点')}
                   </td>
                   <td className="py-2.5 px-3 font-semibold text-slate-800">
                     <div className="flex items-center gap-1.5">
@@ -897,7 +897,7 @@ function GreedyTeamContent() {
                     -
                   </td>
                   <td className="py-2.5 px-3 text-slate-500">
-                    基準初期スキル構成
+                    {t('macro.greedyTeam.originInitialConfig', '基準初期スキル構成')}
                   </td>
                 </tr>
 

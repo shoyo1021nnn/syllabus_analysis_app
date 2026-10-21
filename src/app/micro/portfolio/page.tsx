@@ -33,6 +33,7 @@ import {
 } from "@/lib/vectorUtils";
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
+import { useLanguage } from "@/context/LanguageContext";
 import GradePdfImportModal, { GradePdfImportItem } from "@/components/micro/GradePdfImportModal";
 
 const STORAGE_KEY = "syllabus_enrolled_courses";
@@ -74,6 +75,7 @@ export default function MicroPortfolioPage() {
   // チャートタブ
   const [chartTab, setChartTab] = useState<'both' | 'knowledge' | 'general'>('both');
 
+  const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
 
   // LocalStorageから読み込み（重複データ自動自己修復付き）
@@ -292,28 +294,28 @@ export default function MicroPortfolioPage() {
   }, [profile.cumulativeGeneralVector]);
 
   const indicatorsKnowledge = useMemo(() => {
-    return getRadarIndicators('knowledge', { max: maxKnowledgeVal, language: 'ja' });
-  }, [maxKnowledgeVal]);
+    return getRadarIndicators('knowledge', { max: maxKnowledgeVal, language });
+  }, [maxKnowledgeVal, language]);
 
   const indicatorsGeneral = useMemo(() => {
-    return getRadarIndicators('general', { max: maxGeneralVal, language: 'ja' });
-  }, [maxGeneralVal]);
+    return getRadarIndicators('general', { max: maxGeneralVal, language });
+  }, [maxGeneralVal, language]);
 
   const seriesKnowledge: RadarSeriesItem[] = useMemo(() => [
     {
-      name: "専門知識スキル (A系列)",
+      name: t('charts.radar.specializedSkills'),
       value: profile.cumulativeKnowledgeVector,
       color: "#6366f1", // indigo
     }
-  ], [profile.cumulativeKnowledgeVector]);
+  ], [profile.cumulativeKnowledgeVector, t]);
 
   const seriesGeneral: RadarSeriesItem[] = useMemo(() => [
     {
-      name: "汎用スキル (B系列)",
+      name: t('charts.radar.genericSkills'),
       value: profile.cumulativeGeneralVector,
       color: "#3b82f6", // blue
     }
-  ], [profile.cumulativeGeneralVector]);
+  ], [profile.cumulativeGeneralVector, t]);
 
   // AIエージェントコンテキスト更新
   useEffect(() => {
@@ -349,28 +351,28 @@ export default function MicroPortfolioPage() {
         <div>
           <div className="inline-flex items-center space-x-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1">
             <GraduationCap className="w-4 h-4" />
-            <span>ミクロな学習支援 &gt; Step 1</span>
+            <span>{t('micro.hub.badge', 'ミクロな学習支援')} &gt; Step 1</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            履修・スキルポートフォリオ
+            {t('micro.portfolio.searchTitle', '履修・スキルポートフォリオ')}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            履修した科目を選択して、あなたの24次元スキル蓄積（案B: 累積加算）を客観的に可視化します。
+            {t('micro.portfolio.subtitle', '履修した科目を選択して、あなたの24次元スキル蓄積（案B: 累積加算）を客観的に可視化します。')}
           </p>
         </div>
 
         {/* サマリーバッジ */}
         <div className="flex items-center gap-3">
           <div className="px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-center">
-            <div className="text-2xs text-indigo-600 dark:text-indigo-400 font-semibold">登録科目数</div>
+            <div className="text-2xs text-indigo-600 dark:text-indigo-400 font-semibold">{t('micro.portfolio.enrolledCount', '登録科目数')}</div>
             <div className="text-lg font-bold text-indigo-950 dark:text-white leading-tight">
-              {enrolledCourses.length} <span className="text-xs font-normal">科目</span>
+              {enrolledCourses.length} <span className="text-xs font-normal">{t('common.subjectCount', '科目')}</span>
             </div>
           </div>
           <div className="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-center">
-            <div className="text-2xs text-blue-600 dark:text-blue-400 font-semibold">推定獲得単位</div>
+            <div className="text-2xs text-blue-600 dark:text-blue-400 font-semibold">{t('micro.portfolio.totalCredits', '推定獲得単位')}</div>
             <div className="text-lg font-bold text-blue-950 dark:text-white leading-tight">
-              {profile.totalCredits} <span className="text-xs font-normal">単位</span>
+              {profile.totalCredits} <span className="text-xs font-normal">{t('micro.portfolio.credits', '単位')}</span>
             </div>
           </div>
         </div>
@@ -390,13 +392,13 @@ export default function MicroPortfolioPage() {
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <span>成績照会PDFから一括インポート</span>
+                  <span>{t('micro.portfolio.importPdfBanner', '成績照会PDFから一括インポート')}</span>
                   <span className="px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-3xs">
-                    自動検知
+                    {t('micro.portfolio.autoDetect', '自動検知')}
                   </span>
                 </div>
                 <p className="text-2xs text-slate-500 truncate mt-0.5">
-                  Campusmateの成績PDFから履修科目を自動検知＆確認して登録
+                  {t('micro.portfolio.importPdfDesc', 'Campusmateの成績PDFから履修科目を自動検知＆確認して登録')}
                 </p>
               </div>
             </div>
@@ -406,7 +408,7 @@ export default function MicroPortfolioPage() {
               className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center space-x-1.5 shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>PDF取込</span>
+              <span>{t('micro.portfolio.importPdfBtn', 'PDF取込')}</span>
             </button>
           </div>
 
@@ -414,13 +416,13 @@ export default function MicroPortfolioPage() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
               <Search className="w-4 h-4 text-indigo-600" />
-              <span>科目を検索して履修登録</span>
+              <span>{t('micro.portfolio.searchTitle', '科目を検索して履修登録')}</span>
             </h2>
 
             <form onSubmit={handleSearch} className="space-y-3">
               <div>
                 <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  開講学部・部局
+                  {t('micro.portfolio.facultyLabel', '開講学部・部局')}
                 </label>
                 <select
                   value={selectedFaculty}
@@ -435,14 +437,14 @@ export default function MicroPortfolioPage() {
 
               <div>
                 <label className="text-2xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  科目名・講義コード・教員名
+                  {t('micro.portfolio.queryLabel', '科目名・講義コード・教員名')}
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="例: プログラミング, 木實, 25371211..."
+                    placeholder={t('micro.portfolio.searchPlaceholder', '例: プログラミング, 木實, 25371211...')}
                     className="flex-1 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
@@ -450,7 +452,7 @@ export default function MicroPortfolioPage() {
                     disabled={isSearching}
                     className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-xs disabled:opacity-50 shrink-0"
                   >
-                    {isSearching ? "検索中..." : "検索"}
+                    {isSearching ? t('micro.portfolio.searching', '検索中...') : t('micro.portfolio.searchButton', '検索')}
                   </button>
                 </div>
               </div>
@@ -461,11 +463,11 @@ export default function MicroPortfolioPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="text-2xs font-bold text-slate-500">
-                    検索結果 ({searchResults.length}件)
+                    {t('micro.portfolio.searchResults', '検索結果')} ({searchResults.length}{t('common.subjectCount', '件')})
                   </span>
                   {selectedCourseIds.size > 0 && (
                     <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold text-2xs">
-                      {selectedCourseIds.size}件 選択中
+                      {selectedCourseIds.size}{t('common.subjectCount', '件')} {language === 'en' ? 'selected' : '選択中'}
                     </span>
                   )}
                 </div>
@@ -480,12 +482,12 @@ export default function MicroPortfolioPage() {
                     {isAllSelected ? (
                       <>
                         <CheckSquare className="w-3.5 h-3.5" />
-                        <span>選択を全解除</span>
+                        <span>{t('micro.portfolio.deselectAll', '選択を全解除')}</span>
                       </>
                     ) : (
                       <>
                         <Square className="w-3.5 h-3.5" />
-                        <span>未登録を全選択 ({unEnrolledInResults.length})</span>
+                        <span>{t('micro.portfolio.selectAll', '未登録を全選択')} ({unEnrolledInResults.length})</span>
                       </>
                     )}
                   </button>
@@ -496,7 +498,7 @@ export default function MicroPortfolioPage() {
               {selectedCourseIds.size > 0 && (
                 <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between gap-2 shadow-xs transition-all">
                   <div className="text-2xs font-semibold text-indigo-900 dark:text-indigo-200 pl-1">
-                    チェックした科目をまとめて登録
+                    {t('micro.portfolio.batchAddTitle', 'チェックした科目をまとめて登録')}
                   </div>
                   <button
                     type="button"
@@ -504,7 +506,7 @@ export default function MicroPortfolioPage() {
                     className="px-3 py-1.5 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center space-x-1.5 shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>選択した {selectedCourseIds.size} 件を一括追加</span>
+                    <span>{t('micro.portfolio.batchAddBtn', '選択した科目を一括追加')} ({selectedCourseIds.size})</span>
                   </button>
                 </div>
               )}
@@ -513,7 +515,7 @@ export default function MicroPortfolioPage() {
               <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-center text-xs text-slate-400">
-                    {hasSearched ? "該当する科目が見つかりませんでした" : "検索条件を入力してください"}
+                    {hasSearched ? t('micro.portfolio.noResults', '該当する科目が見つかりませんでした') : t('micro.portfolio.enterQuery', '検索条件を入力してください')}
                   </div>
                 ) : (
                   searchResults.map((course) => {
@@ -598,7 +600,7 @@ export default function MicroPortfolioPage() {
                         {isEnrolled ? (
                           <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold text-2xs border border-emerald-200 dark:border-emerald-800 shrink-0">
                             <Check className="w-3 h-3" />
-                            <span>登録済</span>
+                            <span>{t('micro.portfolio.enrolledBadge', '登録済')}</span>
                           </span>
                         ) : (
                           <button
@@ -611,7 +613,7 @@ export default function MicroPortfolioPage() {
                             title="1科目だけ即座に追加"
                           >
                             <Plus className="w-3 h-3" />
-                            <span>追加</span>
+                            <span>{t('micro.portfolio.addBtn', '追加')}</span>
                           </button>
                         )}
                       </div>
@@ -627,7 +629,7 @@ export default function MicroPortfolioPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
                 <BookOpen className="w-4 h-4 text-indigo-600" />
-                <span>登録済みの履修科目 ({enrolledCourses.length})</span>
+                <span>{t('micro.portfolio.enrolledListTitle', '登録済みの履修科目')} ({enrolledCourses.length})</span>
               </h2>
               {enrolledCourses.length > 0 && (
                 <button
@@ -635,14 +637,14 @@ export default function MicroPortfolioPage() {
                   className="text-2xs text-rose-500 hover:text-rose-700 inline-flex items-center space-x-1"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span>全件クリア</span>
+                  <span>{t('micro.portfolio.clearAll', '全件クリア')}</span>
                 </button>
               )}
             </div>
 
             {enrolledCourses.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-                履修科目がまだ追加されていません。<br />上の検索から受講科目を追加してください。
+                {t('micro.portfolio.noCourses', '履修科目がまだ追加されていません。上の検索から受講科目を追加してください。')}
               </div>
             ) : (
               <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
@@ -665,7 +667,7 @@ export default function MicroPortfolioPage() {
                         )}
                         <span className="text-indigo-600 dark:text-indigo-400 font-medium text-2xs">{item.course.faculty_name}</span>
                         <span className="text-2xs text-slate-400">•</span>
-                        <span className="text-2xs text-slate-500">{item.course.credits ?? 2}単位</span>
+                        <span className="text-2xs text-slate-500">{item.course.credits ?? 2}{t('micro.portfolio.credits', '単位')}</span>
                       </div>
                       <div className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs" title={item.course.course_name}>
                         {item.course.course_name}
@@ -692,7 +694,7 @@ export default function MicroPortfolioPage() {
                     <button
                       onClick={() => handleRemoveCourse(item.course.id)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition shrink-0"
-                      title="削除"
+                      title={t('micro.portfolio.removeCourse', '削除')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -713,10 +715,10 @@ export default function MicroPortfolioPage() {
               <div>
                 <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
                   <TrendingUp className="w-5 h-5 text-indigo-600" />
-                  <span>個人スキル蓄積レーダーチャート</span>
+                  <span>{t('micro.portfolio.chartTitle', '個人スキル蓄積レーダーチャート')}</span>
                 </h2>
                 <p className="text-2xs text-slate-500 mt-0.5">
-                  案B: 履修した科目のスキル合計値をプロット（科目を履修するほど外側に拡大）
+                  {t('micro.portfolio.chartDesc', '案B: 履修した科目のスキル合計値をプロット（科目を履修するほど外側に拡大）')}
                 </p>
               </div>
 
@@ -726,19 +728,19 @@ export default function MicroPortfolioPage() {
                   onClick={() => setChartTab('both')}
                   className={`px-3 py-1.5 rounded-md transition ${chartTab === 'both' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  並列2面表示
+                  {t('micro.portfolio.chartTabs.both', '並列2面表示')}
                 </button>
                 <button
                   onClick={() => setChartTab('knowledge')}
                   className={`px-3 py-1.5 rounded-md transition ${chartTab === 'knowledge' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  専門知識 (A群)
+                  {t('micro.portfolio.chartTabs.knowledge', '専門知識 (A群)')}
                 </button>
                 <button
                   onClick={() => setChartTab('general')}
                   className={`px-3 py-1.5 rounded-md transition ${chartTab === 'general' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs' : 'text-slate-600 dark:text-slate-400'}`}
                 >
-                  汎用スキル (B群)
+                  {t('micro.portfolio.chartTabs.general', '汎用スキル (B群)')}
                 </button>
               </div>
             </div>
@@ -747,7 +749,7 @@ export default function MicroPortfolioPage() {
             {enrolledCourses.length === 0 ? (
               <div className="h-96 flex flex-col items-center justify-center text-slate-400 text-xs space-y-3">
                 <Layers className="w-10 h-10 text-slate-300 dark:text-slate-700" />
-                <p>履修科目が登録されると、スキルレーダーチャートが表示されます</p>
+                <p>{t('micro.portfolio.chartEmpty', '履修科目が登録されると、スキルレーダーチャートが表示されます')}</p>
               </div>
             ) : (
               <div className="space-y-6 pt-2">
@@ -755,7 +757,7 @@ export default function MicroPortfolioPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-slate-50/50 dark:bg-slate-800/30 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
                       <div className="text-center text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1">
-                        専門知識スキル (A群 12群)
+                        {t('charts.radar.specializedSkills')}
                       </div>
                       <div className="h-72">
                         <RadarChart
@@ -769,7 +771,7 @@ export default function MicroPortfolioPage() {
 
                     <div className="bg-slate-50/50 dark:bg-slate-800/30 rounded-xl p-3 border border-slate-100 dark:border-slate-800">
                       <div className="text-center text-xs font-bold text-blue-700 dark:text-blue-300 mb-1">
-                        汎用スキル (B群 12群)
+                        {t('charts.radar.genericSkills')}
                       </div>
                       <div className="h-72">
                         <RadarChart
@@ -784,6 +786,7 @@ export default function MicroPortfolioPage() {
                 ) : chartTab === 'knowledge' ? (
                   <div className="h-96">
                     <RadarChart
+                      title={t('charts.radar.knowledgeTitle')}
                       indicators={indicatorsKnowledge}
                       seriesData={seriesKnowledge}
                       height="100%"
@@ -793,6 +796,7 @@ export default function MicroPortfolioPage() {
                 ) : (
                   <div className="h-96">
                     <RadarChart
+                      title={t('charts.radar.generalTitle')}
                       indicators={indicatorsGeneral}
                       seriesData={seriesGeneral}
                       height="100%"
@@ -809,9 +813,9 @@ export default function MicroPortfolioPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
                 <Award className="w-4 h-4 text-indigo-600" />
-                <span>スキル診断・ギャップ分析</span>
+                <span>{t('micro.portfolio.analysisTitle', 'スキル診断・ギャップ分析')}</span>
               </h2>
-              <span className="text-2xs text-slate-400">現在の履修状況より算出</span>
+              <span className="text-2xs text-slate-400">{t('micro.portfolio.analysisSubtitle', '現在の履修状況より算出')}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -819,12 +823,12 @@ export default function MicroPortfolioPage() {
               <div className="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                    獲得上位スキル (強み)
+                    {t('micro.portfolio.profileStrengths', '獲得上位スキル (強み)')}
                   </span>
                   <span className="text-2xs text-emerald-600 font-semibold">Top {profile.strengths.length}</span>
                 </div>
                 {profile.strengths.length === 0 ? (
-                  <div className="text-2xs text-slate-400 py-3 text-center">科目を追加すると強みが判定されます</div>
+                  <div className="text-2xs text-slate-400 py-3 text-center">{t('micro.portfolio.strengthsEmpty', '科目を追加すると強みが判定されます')}</div>
                 ) : (
                   <div className="space-y-2">
                     {profile.strengths.map((s, idx) => (
@@ -833,7 +837,9 @@ export default function MicroPortfolioPage() {
                           <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 font-bold text-2xs flex items-center justify-center">
                             {idx + 1}
                           </span>
-                          <span className="font-semibold text-slate-800 dark:text-slate-100">{s.nameJa}</span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-100">
+                            {language === 'en' ? s.nameEn || s.nameJa : s.nameJa}
+                          </span>
                           <span className="text-2xs text-slate-400">({s.code})</span>
                         </div>
                         <span className="font-bold text-emerald-700 dark:text-emerald-300">
@@ -849,12 +855,12 @@ export default function MicroPortfolioPage() {
               <div className="p-4 rounded-xl bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-rose-800 dark:text-rose-300">
-                    不足・手薄なスキル (ギャップ)
+                    {t('micro.portfolio.profileWeaknesses', '不足・手薄なスキル (ギャップ)')}
                   </span>
                   <span className="text-2xs text-rose-600 font-semibold">Top {profile.weaknesses.length}</span>
                 </div>
                 {enrolledCourses.length === 0 ? (
-                  <div className="text-2xs text-slate-400 py-3 text-center">科目を追加すると不足スキルが判定されます</div>
+                  <div className="text-2xs text-slate-400 py-3 text-center">{t('micro.portfolio.weaknessesEmpty', '科目を追加すると不足スキルが判定されます')}</div>
                 ) : (
                   <div className="space-y-2">
                     {profile.weaknesses.map((s, idx) => (
@@ -863,7 +869,9 @@ export default function MicroPortfolioPage() {
                           <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-800 font-bold text-2xs flex items-center justify-center">
                             !
                           </span>
-                          <span className="font-semibold text-slate-800 dark:text-slate-100">{s.nameJa}</span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-100">
+                            {language === 'en' ? s.nameEn || s.nameJa : s.nameJa}
+                          </span>
                           <span className="text-2xs text-slate-400">({s.code})</span>
                         </div>
                         <span className="font-bold text-rose-600 dark:text-rose-400">
@@ -884,10 +892,10 @@ export default function MicroPortfolioPage() {
               >
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4 text-yellow-300" />
-                  <span>あなたの不足スキルを補完できる科目を計算・推薦する</span>
+                  <span>{t('micro.portfolio.recommendLink', 'あなたの不足スキルを補完できる科目を計算・推薦する')}</span>
                 </div>
                 <div className="flex items-center space-x-1 text-2xs text-indigo-100 group-hover:translate-x-1 transition-transform">
-                  <span>推薦シミュレーターへ</span>
+                  <span>{t('micro.portfolio.toSimulator', '推薦シミュレーターへ')}</span>
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </Link>

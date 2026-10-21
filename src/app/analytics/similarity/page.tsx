@@ -24,6 +24,7 @@ import SimilarityRanking from '@/components/charts/SimilarityRanking';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   Users, 
   CheckCircle2, 
@@ -141,6 +142,7 @@ function SimilarityPageContent() {
   const queryDept = searchParams.get('dept') || searchParams.get('primaryDept');
   const queryUniv = searchParams.get('univ') || searchParams.get('primaryUniv');
   const { setAnalyticsContext } = useAnalyticsContext();
+  const { t } = useLanguage();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -488,11 +490,11 @@ function SimilarityPageContent() {
           {level !== 'university' && universityList.length > 1 && (
             <div className="pb-2 border-b border-teal-200/60">
               <SearchableSelect
-                label="大学で絞り込み:"
+                label={t('universities.univFilter', '大学で絞り込み:')}
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
-                placeholder="大学名を検索・選択..."
+                placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
                 colorScheme="teal"
               />
             </div>
@@ -502,12 +504,12 @@ function SimilarityPageContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
               <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-teal-600" />
-                基準{level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科'}を選択:
+                {t('analytics.similarity.primaryLabel', '基準対象 (カリキュラム比較元)')}:
               </span>
               {targetRecord && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-teal-700 font-medium">
-                    科目数: {targetRecord.subject_count}科目
+                    {t('common.subjectCount', '科目数')}: {targetRecord.subject_count} {t('common.subjectsUnit', '科目')}
                   </span>
                   <AcademicUnitInfoButton
                     target={{
@@ -534,7 +536,7 @@ function SimilarityPageContent() {
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {formatLabel(item)} ({item.subject_count}科目)
+                  {formatLabel(item)} ({item.subject_count} {t('common.subjectsUnit', '科目')})
                 </option>
               ))}
             </select>
@@ -546,65 +548,65 @@ function SimilarityPageContent() {
           {/* 計算指標 */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Calculator className="w-3.5 h-3.5 text-slate-500" /> 計算指標:
+              <Calculator className="w-3.5 h-3.5 text-slate-500" /> {t('analytics.similarity.metricLabel', '計算指標:')}
             </label>
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value as MetricType)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
-              <option value="cosine">コサイン類似度 (標準)</option>
-              <option value="dot">内積スコア</option>
-              <option value="euclidean">ユークリッド距離 (小さい順)</option>
-              <option value="tanimoto">谷本係数</option>
+              <option value="cosine">{t('analytics.similarity.metricCosine', 'コサイン類似度 (標準)')}</option>
+              <option value="dot">{t('analytics.similarity.metricDot', '内積スコア')}</option>
+              <option value="euclidean">{t('analytics.similarity.metricEuclidean', 'ユークリッド距離 (小さい順)')}</option>
+              <option value="tanimoto">{t('analytics.similarity.metricTanimoto', '谷本係数')}</option>
             </select>
           </div>
 
           {/* 対象スキル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> 対象スキル:
+              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> {t('analytics.similarity.skillsLabel', '対象スキル:')}
             </label>
             <select
               value={vectorTarget}
               onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
-              <option value="all">全24スキル統合 (知識+汎用)</option>
-              <option value="knowledge">知識関連スキルのみ (12項目)</option>
-              <option value="general">汎用スキルのみ (12項目)</option>
+              <option value="all">{t('analytics.similarity.skillsAll', '全24スキル統合 (知識+汎用)')}</option>
+              <option value="knowledge">{t('analytics.similarity.skillsKnowledge', '知識関連スキルのみ (12項目)')}</option>
+              <option value="general">{t('analytics.similarity.skillsGeneral', '汎用スキルのみ (12項目)')}</option>
             </select>
           </div>
 
           {/* 比較対象の絞り込み */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5 text-slate-500" /> 大学絞り込み:
+              <Building2 className="w-3.5 h-3.5 text-slate-500" /> {t('analytics.similarity.scopeLabel', '比較対象の絞り込み:')}
             </label>
             <select
               value={filterUniversity}
               onChange={(e) => setFilterUniversity(e.target.value as TargetFilter)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
-              <option value="all">すべての大学</option>
-              <option value="diff">他大学の学科のみ (同一大学除く)</option>
-              <option value="same">同一大学の学部・学科のみ</option>
+              <option value="all">{t('analytics.similarity.scopeAll', '全大学・学科を対象')}</option>
+              <option value="diff">{t('analytics.similarity.scopeOther', '他大学のみ (自大学を除く)')}</option>
+              <option value="same">{t('analytics.similarity.scopeSame', '自大学内のみ')}</option>
             </select>
           </div>
 
           {/* 階層レベル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-slate-500" /> 階層レベル:
+              <Filter className="w-3.5 h-3.5 text-slate-500" /> {t('common.level', '階層レベル')}:
             </label>
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
-              <option value="department">学科レベル</option>
-              <option value="faculty">学部レベル</option>
-              <option value="university">大学レベル</option>
+              <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
+              <option value="faculty">{t('common.facultyLevel', '学部レベル')}</option>
+              <option value="university">{t('common.universityLevel', '大学レベル')}</option>
             </select>
           </div>
         </div>
@@ -657,10 +659,10 @@ function SimilarityPageContent() {
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold text-slate-800">
-            詳細ランキング一覧 (上位20件)
+            {t('analytics.similarity.rankingTitle', 'カリキュラム類似度ランキング')}
           </h3>
           <span className="text-xs text-slate-500">
-            対象候補数: {candidates.length}件
+            {candidates.length} {t('common.subjectsUnit', '件')}
           </span>
         </div>
 
@@ -668,11 +670,11 @@ function SimilarityPageContent() {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 text-xs font-semibold">
-                <th className="py-2.5 px-3 w-16 text-center">順位</th>
-                <th className="py-2.5 px-3">大学名</th>
-                <th className="py-2.5 px-3">学部・学科名</th>
-                <th className="py-2.5 px-3 w-28 text-right">類似度スコア</th>
-                <th className="py-2.5 px-3 w-36 text-center">アクション</th>
+                <th className="py-2.5 px-3 w-16 text-center">{t('analytics.similarity.tableRank', '順位')}</th>
+                <th className="py-2.5 px-3">{t('common.university', '大学名')}</th>
+                <th className="py-2.5 px-3">{t('analytics.similarity.tableTarget', '学部・学科名')}</th>
+                <th className="py-2.5 px-3 w-28 text-right">{t('analytics.similarity.tableScore', '類似度スコア')}</th>
+                <th className="py-2.5 px-3 w-36 text-center">{t('common.actions', 'アクション')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -718,10 +720,10 @@ function SimilarityPageContent() {
                       <Link
                         href={`/analytics/radar_chart?primaryId=${targetRecord.id}&compareId=${item.id}`}
                         className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 transition shadow-xs border border-teal-200/60"
-                        title="この学科と基準学科をレーダーチャートで直接対比"
+                        title={t('analytics.similarity.tableAction', 'レーダー比較')}
                       >
                         <Radar className="w-3.5 h-3.5 text-teal-600" />
-                        <span>レーダーで比較</span>
+                        <span>{t('analytics.similarity.tableAction', 'レーダー比較')}</span>
                       </Link>
                     </td>
                   </tr>

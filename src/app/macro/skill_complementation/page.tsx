@@ -447,7 +447,7 @@ function SkillComplementationContent() {
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
       {/* 戻るボタン */}
       <div className="flex items-center">
-        <BackButton label="学習支援メニューに戻る" fallbackHref="/macro" />
+        <BackButton label={t('common.back', '学習支援メニューに戻る')} fallbackHref="/macro" />
       </div>
 
       {/* ヘッダーカード */}
@@ -459,15 +459,15 @@ function SkillComplementationContent() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-                スキル補完検索
+                {t('macro.complementation.title', 'スキル補完検索')}
               </h1>
               <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
                 <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
-                <span>相補パートナー探索</span>
+                <span>{t('macro.complementation.badge', '相補パートナー探索')}</span>
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              基準組織の不足スキル（特に汎用スキル等）を効果的に補完できる連携相手を多角的アプローチでランキング
+              {t('macro.complementation.subtitle', '基準組織の不足スキル（特に汎用スキル等）を効果的に補完できる連携相手を多角的アプローチでランキング')}
             </p>
           </div>
         </div>
@@ -486,11 +486,11 @@ function SkillComplementationContent() {
           {level !== 'university' && universityList.length > 1 && (
             <div className="pb-2 border-b border-orange-200/60">
               <SearchableSelect
-                label="大学で絞り込み:"
+                label={t('macro.bestPair.filterUniv', '大学で絞り込み:')}
                 options={universityList}
                 value={selectedUnivFilter}
                 onChange={setSelectedUnivFilter}
-                placeholder="大学名を検索・選択..."
+                placeholder={t('complementation.searchPlaceholder', '大学名を検索・選択...')}
                 colorScheme="orange"
               />
             </div>
@@ -500,12 +500,12 @@ function SkillComplementationContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
               <span className="text-xs font-bold text-orange-900 flex items-center gap-1.5">
                 <GraduationCap className="w-4 h-4 text-orange-600" />
-                基準組織を選択:
+                {t('macro.complementation.selectBaseOrg', '基準組織を選択:')}
               </span>
               {targetRecord && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-orange-700 font-medium">
-                    科目数: {targetRecord.subject_count}科目
+                    {targetRecord.subject_count} {t('common.subjectCount', '科目')}
                   </span>
                   <AcademicUnitInfoButton
                     target={{
@@ -532,7 +532,7 @@ function SkillComplementationContent() {
             >
               {filteredDataList.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {formatLabel(item)} ({item.subject_count}科目)
+                  {formatLabel(item)} ({item.subject_count} {t('common.subjectCount', '科目')})
                 </option>
               ))}
             </select>
@@ -544,65 +544,65 @@ function SkillComplementationContent() {
           {/* 補完アプローチ */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-orange-500" /> 補完アプローチ:
+              <Sparkles className="w-3.5 h-3.5 text-orange-500" /> {t('macro.complementation.approach', '補完アプローチ:')}
             </label>
             <select
               value={approach}
               onChange={(e) => setApproach(e.target.value as ComplementationApproach)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="synergy">専門一致・汎用相補 (推奨)</option>
-              <option value="gap">理想ギャップ補填特化</option>
-              <option value="ideal_max">最大値結合 理想達成度</option>
-              <option value="ideal_mean">平均値結合 理想達成度</option>
-              <option value="dissimilar_b">汎用スキル相補 (非類似度重視)</option>
+              <option value="synergy">{t('macro.complementation.approachSynergy', '専門一致・汎用相補 (推奨)')}</option>
+              <option value="gap">{t('macro.complementation.approachGap', '理想ギャップ補填特化')}</option>
+              <option value="ideal_max">{t('macro.complementation.approachMax', '最大値結合 理想達成度')}</option>
+              <option value="ideal_mean">{t('macro.complementation.approachMean', '平均値結合 理想達成度')}</option>
+              <option value="dissimilar_b">{t('macro.complementation.approachDissimilar', '汎用スキル相補 (非類似度重視)')}</option>
             </select>
           </div>
 
           {/* 計算指標 */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> 類似度指標:
+              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> {t('analytics.similarity.metricLabel', '類似度指標:')}
             </label>
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value as MetricType)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="cosine">コサイン類似度 (標準)</option>
-              <option value="tanimoto">谷本係数 (Tanimoto)</option>
+              <option value="cosine">{t('analytics.similarity.cosine', 'コサイン類似度 (標準)')}</option>
+              <option value="tanimoto">{t('analytics.similarity.tanimoto', '谷本係数 (Tanimoto)')}</option>
             </select>
           </div>
 
           {/* 大学絞り込み */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5 text-slate-500" /> 大学絞り込み:
+              <Filter className="w-3.5 h-3.5 text-slate-500" /> {t('macro.bestPair.filterUniv', '大学絞り込み:')}
             </label>
             <select
               value={filterUniversity}
               onChange={(e) => setFilterUniversity(e.target.value as TargetFilter)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="all">すべての大学</option>
-              <option value="diff">他大学のみ (同一大学除く)</option>
-              <option value="same">同一大学のみ</option>
+              <option value="all">{t('macro.bestPair.filterAll', 'すべての大学')}</option>
+              <option value="diff">{t('macro.bestPair.filterDiff', '他大学のみ (同一大学除く)')}</option>
+              <option value="same">{t('macro.bestPair.filterSame', '同一大学のみ')}</option>
             </select>
           </div>
 
           {/* 階層レベル */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-slate-500" /> 階層レベル:
+              <Layers className="w-3.5 h-3.5 text-slate-500" /> {t('macro.bestPair.hierarchy', '階層レベル:')}
             </label>
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="department">学科レベル</option>
-              <option value="faculty">学部レベル</option>
-              <option value="university">大学レベル</option>
+              <option value="department">{t('common.level.department', '学科レベル')}</option>
+              <option value="faculty">{t('common.level.faculty', '学部レベル')}</option>
+              <option value="university">{t('common.level.university', '大学レベル')}</option>
             </select>
           </div>
         </div>
@@ -614,10 +614,10 @@ function SkillComplementationContent() {
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Radar className="w-5 h-5 text-orange-600" />
-              スキル相補シミュレーション（基準 vs 選択パートナー vs 補完後）
+              {t('macro.complementation.chartTitle', 'スキル相補シミュレーション（基準 vs 選択パートナー vs 補完後）')}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
-              <span>基準:</span>
+              <span>{t('charts.radar.baseOrg', '基準')}:</span>
               <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
               {targetRecord && (
                 <AcademicUnitInfoButton
@@ -638,7 +638,7 @@ function SkillComplementationContent() {
               )}
               {partnerRecord && (
                 <>
-                  <span className="text-slate-400">× 補完候補:</span>
+                  <span className="text-slate-400">× {t('macro.complementation.candidate', '補完候補')}:</span>
                   <span className="font-semibold text-orange-700">{formatLabel(partnerRecord)}</span>
                   <AcademicUnitInfoButton
                     target={{
@@ -697,7 +697,7 @@ function SkillComplementationContent() {
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
           <span>💡 チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。</span>
-          <span>補完アプローチ: <strong className="text-slate-600 font-semibold">{approach === 'synergy' ? '専門一致・汎用相補 (バランス型)' : '相補最適化'}</strong></span>
+          <span>{t('macro.complementation.approach', '補完アプローチ:')} <strong className="text-slate-600 font-semibold">{approach === 'synergy' ? t('macro.complementation.approachSynergy', '専門一致・汎用相補') : t('macro.complementation.approachGap', '相補最適化')}</strong></span>
         </div>
       </div>
 
@@ -706,14 +706,14 @@ function SkillComplementationContent() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-slate-800">
-              スキル補完パートナー ランキング (Top 20)
+              {t('macro.complementation.partnerRankingTitle', 'スキル補完パートナー ランキング (Top 20)')}
             </h3>
             <p className="text-xs text-slate-500">
-              テーブル内の行をクリックすると、上部のレーダーチャートで直接対比できます
+              {t('macro.complementation.rankingDesc', 'テーブル内の行をクリックすると、上部のレーダーチャートで直接対比できます')}
             </p>
           </div>
           <span className="text-xs text-slate-400">
-            対象候補数: {candidates.length}件
+            {candidates.length} {t('common.subjectCount', '件')}
           </span>
         </div>
 
@@ -721,14 +721,14 @@ function SkillComplementationContent() {
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 text-xs font-semibold">
-                <th className="py-2.5 px-3 w-14 text-center">順位</th>
-                <th className="py-2.5 px-3">大学・学部・学科名</th>
-                <th className="py-2.5 px-3 w-28 text-right">総合スコア</th>
-                <th className="py-2.5 px-3 w-24 text-right">専門一致(A)</th>
-                <th className="py-2.5 px-3 w-24 text-right">汎用一致(B)</th>
-                <th className="py-2.5 px-3 w-24 text-right">ギャップ補填</th>
-                <th className="py-2.5 px-3 w-28 text-right">最大達成度</th>
-                <th className="py-2.5 px-3 w-28 text-center">アクション</th>
+                <th className="py-2.5 px-3 w-14 text-center">{t('macro.complementation.tableRank', '順位')}</th>
+                <th className="py-2.5 px-3">{t('macro.complementation.tableOrg', '大学・学部・学科名')}</th>
+                <th className="py-2.5 px-3 w-28 text-right">{t('macro.complementation.tableScore', '総合スコア')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableSimA', '専門一致(A)')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableSimB', '汎用一致(B)')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableGap', 'ギャップ補填')}</th>
+                <th className="py-2.5 px-3 w-28 text-right">{t('macro.complementation.tableMax', '最大達成度')}</th>
+                <th className="py-2.5 px-3 w-28 text-center">{t('macro.complementation.tableAction', 'アクション')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
@@ -805,7 +805,7 @@ function SkillComplementationContent() {
                             : 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
                         }`}
                       >
-                        <span>{isSelected ? '表示中' : '選択'}</span>
+                        <span>{isSelected ? t('macro.complementation.showing', '表示中') : t('macro.complementation.select', '選択')}</span>
                       </button>
                     </td>
                   </tr>

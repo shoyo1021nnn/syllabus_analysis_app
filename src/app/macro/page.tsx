@@ -15,9 +15,11 @@ import {
   Workflow
 } from 'lucide-react';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function MacroMenuPage() {
   const { setAnalyticsContext } = useAnalyticsContext();
+  const { t } = useLanguage();
 
   useEffect(() => {
     setAnalyticsContext({
@@ -70,11 +72,10 @@ export default function MacroMenuPage() {
             <span>Macro Learning Support & Multi-Organization Synergy</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">
-            マクロな学習支援（組織間連携・チーム編成最適化）
+            {t('macro.hub.title', 'マクロな学習支援（組織間連携・チーム編成）')}
           </h1>
           <p className="text-orange-100 text-sm max-w-2xl leading-relaxed">
-            単一カリキュラムの分析を超え、組織間で不足スキルを補い合う相乗効果（シナジー）をシミュレーション。
-            スキル補完検索、ベスト・ペア探索、貪欲法チーム編成の3つのアプローチで、教育効果を最大化する最適な連携パートナーや多人数チームを特定します。
+            {t('macro.hub.subtitle', '自組織の不足スキルを補う連携パートナー探索や、相乗効果を最大化するベストペア・最適チーム編成を支援します。')}
           </p>
         </div>
       </div>
@@ -85,11 +86,11 @@ export default function MacroMenuPage() {
           <div className="flex items-center space-x-2.5">
             <Layers className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
-              マクロ学習支援のシミュレーション基盤
+              {t('macro.hub.badge', '組織連携・カリキュラム最適化')}
             </h2>
           </div>
           <span className="text-xs font-semibold text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/60 px-2.5 py-1 rounded-full border border-orange-200 dark:border-orange-800">
-            シナジー最適化アルゴリズム 搭載
+            Synergy Optimization
           </span>
         </div>
 
@@ -97,25 +98,25 @@ export default function MacroMenuPage() {
           <div className="p-4 rounded-xl bg-orange-50/70 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/60">
             <div className="text-xs font-medium text-orange-700 dark:text-orange-300">支援アプローチ</div>
             <div className="text-xl font-black text-orange-950 dark:text-white mt-1">
-              3 手法
+              3 Approaches
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">相補探索・ペア探索・多人数貪欲編成</p>
+            <p className="text-2xs text-slate-500 mt-0.5">Complement / Best Pair / Greedy Team</p>
           </div>
 
           <div className="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60">
-            <div className="text-xs font-medium text-amber-700 dark:text-amber-300">結合モデル</div>
+            <div className="text-xs font-medium text-amber-700 dark:text-amber-300">{t('macro.bestPair.combineMethod', '合成方式:')}</div>
             <div className="text-xl font-black text-amber-950 dark:text-white mt-1">
               Max / Mean <span className="text-xs font-normal text-slate-500">Pooling</span>
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">強み特化型 ＆ 総合底上げ型</p>
+            <p className="text-2xs text-slate-500 mt-0.5">Complementary & Harmonious</p>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
             <div className="text-xs font-medium text-slate-700 dark:text-slate-300">目標水準</div>
             <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
-              理想ベクトル (3.0)
+              Ideal Vector (3.0)
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">全スキル均等高水準を基準に評価</p>
+            <p className="text-2xs text-slate-500 mt-0.5">Balanced & Multi-Disciplinary</p>
           </div>
         </div>
 
@@ -123,14 +124,14 @@ export default function MacroMenuPage() {
           <div className="flex items-center space-x-3">
             <Target className="w-5 h-5 text-orange-500 shrink-0" />
             <p className="text-xs text-slate-600 dark:text-slate-300">
-              <strong>推奨アプローチ:</strong> 自学科の手薄なスキルを補強したい場合は「Step 1: スキル補完検索」から連携パートナー候補を探索してください。
+              <strong>{t('home.cards.macro.title', 'マクロな学習支援')}:</strong> {t('home.cards.macro.desc', '自組織の不足スキルを補う連携パートナー探索や、理想的なスキルバランスを達成するベストペア・最適チーム編成を支援します。')}
             </p>
           </div>
           <Link
             href="/macro/skill_complementation"
             className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition shadow-xs shrink-0 ml-4"
           >
-            探索を開始する
+            {t('home.cards.macro.action', '学習支援メニュー')}
           </Link>
         </div>
       </div>
@@ -149,19 +150,19 @@ export default function MacroMenuPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
-                Step 1: 弱点相補
+                {t('macro.hub.cards.complementation.step', 'Step 1: 弱点相補')}
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors mt-0.5">
-                スキル補完検索
+                {t('macro.hub.cards.complementation.title', 'スキル補完検索')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                自組織の弱点スキル（不足スキル）を補完できるパートナー組織を探索。専門一致＋相補やギャップ補填など多角的アプローチに対応します。
+                {t('macro.hub.cards.complementation.desc', '自組織で相対的に手薄なスキル群を特定し、それを最も強力に補える他大学・学部のパートナーを算出します。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
-            <span>スキル補完検索を開く</span>
+            <span>{t('macro.hub.cards.complementation.action', '補完パートナーを探す')}</span>
             <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -179,19 +180,19 @@ export default function MacroMenuPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
-                Step 2: 1対1結合
+                {t('macro.hub.cards.bestPair.step', 'Step 2: 1対1結合')}
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors mt-0.5">
-                ベスト・ペア検索
+                {t('macro.hub.cards.bestPair.title', 'ベスト・ペア検索')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                2組織が組んだ際に最大のシナジーを発揮する相手を探索。最大値結合（強み特化）と平均値結合（総合力向上）の2方式で比較可能です。
+                {t('macro.hub.cards.bestPair.desc', '2組織が合わさった際に全スキルのバランスが最大化される、相乗効果（シナジー）の高い組み合わせを発見します。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
-            <span>ベスト・ペア検索を開く</span>
+            <span>{t('macro.hub.cards.bestPair.action', 'ベストペアを探索する')}</span>
             <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -209,19 +210,19 @@ export default function MacroMenuPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
-                Step 3: 多人数編成
+                {t('macro.hub.cards.greedyTeam.step', 'Step 3: 多人数編成')}
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors mt-0.5">
-                チーム編成支援
+                {t('macro.hub.cards.greedyTeam.title', 'チーム編成支援')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                貪欲法(Greedy Algorithm)により、指定人数または目標スキル閾値を達成するまで最適なパートナーを1組織ずつ追加。多人数カバレッジを最適化します。
+                {t('macro.hub.cards.greedyTeam.desc', '貪欲法アルゴリズムにより、指定人数で理想的な全方位スキルバランスを達成する学際的チームを自動編成します。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
-            <span>チーム編成支援を開く</span>
+            <span>{t('macro.hub.cards.greedyTeam.action', '最適チームを編成する')}</span>
             <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -234,22 +235,22 @@ export default function MacroMenuPage() {
       <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 text-xs text-slate-600 dark:text-slate-300">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center space-x-2">
           <BookOpen className="w-4 h-4 text-orange-600" />
-          <span>マクロな学習支援の理論的背景と結合モデル</span>
+          <span>{t('macro.hub.theory.title', 'マクロな学習支援の理論的背景と結合モデル')}</span>
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
-            <span className="font-bold text-slate-800 dark:text-slate-100">① 結合アプローチの定義 (Max vs Mean):</span>
+            <span className="font-bold text-slate-800 dark:text-slate-100">{t('macro.hub.theory.poolingTitle', '① 結合アプローチの定義 (Max vs Mean):')}</span>
             <p className="leading-relaxed">
-              <strong>最大値結合(Max Pooling):</strong> 各組織の突出した強みを最大限に活かすアプローチです。チーム内で誰か一人でも高い専門性を持っていればそのスキルがチーム能力として反映されます。
+              {t('macro.hub.theory.maxPoolingDesc', '最大値結合(Max Pooling): 各組織の突出した強みを最大限に活かすアプローチです。チーム内で誰か一人でも高い専門性を持っていればそのスキルがチーム能力として反映されます。')}
             </p>
             <p className="leading-relaxed pt-1">
-              <strong>平均値結合(Mean Pooling):</strong> 組織全員のスキルの平均をとるアプローチです。チーム全体の底上げや共通基盤の充実度を評価します。
+              {t('macro.hub.theory.meanPoolingDesc', '平均値結合(Mean Pooling): 組織全員のスキルの平均をとるアプローチです。チーム全体の底上げや共通基盤の充実度を評価します。')}
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
-            <span className="font-bold text-slate-800 dark:text-slate-100">② 目標としての「理想ベクトル」:</span>
+            <span className="font-bold text-slate-800 dark:text-slate-100">{t('macro.hub.theory.idealTitle', '② 目標としての「理想ベクトル」:')}</span>
             <p className="leading-relaxed">
-              全24スキルがバランスよく習得できる状態（各次元が均等に高水準な3.0を満たすベクトル）を「理想ベクトル」と定義し、連携によってどれだけ理想ベクトルに近づけるかを定量的に評価します。
+              {t('macro.hub.theory.idealDesc', '全24スキルがバランスよく習得できる状態（各次元が均等に高水準な3.0を満たすベクトル）を「理想ベクトル」と定義し、連携によってどれだけ理想ベクトルに近づけるかを定量的に評価します。')}
             </p>
           </div>
         </div>

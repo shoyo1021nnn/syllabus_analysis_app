@@ -86,10 +86,10 @@ export default function HomePage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                  スキル分析結果
+                  {t('home.cards.analytics.title', 'スキル分析結果')}
                 </h2>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                  全国の大学・学部・学科が持つ24次元のスキル構成比を客観的に比較・マッピングし、カリキュラムの現在地やベンチマーク対象を明確にします。
+                  {t('home.cards.analytics.desc', '全国の大学・学部・学科が持つ24次元のスキル構成比を客観的に比較・マッピングし、カリキュラムの現在地やベンチマーク対象を明確にします。')}
                 </p>
               </div>
 
@@ -97,21 +97,21 @@ export default function HomePage() {
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <Network className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                  <span><strong>クラスタリング:</strong> PCA散布図で俯瞰</span>
+                  <span>{t('home.cards.analytics.clustering', 'クラスタリング: PCA散布図で俯瞰')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <GitCompare className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                  <span><strong>類似度ランキング:</strong> 類似学科を算出</span>
+                  <span>{t('home.cards.analytics.similarity', '類似度ランキング: 類似学科を算出')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <Radar className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                  <span><strong>レーダーチャート:</strong> 強み・弱みを対比</span>
+                  <span>{t('home.cards.analytics.radar', 'レーダーチャート: 強み・弱みを対比')}</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 pt-3 flex items-center justify-between text-teal-600 dark:text-teal-400 font-bold text-xs">
-              <span>分析ダッシュボード</span>
+              <span>{t('home.cards.analytics.action', '分析ダッシュボード')}</span>
               <div className="w-7 h-7 rounded-full bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
@@ -138,10 +138,10 @@ export default function HomePage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                  マクロな学習支援
+                  {t('home.cards.macro.title', 'マクロな学習支援')}
                 </h2>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                  自組織の不足スキルを補う連携パートナー探索や、理想的なスキルバランスを達成するベストペア・最適チーム編成を支援します。
+                  {t('home.cards.macro.desc', '自組織の不足スキルを補う連携パートナー探索や、理想的なスキルバランスを達成するベストペア・最適チーム編成を支援します。')}
                 </p>
               </div>
 
@@ -149,21 +149,21 @@ export default function HomePage() {
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <Compass className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                  <span><strong>相補パートナー:</strong> 不足を補い合う探索</span>
+                  <span>{t('home.cards.macro.complementation', 'スキル補完検索: 弱点を最大補完')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <Sparkles className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                  <span><strong>ベスト・ペア:</strong> 1対1結合で最高シナジー</span>
+                  <span>{t('home.cards.macro.bestPair', 'ベスト・ペア検索: 相乗効果の最大化')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <UserPlus className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                  <span><strong>チーム編成支援:</strong> 多人数カバレッジ最適化</span>
+                  <span>{t('home.cards.macro.greedyTeam', 'チーム編成支援: 貪欲法で最適チーム')}</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 pt-3 flex items-center justify-between text-orange-600 dark:text-orange-400 font-bold text-xs">
-              <span>学習支援メニュー</span>
+              <span>{t('home.cards.macro.action', '学習支援メニュー')}</span>
               <div className="w-7 h-7 rounded-full bg-orange-50 dark:bg-orange-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
@@ -190,10 +190,10 @@ export default function HomePage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  ミクロな学習支援
+                  {t('home.cards.micro.title', 'ミクロな教育支援')}
                 </h2>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                  履修した科目を選択することで自身の24次元スキルを可視化。不足スキルを補完する科目を九州大学の全シラバスから自動推薦します。
+                  {t('home.cards.micro.desc', '学生個人の履修登録データや成績通知書PDFから24次元スキル蓄積を可視化し、不足スキルを補う最適な履修科目を推薦します。')}
                 </p>
               </div>
 
@@ -201,21 +201,21 @@ export default function HomePage() {
               <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <GraduationCap className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span><strong>履修登録・管理:</strong> 5,903科目から検索選択</span>
+                  <span>{t('home.cards.micro.portfolio', '履修ポートフォリオ: 取得スキル蓄積')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <Radar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span><strong>個人スキル可視化:</strong> 累積チャートで強み弱み</span>
+                  <span>{t('home.cards.micro.pdfImport', 'PDF成績取り込み: 自動パース・登録')}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
                   <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span><strong>補完科目推薦:</strong> ギャップを埋める科目を提示</span>
+                  <span>{t('home.cards.micro.recommendation', '不足スキル補完: 弱点科目の推薦')}</span>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 pt-3 flex items-center justify-between text-indigo-600 dark:text-indigo-400 font-bold text-xs">
-              <span>個人学習支援メニュー</span>
+              <span>{t('home.cards.micro.action', '教育支援メニュー')}</span>
               <div className="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
@@ -241,19 +241,19 @@ export default function HomePage() {
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
                       Directory & Profiles
                     </span>
-                    <span className="text-xs text-slate-400">公式WEBリンク・組織ツリー・科目数</span>
+                    <span className="text-xs text-slate-400">{t('universities.badge', '組織データ')}</span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-emerald-200 transition-colors">
-                    大学・学部・学科の基本情報ページ
+                    {t('universities.title', '大学・学部・学科の基本情報')}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                    大学名 ⇒ 学部名 ⇒ 学科名の順番で選択し、開講科目数、公式WEBサイトURL、組織ツリー、シラバススキル特性を網羅的に閲覧できます。
+                    {t('universities.subtitle', '全国の主要大学における組織構造（学部・学科）および科目数と公式リンクを一覧表示します。')}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2 shrink-0 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/30 group-hover:translate-x-1 transition-all">
-                <span>基本情報を見る</span>
+                <span>{t('common.detail', '基本情報を見る')}</span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             </div>

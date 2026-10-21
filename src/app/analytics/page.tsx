@@ -17,9 +17,11 @@ import {
   Building2
 } from 'lucide-react';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function AnalyticsIndexPage() {
   const { setAnalyticsContext } = useAnalyticsContext();
+  const { t } = useLanguage();
 
   useEffect(() => {
     setAnalyticsContext({
@@ -61,11 +63,10 @@ export default function AnalyticsIndexPage() {
             <span>Curriculum Analytics & Skill Vector Mapping</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">
-            スキルベクトル分析（全国カリキュラム俯瞰・比較）
+            {t('analytics.hub.title', 'スキルベクトル分析（全国カリキュラム俯瞰・比較）')}
           </h1>
           <p className="text-teal-100 text-sm max-w-2xl leading-relaxed">
-            全国の大学・学部・学科が持つ24次元のスキル構成比（比率データ）を客観的に比較・マッピング。
-            クラスタリングによる全体俯瞰、類似度計算によるベンチマーク特定、レーダーチャートによる直接対比の3つの視点からカリキュラムの客観的特徴を明らかにします。
+            {t('analytics.hub.subtitle', '全国の大学・学部・学科が持つ24次元のスキル構成比（比率データ）を客観的に比較・マッピング。クラスタリングによる全体俯瞰、類似度計算によるベンチマーク特定、レーダーチャートによる直接対比の3つの視点からカリキュラムの客観的特徴を明らかにします。')}
           </p>
         </div>
       </div>
@@ -76,37 +77,37 @@ export default function AnalyticsIndexPage() {
           <div className="flex items-center space-x-2.5">
             <Database className="w-5 h-5 text-teal-600 dark:text-teal-400" />
             <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
-              分析システムのデータ基盤と評価仕様
+              {t('analytics.hub.systemSpecTitle', '分析システムのデータ基盤と評価仕様')}
             </h2>
           </div>
           <span className="text-xs font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 rounded-full border border-teal-200 dark:border-teal-800">
-            全24スキル体系 準拠
+            {t('analytics.hub.badge', '全24スキル体系 準拠')}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5">
           <div className="p-4 rounded-xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-900/60">
-            <div className="text-xs font-medium text-teal-700 dark:text-teal-300">分析対象階層</div>
+            <div className="text-xs font-medium text-teal-700 dark:text-teal-300">{t('analytics.hub.hierarchyLabel', '分析対象階層')}</div>
             <div className="text-xl font-black text-teal-950 dark:text-white mt-1">
-              大学・学部・学科
+              {t('common.university', '大学')}・{t('common.faculty', '学部')}・{t('common.department', '学科')}
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">全国の多様なカリキュラムデータを保持</p>
+            <p className="text-2xs text-slate-500 mt-0.5">{t('analytics.hub.hierarchyDesc', '全国の多様なカリキュラムデータを保持')}</p>
           </div>
 
           <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60">
-            <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">スキル分類次元</div>
+            <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">{t('analytics.hub.dimensionLabel', 'スキル分類次元')}</div>
             <div className="text-xl font-black text-emerald-950 dark:text-white mt-1">
-              24 次元 <span className="text-xs font-normal text-slate-500">(12群×2)</span>
+              {t('analytics.hub.dimensionDesc', '24 次元 (12群×2)')}
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">知識A群12項目 ＆ 汎用B群12項目</p>
+            <p className="text-2xs text-slate-500 mt-0.5">A (12) + B (12)</p>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300">客観評価手法</div>
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{t('analytics.hub.normalizationLabel', '正規化手法')}</div>
             <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
-              L1正規化 (100%)
+              L1 Normalization (100%)
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">科目数格差を排除した比率比較</p>
+            <p className="text-2xs text-slate-500 mt-0.5">{t('analytics.hub.normalizationDesc', '科目数の偏りを排除した客観比較')}</p>
           </div>
         </div>
 
@@ -114,14 +115,14 @@ export default function AnalyticsIndexPage() {
           <div className="flex items-center space-x-3">
             <Compass className="w-5 h-5 text-teal-600 shrink-0" />
             <p className="text-xs text-slate-600 dark:text-slate-300">
-              <strong>推奨ワークフロー:</strong> 「Step 1: クラスタリング」で全体分布を俯瞰 → 「Step 2: 類似度」でベンチマーク学科を特定 → 「Step 3: レーダー」で詳細対比を行うと効果的です。
+              <strong>{t('analytics.hub.workflowTitle', '推奨されるカリキュラム分析・改善ステップ')}:</strong> {t('analytics.hub.step1Title', 'Step 1')} → {t('analytics.hub.step2Title', 'Step 2')} → {t('analytics.hub.step3Title', 'Step 3')}
             </p>
           </div>
           <Link
             href="/analytics/clustering"
             className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-xs shrink-0 ml-4"
           >
-            分析を開始する
+            {t('home.cards.analytics.action', '分析ダッシュボード')}
           </Link>
         </div>
       </div>
@@ -140,19 +141,19 @@ export default function AnalyticsIndexPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider">
-                Step 1: 全体俯瞰
+                Step 1
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors mt-0.5">
-                K-meansクラスタリング
+                {t('analytics.hub.cards.clustering.title', 'K-meansクラスタリング')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                全国の学科のスキル分布を主成分分析(PCA)で2次元に縮約して散布図上に可視化。全体傾向や自学科が属するグループを直感的に俯瞰できます。
+                {t('analytics.hub.cards.clustering.desc', '全国の学科のスキル分布をPCAで2次元に縮約・散布図表示し、全体傾向やグループ分けを把握します。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-teal-600 dark:text-teal-400 font-bold text-xs">
-            <span>クラスタリングを開く</span>
+            <span>{t('analytics.hub.cards.clustering.action', '散布図を見る')}</span>
             <div className="w-7 h-7 rounded-full bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -170,19 +171,19 @@ export default function AnalyticsIndexPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider">
-                Step 2: 類似探索
+                Step 2
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors mt-0.5">
-                類似度計算ランキング
+                {t('analytics.hub.cards.similarity.title', '類似度計算ランキング')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                コサイン類似度等の距離指標を用いて、選択した基準学科と教育内容・スキル構成が最も近い他大学・他学科を発見し、ベンチマーク分析を行います。
+                {t('analytics.hub.cards.similarity.desc', '基準学科と他大学のカリキュラム類似度を計算し、類似学科を特定・ベンチマークします。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-teal-600 dark:text-teal-400 font-bold text-xs">
-            <span>類似度ランキングを開く</span>
+            <span>{t('analytics.hub.cards.similarity.action', '類似度を計算する')}</span>
             <div className="w-7 h-7 rounded-full bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>
@@ -200,19 +201,19 @@ export default function AnalyticsIndexPage() {
             </div>
             <div>
               <span className="text-2xs font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider">
-                Step 3: 詳細対比
+                Step 3
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-teal-600 transition-colors mt-0.5">
-                スキルレーダーチャート
+                {t('analytics.hub.cards.radar.title', 'スキルレーダーチャート')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                専門知識12群・汎用スキル12群の全24スキル構成比を2つの学科で直接重ね合わせ、注力している学問分野や育成スキルのバランス差を詳細に対比します。
+                {t('analytics.hub.cards.radar.desc', '知識12項目・汎用12項目の計24スキル構成比を2学科で直接重ね合わせ詳細対比します。')}
               </p>
             </div>
           </div>
 
           <div className="mt-6 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-teal-600 dark:text-teal-400 font-bold text-xs">
-            <span>レーダーチャートを開く</span>
+            <span>{t('analytics.hub.cards.radar.action', 'レーダーで対比する')}</span>
             <div className="w-7 h-7 rounded-full bg-teal-50 dark:bg-teal-950/60 flex items-center justify-center group-hover:translate-x-1.5 transition-transform">
               <ArrowRight className="w-3.5 h-3.5" />
             </div>

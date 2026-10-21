@@ -8,6 +8,7 @@ import ClusterScatterPlot from '@/components/charts/ClusterScatterPlot';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   Network, 
   Layers, 
@@ -67,6 +68,7 @@ const MOCK_POINTS: Record<string, ClusteringPoint[]> = {
 };
 
 export default function ClusteringPage() {
+  const { t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
   const [runs, setRuns] = useState<ClusteringRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string>('');
@@ -246,7 +248,7 @@ export default function ClusteringPage() {
           <div className="flex items-center space-x-3">
             <span className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-slate-500" />
-              クラスタリング結果選択:
+              {t('analytics.clustering.runLabel', 'クラスタリング結果選択:')}
             </span>
             <select
               value={selectedRunId}
@@ -256,7 +258,7 @@ export default function ClusteringPage() {
             >
               {runs.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {r.rank ? `第${r.rank}位` : '結果'} (k={r.k}, スコア: {r.silhouette_score?.toFixed(4)})
+                  {r.rank ? `${t('analytics.clustering.rankPrefix', '第')}${r.rank}${t('analytics.clustering.rankSuffix', '位')}` : t('analytics.clustering.resultDefault', '結果')} (k={r.k}, {t('analytics.clustering.scoreLabel', 'スコア:')} {r.silhouette_score?.toFixed(4)})
                 </option>
               ))}
             </select>
@@ -264,7 +266,7 @@ export default function ClusteringPage() {
 
           <div className="text-xs text-slate-500 flex items-center gap-1">
             <Compass className="w-3.5 h-3.5" />
-            マウスホイールでズーム、ドラッグで移動、ノードクリックで詳細表示
+            {t('analytics.clustering.guidance', 'マウスホイールでズーム、ドラッグで移動、ノードクリックで詳細表示')}
           </div>
         </div>
 
@@ -272,13 +274,13 @@ export default function ClusteringPage() {
         {activeRun && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-lg bg-teal-50/50 border border-teal-100">
-              <div className="text-xs text-teal-700 font-medium">クラスタ数 (k)</div>
+              <div className="text-xs text-teal-700 font-medium">{t('analytics.clustering.clusterCount', 'クラスタ数 (k)')}</div>
               <div className="text-2xl font-bold text-teal-900 mt-0.5">k = {activeRun.k}</div>
             </div>
 
             <div className="p-3.5 rounded-lg bg-orange-50/50 border border-orange-100">
               <div className="text-xs text-orange-700 font-medium flex items-center gap-1">
-                <Award className="w-3.5 h-3.5" /> シルエットスコア
+                <Award className="w-3.5 h-3.5" /> {t('analytics.clustering.silhouetteScore', 'シルエットスコア')}
               </div>
               <div className="text-2xl font-bold text-orange-900 mt-0.5">
                 {activeRun.silhouette_score?.toFixed(4)}
@@ -287,7 +289,7 @@ export default function ClusteringPage() {
 
             <div className="p-3.5 rounded-lg bg-teal-50/30 border border-teal-100">
               <div className="text-xs text-teal-700 font-medium flex items-center gap-1">
-                <Activity className="w-3.5 h-3.5" /> PC1 寄与率
+                <Activity className="w-3.5 h-3.5" /> {t('analytics.clustering.pc1Ratio', 'PC1 寄与率')}
               </div>
               <div className="text-2xl font-bold text-teal-900 mt-0.5">
                 {activeRun.pc1_ratio ? `${(activeRun.pc1_ratio * 100).toFixed(1)}%` : '-'}
@@ -296,7 +298,7 @@ export default function ClusteringPage() {
 
             <div className="p-3.5 rounded-lg bg-orange-50/30 border border-orange-100">
               <div className="text-xs text-orange-700 font-medium flex items-center gap-1">
-                <Activity className="w-3.5 h-3.5" /> PC2 寄与率
+                <Activity className="w-3.5 h-3.5" /> {t('analytics.clustering.pc2Ratio', 'PC2 寄与率')}
               </div>
               <div className="text-2xl font-bold text-orange-900 mt-0.5">
                 {activeRun.pc2_ratio ? `${(activeRun.pc2_ratio * 100).toFixed(1)}%` : '-'}
@@ -311,7 +313,7 @@ export default function ClusteringPage() {
         {isLoadingPoints ? (
           <div className="flex-1 flex items-center justify-center text-slate-400">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mr-2" />
-            データを読み込み中...
+            {t('common.loading', 'データを読み込み中...')}
           </div>
         ) : (
           <ClusterScatterPlot
@@ -350,7 +352,7 @@ export default function ClusteringPage() {
                 className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition shadow-xs border border-slate-200"
               >
                 <Radar className="w-3.5 h-3.5 text-teal-600" />
-                <span>スキルレーダーで見る</span>
+                <span>{t('analytics.clustering.compareInRadar', 'この学科をレーダーチャートで詳細比較')}</span>
               </Link>
               <Link
                 href={`/analytics/similarity?dept=${encodeURIComponent(selectedPoint.department_name)}&univ=${encodeURIComponent(selectedPoint.university_name)}`}
