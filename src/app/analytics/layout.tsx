@@ -32,8 +32,8 @@ export default function AnalyticsLayout({
             <AcademicUnitModalProvider>
                 <div className="h-screen w-full bg-background flex flex-col">
                 {/* グローバルヘッダー */}
-            <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-xs z-10 shrink-0">
-                <div className="flex items-center space-x-4">
+            <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-4 sm:px-6 shadow-xs z-10 shrink-0 gap-3">
+                <div className="flex items-center space-x-3 shrink-0">
                     <Link 
                         href="/" 
                         className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-slate-800 transition"
@@ -43,21 +43,18 @@ export default function AnalyticsLayout({
                         <span>{t('nav.home', 'ホーム')}</span>
                     </Link>
 
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
 
                     <Link href="/analytics" className="flex items-center space-x-2 group shrink-0">
-                        <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-teal-600 to-teal-500 group-hover:opacity-85 transition">
+                        <h1 className="text-base sm:text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-teal-600 to-teal-500 group-hover:opacity-85 transition">
                             {t('nav.analyticsTitle', 'スキルベクトル分析')}
                         </h1>
-                        <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                            Analytics
-                        </span>
                     </Link>
                 </div>
 
                 {/* ナビゲーションタブ ＆ マクロ学習支援への導線 */}
-                <div className="flex items-center space-x-3 overflow-x-auto py-1">
-                    <nav className="flex items-center gap-1.5">
+                <div className="flex items-center space-x-2 sm:space-x-2.5 overflow-x-auto py-1 min-w-0">
+                    <nav className="flex items-center gap-1 shrink-0">
                         {NAV_TABS.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = tab.exact ? pathname === tab.href : pathname?.startsWith(tab.href);
@@ -65,7 +62,7 @@ export default function AnalyticsLayout({
                                 <Link
                                     key={tab.href}
                                     href={tab.href}
-                                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 ${
+                                    className={`flex items-center space-x-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs transition-all duration-150 ${
                                         isActive
                                             ? 'bg-teal-50 text-teal-700 font-bold border-2 border-teal-600 shadow-2xs ring-2 ring-teal-500/10'
                                             : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-teal-400 hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
@@ -78,12 +75,12 @@ export default function AnalyticsLayout({
                         })}
                     </nav>
 
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
 
-                    <div className="flex items-center space-x-1.5">
+                    <div className="flex items-center space-x-1 shrink-0">
                         <Link
                             href="/macro"
-                            className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs"
+                            className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs shrink-0"
                             title="マクロな学習支援へ移動"
                         >
                             <Compass className="w-3.5 h-3.5 text-orange-600" />
@@ -91,7 +88,7 @@ export default function AnalyticsLayout({
                         </Link>
                         <Link
                             href="/micro"
-                            className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs"
+                            className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs shrink-0"
                             title="ミクロな教育支援へ移動"
                         >
                             <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
@@ -99,7 +96,7 @@ export default function AnalyticsLayout({
                         </Link>
                     </div>
 
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
                     <LanguageToggle />
                 </div>
             </header>

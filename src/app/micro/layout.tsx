@@ -29,8 +29,8 @@ export default function MicroLayout({
     <AnalyticsProvider>
       <div className="h-screen w-full bg-background flex flex-col">
         {/* グローバルヘッダー */}
-        <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-xs z-10 shrink-0">
-          <div className="flex items-center space-x-4">
+        <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-4 sm:px-6 shadow-xs z-10 shrink-0 gap-3">
+          <div className="flex items-center space-x-3 shrink-0">
             <Link 
               href="/" 
               className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 transition"
@@ -40,21 +40,18 @@ export default function MicroLayout({
               <span>{t('nav.home', 'ホーム')}</span>
             </Link>
 
-            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
 
             <Link href="/micro" className="flex items-center space-x-2 group shrink-0">
-              <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-indigo-700 to-blue-600 group-hover:opacity-85 transition">
+              <h1 className="text-base sm:text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-indigo-700 to-blue-600 group-hover:opacity-85 transition">
                 {t('nav.microTitle', 'ミクロな教育支援')}
               </h1>
-              <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Micro Support
-              </span>
             </Link>
           </div>
 
           {/* ナビゲーションタブ ＆ 他画面へのリンク */}
-          <div className="flex items-center space-x-3 overflow-x-auto py-1">
-            <nav className="flex items-center gap-1.5">
+          <div className="flex items-center space-x-2 sm:space-x-2.5 overflow-x-auto py-1 min-w-0">
+            <nav className="flex items-center gap-1 shrink-0">
               {MICRO_NAV_TABS.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = tab.exact ? pathname === tab.href : pathname?.startsWith(tab.href);
@@ -62,7 +59,7 @@ export default function MicroLayout({
                   <Link
                     key={tab.href}
                     href={tab.href}
-                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs transition-all duration-150 ${
+                    className={`flex items-center space-x-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-xs transition-all duration-150 ${
                       isActive
                         ? 'bg-indigo-50 text-indigo-700 font-bold border-2 border-indigo-600 shadow-2xs ring-2 ring-indigo-500/10'
                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium border border-slate-300 dark:border-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-2xs'
@@ -75,12 +72,12 @@ export default function MicroLayout({
               })}
             </nav>
 
-            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
 
-            <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1 shrink-0">
               <Link
                 href="/macro"
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs"
+                className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs shrink-0"
                 title="マクロな学習支援へ移動"
               >
                 <Compass className="w-3.5 h-3.5 text-orange-600" />
@@ -88,7 +85,7 @@ export default function MicroLayout({
               </Link>
               <Link
                 href="/analytics"
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs"
+                className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs shrink-0"
                 title="スキルベクトル分析画面へ移動"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
@@ -96,7 +93,7 @@ export default function MicroLayout({
               </Link>
             </div>
 
-            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
             <LanguageToggle />
           </div>
         </header>

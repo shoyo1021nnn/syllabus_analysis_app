@@ -11,8 +11,6 @@ import {
   Compass, 
   UserPlus, 
   ArrowRight, 
-  CheckCircle2,
-  Layers,
   GraduationCap,
   Building2
 } from "lucide-react";
@@ -259,38 +257,6 @@ export default function HomePage() {
             </div>
           </Link>
         </div>
-
-        {/* 下部情報カード: 24スキル体系 & L1正規化の解説 */}
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs rounded-xl p-6 border border-slate-200 dark:border-slate-800 max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-600 dark:text-slate-300">
-          <div className="flex items-start space-x-3">
-            <div className="p-2 bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 rounded-lg shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">
-                {t('home.theory.l1Title', 'L1正規化による客観的評価')}
-              </h3>
-              <p className="leading-relaxed">
-                {t('home.theory.l1Desc', '総科目数の差（大規模大学と小規模大学の科目数格差）によるバイアスを排除するため、全スキル構成比の合計が100%となるようL1正規化を適用し、公平な比較を実現しています。')}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start space-x-3">
-            <div className="p-2 bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded-lg shrink-0">
-              <Layers className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1">
-                {t('home.theory.taxonomyTitle', '24スキル体系（知識12群・汎用12群）')}
-              </h3>
-              <p className="leading-relaxed">
-                {t('home.theory.taxonomyDesc', '専門知識に関するA群12項目（ICT、自然科学、人文学等）と、社会で活用する汎用スキルに関するB群12項目（論理思考、問題解決、チームワーク等）を網羅的に捉えます。')}
-              </p>
-            </div>
-          </div>
-        </div>
-
       </main>
 
       {/* フッター */}

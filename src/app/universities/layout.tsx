@@ -24,8 +24,8 @@ export default function UniversitiesLayout({
       <AcademicUnitModalProvider>
         <div className="h-screen w-full bg-background flex flex-col">
           {/* グローバルヘッダー */}
-          <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-6 shadow-xs z-10 shrink-0">
-            <div className="flex items-center space-x-4">
+          <header className="h-14 border-b border-panel-border bg-panel flex items-center justify-between px-4 sm:px-6 shadow-xs z-10 shrink-0 gap-3">
+            <div className="flex items-center space-x-3 shrink-0">
               <Link 
                 href="/" 
                 className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 transition"
@@ -35,7 +35,7 @@ export default function UniversitiesLayout({
                 <span>{t('nav.home', 'ホーム')}</span>
               </Link>
 
-              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
 
               <div className="flex items-center space-x-2">
                 <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs shadow-emerald-600/30">
@@ -48,33 +48,35 @@ export default function UniversitiesLayout({
             </div>
 
             {/* 他画面へのリンク導線 */}
-            <div className="flex items-center space-x-2">
-              <Link
-                href="/analytics"
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs"
-                title="スキル分析へ移動"
-              >
-                <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
-                <span>{t('nav.analytics', 'スキル分析')}</span>
-              </Link>
-              <Link
-                href="/macro"
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs"
-                title="マクロな学習支援へ移動"
-              >
-                <Compass className="w-3.5 h-3.5 text-orange-600" />
-                <span>{t('nav.macro', 'マクロ支援')}</span>
-              </Link>
-              <Link
-                href="/micro"
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs"
-                title="ミクロな学習支援へ移動"
-              >
-                <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-                <span>{t('nav.micro', 'ミクロ支援')}</span>
-              </Link>
+            <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
+              <div className="flex items-center space-x-1 shrink-0">
+                <Link
+                  href="/analytics"
+                  className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs shrink-0"
+                  title="スキル分析へ移動"
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
+                  <span>{t('nav.analytics', 'スキル分析')}</span>
+                </Link>
+                <Link
+                  href="/macro"
+                  className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs shrink-0"
+                  title="マクロな学習支援へ移動"
+                >
+                  <Compass className="w-3.5 h-3.5 text-orange-600" />
+                  <span>{t('nav.macro', 'マクロ支援')}</span>
+                </Link>
+                <Link
+                  href="/micro"
+                  className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs shrink-0"
+                  title="ミクロな学習支援へ移動"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>{t('nav.micro', 'ミクロ支援')}</span>
+                </Link>
+              </div>
 
-              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <span className="text-slate-300 dark:text-slate-700 shrink-0">|</span>
               <LanguageToggle />
             </div>
           </header>
