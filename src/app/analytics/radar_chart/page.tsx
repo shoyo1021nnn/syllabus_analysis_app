@@ -23,6 +23,7 @@ import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   Radar as RadarIcon, 
   Layers, 
@@ -108,6 +109,7 @@ function RadarChartContent() {
   const queryCompareDept = searchParams.get('compareDept');
   const queryCompareUniv = searchParams.get('compareUniv');
   const { setAnalyticsContext } = useAnalyticsContext();
+  const { language, t } = useLanguage();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -302,9 +304,9 @@ function RadarChartContent() {
     normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
   // 各種インジケーター (軸)
-  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100 }), []);
-  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100 }), []);
-  const combinedIndicators = useMemo(() => getRadarIndicators('all', { max: 100 }), []);
+  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
+  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
+  const combinedIndicators = useMemo(() => getRadarIndicators('all', { max: 100, language }), [language]);
 
   // シリーズデータの生成
   // 分割表示: 知識12次元・汎用12次元をそれぞれL1正規化 (各総和100%)
@@ -385,18 +387,18 @@ function RadarChartContent() {
       {
         name: formatLabel(primaryRecord),
         color: '#009688',
-        subLabel: '基準対象',
+        subLabel: t('charts.radar.baseTarget'),
       },
     ];
     if (isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord.id) {
       list.push({
         name: formatLabel(compareRecord),
         color: '#e0532b',
-        subLabel: '比較対象',
+        subLabel: t('charts.radar.compareTarget'),
       });
     }
     return list;
-  }, [primaryRecord, compareRecord, isCompareEnabled]);
+  }, [primaryRecord, compareRecord, isCompareEnabled, t]);
 
   // Topスキル算出ヘルパー
   const getTopSkills = (vec: number[] = [], skills: typeof KNOWLEDGE_SKILLS, count = 3) => {
@@ -687,7 +689,7 @@ function RadarChartContent() {
                 {/* 知識関連スキル (左) */}
                 <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
                   <RadarChart
-                    title="A: 知識関連スキル (12項目)"
+                    title={t('charts.radar.knowledgeTitle')}
                     indicators={knowledgeIndicators}
                     seriesData={knowledgeSeries}
                     height={460}
@@ -697,7 +699,7 @@ function RadarChartContent() {
                 {/* 汎用スキル (右) */}
                 <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
                   <RadarChart
-                    title="B: 汎用スキル (12項目)"
+                    title={t('charts.radar.generalTitle')}
                     indicators={generalIndicators}
                     seriesData={generalSeries}
                     height={460}
@@ -710,7 +712,7 @@ function RadarChartContent() {
             {viewMode === 'combined' && (
               <div className="flex-1 min-h-[520px] flex flex-col justify-center">
                 <RadarChart
-                  title="全スキルバランス (知識12 + 汎用12 = 24項目統合)"
+                  title={t('charts.radar.combinedTitle')}
                   indicators={combinedIndicators}
                   seriesData={combinedSeries}
                   height={520}
@@ -722,7 +724,7 @@ function RadarChartContent() {
             {viewMode === 'knowledge' && (
               <div className="flex-1 min-h-[500px]">
                 <RadarChart
-                  title="A: 知識関連スキル (12項目)"
+                  title={t('charts.radar.knowledgeTitle')}
                   indicators={knowledgeIndicators}
                   seriesData={knowledgeSeries}
                   height={500}
@@ -734,7 +736,7 @@ function RadarChartContent() {
             {viewMode === 'general' && (
               <div className="flex-1 min-h-[500px]">
                 <RadarChart
-                  title="B: 汎用スキル (12項目)"
+                  title={t('charts.radar.generalTitle')}
                   indicators={generalIndicators}
                   seriesData={generalSeries}
                   height={500}

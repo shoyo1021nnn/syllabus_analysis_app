@@ -252,12 +252,9 @@ export function getRadarIndicators(
 
   return skills.map((skill) => {
     let name = '';
-    if (language === 'ja') {
-      name = `${skill.code} ${skill.nameJa}`;
-    } else if (language === 'en') {
-      name = `${skill.code}: ${skill.nameEn}`;
+    if (language === 'en') {
+      name = `${skill.code}\n${skill.nameEn}`;
     } else {
-      // 短縮表示
       name = `${skill.code}\n${skill.nameJa}`;
     }
 

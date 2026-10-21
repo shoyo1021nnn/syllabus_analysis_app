@@ -9,12 +9,14 @@ import { AgentPanel } from "@/components/AgentPanel";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
 import { AcademicUnitModalProvider } from "@/context/AcademicUnitModalContext";
 import AcademicUnitInfoModal from "@/components/AcademicUnitInfoModal";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/LanguageToggle";
 
 const NAV_TABS = [
-    { href: '/analytics', label: '分析メニュー', icon: LayoutDashboard, exact: true },
-    { href: '/analytics/clustering', label: 'クラスタリング', icon: Network },
-    { href: '/analytics/similarity', label: '類似度ランキング', icon: GitCompare },
-    { href: '/analytics/radar_chart', label: 'スキルレーダー', icon: Radar },
+    { href: '/analytics', label: '分析メニュー', labelKey: 'analytics.tabs.menu', icon: LayoutDashboard, exact: true },
+    { href: '/analytics/clustering', label: 'クラスタリング', labelKey: 'analytics.tabs.clustering', icon: Network },
+    { href: '/analytics/similarity', label: '類似度ランキング', labelKey: 'analytics.tabs.similarity', icon: GitCompare },
+    { href: '/analytics/radar_chart', label: 'スキルレーダー', labelKey: 'analytics.tabs.radar', icon: Radar },
 ];
 
 export default function AnalyticsLayout({
@@ -23,6 +25,7 @@ export default function AnalyticsLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { t } = useLanguage();
 
     return (
         <AnalyticsProvider>
@@ -37,14 +40,14 @@ export default function AnalyticsLayout({
                         title="ポータルホームに戻る"
                     >
                         <Home className="w-4 h-4" />
-                        <span>ホーム</span>
+                        <span>{t('nav.home', 'ホーム')}</span>
                     </Link>
 
                     <span className="text-slate-300 dark:text-slate-700">|</span>
 
                     <Link href="/analytics" className="flex items-center space-x-2 group shrink-0">
                         <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-teal-600 to-teal-500 group-hover:opacity-85 transition">
-                            スキルベクトル分析
+                            {t('nav.analyticsTitle', 'スキルベクトル分析')}
                         </h1>
                         <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                             Analytics
@@ -69,7 +72,7 @@ export default function AnalyticsLayout({
                                     }`}
                                 >
                                     <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500'}`} />
-                                    <span>{tab.label}</span>
+                                    <span>{t(tab.labelKey, tab.label)}</span>
                                 </Link>
                             );
                         })}
@@ -84,7 +87,7 @@ export default function AnalyticsLayout({
                             title="マクロな学習支援へ移動"
                         >
                             <Compass className="w-3.5 h-3.5 text-orange-600" />
-                            <span>マクロ支援</span>
+                            <span>{t('nav.macro', 'マクロ支援')}</span>
                         </Link>
                         <Link
                             href="/micro"
@@ -92,9 +95,12 @@ export default function AnalyticsLayout({
                             title="ミクロな教育支援へ移動"
                         >
                             <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>ミクロ支援</span>
+                            <span>{t('nav.micro', 'ミクロ支援')}</span>
                         </Link>
                     </div>
+
+                    <span className="text-slate-300 dark:text-slate-700">|</span>
+                    <LanguageToggle />
                 </div>
             </header>
 

@@ -1,0 +1,128 @@
+export const ja = {
+  common: {
+    home: "ホーム",
+    cancel: "キャンセル",
+    save: "保存",
+    close: "閉じる",
+    back: "戻る",
+    loading: "読み込み中...",
+    search: "検索...",
+    select: "選択してください",
+    all: "すべて",
+    confirm: "確定",
+  },
+  nav: {
+    home: "ホーム",
+    macro: "マクロ支援",
+    micro: "ミクロ支援",
+    analytics: "スキル分析",
+    universities: "大学・学部情報",
+    macroTitle: "マクロな学習支援",
+    microTitle: "ミクロな教育支援",
+    analyticsTitle: "スキルベクトル分析",
+    universitiesTitle: "大学・学部・学科の基本情報",
+  },
+  macro: {
+    tabs: {
+      menu: "学習支援メニュー",
+      complementation: "スキル補完検索",
+      bestPair: "ベスト・ペア検索",
+      greedyTeam: "チーム編成支援",
+    },
+  },
+  micro: {
+    tabs: {
+      top: "ミクロ支援トップ",
+      portfolio: "履修・スキルポートフォリオ",
+      recommendation: "不足スキル補完・科目推薦",
+    },
+  },
+  analytics: {
+    tabs: {
+      menu: "分析メニュー",
+      clustering: "クラスタリング",
+      similarity: "類似度ランキング",
+      radar: "スキルレーダー",
+    },
+  },
+  agent: {
+    title: "Syllabus AI",
+    starting: "エージェントを起動中...",
+    contextLinked: "画面連動",
+    reset: "リセット",
+    resetTooltip: "会話履歴をクリアして新しい質問を始める",
+    emptyTitleWithPage: "「{page}」の分析についてAIに質問できます",
+    emptyTitleDefault: "シラバスデータについて何でも質問してください",
+    emptyDescription: "画面の選択状態に応じたおすすめの質問チップをクリックするか、下部に質問を入力してください。",
+    inputPlaceholder: "メッセージを入力...",
+    send: "送信",
+    presets: {
+      radar_chart: [
+        "選択中の学科のスキルバランスの特徴は？",
+        "強みとなっている上位スキルを教えてください",
+        "他学科との主要な差異・改善ポイントは？",
+      ],
+      clustering: [
+        "各クラスタの教育的特徴・傾向を教えて",
+        "選択した学科がこのクラスタに属する理由は？",
+        "特異なカリキュラムを持つ外れ値はありますか？",
+      ],
+      similarity: [
+        "類似度上位の学科との共通点は何ですか？",
+        "類似度が低い学科との決定的な違いは？",
+        "この距離指標における結果の解釈を教えて",
+      ],
+      micro_portfolio: [
+        "私の現在のスキル蓄積における強みと特徴を分析して",
+        "不足しているスキルを補うためにはどのような科目を意識すべき？",
+        "この履修状況でバランスを整えるための次学期のアドバイスは？",
+      ],
+      micro_recommendation: [
+        "提示された推薦科目の中で最も効率的に弱点を埋められるものは？",
+        "基幹教育科目の中から特に汎用スキルが伸びるおすすめは？",
+        "私の不足スキルを補完する上で配慮すべき履修順序はありますか？",
+      ],
+      default: [
+        "この科目の前提知識は何ですか？",
+        "類似する科目を教えてください",
+        "このスキルが身につく科目は？",
+      ],
+    },
+  },
+  charts: {
+    radar: {
+      knowledgeTitle: "A: 知識関連スキル (12項目)",
+      generalTitle: "B: 汎用スキル (12項目)",
+      combinedTitle: "全スキルバランス (知識12 + 汎用12 = 24項目統合)",
+      defaultSeriesName: "スキル比較",
+      baseTarget: "基準対象",
+      compareTarget: "比較対象",
+      partnerTarget: "相手対象",
+      candidateTarget: "候補対象",
+      basePartner: "補完パートナー候補",
+      synergy: "シナジー効果",
+      baseOrg: "基準組織",
+      afterComplement: "補完後 (Max結合)",
+      origin: "起点",
+      teamCombined: "チーム合成",
+      current: "現在",
+      simulated: "仮追加後 (シミュレーション)",
+      specializedSkills: "専門知識スキル (A系列)",
+      genericSkills: "汎用スキル (B系列)",
+    },
+    scatter: {
+      pc1: "第1主成分 (PC1)",
+      pc2: "第2主成分 (PC2)",
+      cluster: "所属",
+    },
+    similarity: {
+      cosine: "コサイン類似度",
+      dot: "内積スコア",
+      euclidean: "ユークリッド距離 (小さいほど類似)",
+      tanimoto: "谷本係数",
+      score: "スコア",
+    },
+  },
+};
+
+export type TranslationKeys = typeof ja;

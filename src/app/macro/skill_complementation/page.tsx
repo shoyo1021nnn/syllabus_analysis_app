@@ -23,6 +23,7 @@ import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   Compass, 
   CheckCircle2, 
@@ -142,6 +143,7 @@ function SkillComplementationContent() {
   const queryDept = searchParams.get('dept') || searchParams.get('primaryDept');
   const queryUniv = searchParams.get('univ') || searchParams.get('primaryUniv');
   const { setAnalyticsContext } = useAnalyticsContext();
+  const { language, t } = useLanguage();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -330,8 +332,8 @@ function SkillComplementationContent() {
   }, [dataList, selectedPartnerId, rankingResults]);
 
   // レーダーチャート用データ
-  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100 }), []);
-  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100 }), []);
+  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
+  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
 
   const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
@@ -364,35 +366,35 @@ function SkillComplementationContent() {
     ];
     if (partnerRecord) {
       list.push({ name: formatLabel(partnerRecord), value: partnerGVec, color: '#e0532b' });
-      list.push({ name: '補完後 (Max結合)', value: combinedGVec, color: '#059669' });
+      list.push({ name: t('charts.radar.afterComplement'), value: combinedGVec, color: '#059669' });
     }
     return list;
-  }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec]);
+  }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec, t]);
 
   // 2つのチャート共通の凡例アイテム
   const legendItems: RadarLegendItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarLegendItem[] = [
       {
-        name: `基準: ${formatLabel(targetRecord)}`,
+        name: `${t('charts.radar.baseTarget')}: ${formatLabel(targetRecord)}`,
         color: '#009688',
-        subLabel: '基準組織 (青緑)',
+        subLabel: t('charts.radar.baseOrg'),
       },
     ];
     if (partnerRecord) {
       list.push({
-        name: `候補: ${formatLabel(partnerRecord)}`,
+        name: `${t('charts.radar.candidateTarget')}: ${formatLabel(partnerRecord)}`,
         color: '#e0532b',
-        subLabel: '補完パートナー候補 (橙)',
+        subLabel: t('charts.radar.basePartner'),
       });
       list.push({
-        name: '補完後 (Max結合)',
+        name: t('charts.radar.afterComplement'),
         color: '#059669',
-        subLabel: '弱点補完合成',
+        subLabel: t('charts.radar.synergy'),
       });
     }
     return list;
-  }, [targetRecord, partnerRecord]);
+  }, [targetRecord, partnerRecord, t]);
 
   // AIエージェントコンテキスト供給
   useEffect(() => {
@@ -668,7 +670,7 @@ function SkillComplementationContent() {
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title="A: 知識関連スキル (専門一致度の対比)"
+              title={t('charts.radar.knowledgeTitle')}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
               height={440}
@@ -679,7 +681,7 @@ function SkillComplementationContent() {
           {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title="B: 汎用スキル (弱点補完＆Max結合結果)"
+              title={t('charts.radar.generalTitle')}
               indicators={generalIndicators}
               seriesData={generalSeries}
               height={440}

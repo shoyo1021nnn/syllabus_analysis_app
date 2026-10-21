@@ -26,6 +26,7 @@ import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   Sparkles, 
   CheckCircle2, 
@@ -139,6 +140,7 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 type TargetFilter = 'all' | 'same' | 'diff';
 
 function BestPairContent() {
+  const { language, t } = useLanguage();
   const searchParams = useSearchParams();
   const queryId = searchParams.get('id') || searchParams.get('primaryId') || searchParams.get('targetId');
   const queryDept = searchParams.get('dept') || searchParams.get('primaryDept');
@@ -337,8 +339,8 @@ function BestPairContent() {
   }, [rankingResults, selectedPartnerId]);
 
   // レーダーチャート用（知識12項目 ＆ 汎用12項目の2分割）
-  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100 }), []);
-  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100 }), []);
+  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
+  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
 
   const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
@@ -371,59 +373,59 @@ function BestPairContent() {
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarSeriesItem[] = [
-      { name: `基準: ${getShortName(targetRecord)}`, value: targetKVec, color: '#009688' }, // teal
+      { name: `${t('charts.radar.baseTarget')}: ${getShortName(targetRecord)}`, value: targetKVec, color: '#009688' }, // teal
     ];
     if (partnerRecord) {
-      list.push({ name: `相手: ${getShortName(partnerRecord)}`, value: partnerKVec, color: '#e0532b' }); // orange
+      list.push({ name: `${t('charts.radar.partnerTarget')}: ${getShortName(partnerRecord)}`, value: partnerKVec, color: '#e0532b' }); // orange
       list.push({ 
-        name: `ペア結合 (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
+        name: `${t('charts.radar.teamCombined')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
         value: combinedKVec, 
         color: '#059669' 
       });
     }
     return list;
-  }, [targetRecord, partnerRecord, targetKVec, partnerKVec, combinedKVec, combineMethod]);
+  }, [targetRecord, partnerRecord, targetKVec, partnerKVec, combinedKVec, combineMethod, t]);
 
   const generalSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarSeriesItem[] = [
-      { name: `基準: ${getShortName(targetRecord)}`, value: targetGVec, color: '#009688' },
+      { name: `${t('charts.radar.baseTarget')}: ${getShortName(targetRecord)}`, value: targetGVec, color: '#009688' },
     ];
     if (partnerRecord) {
-      list.push({ name: `相手: ${getShortName(partnerRecord)}`, value: partnerGVec, color: '#e0532b' });
+      list.push({ name: `${t('charts.radar.partnerTarget')}: ${getShortName(partnerRecord)}`, value: partnerGVec, color: '#e0532b' });
       list.push({ 
-        name: `ペア結合 (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
+        name: `${t('charts.radar.teamCombined')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
         value: combinedGVec, 
         color: '#059669' 
       });
     }
     return list;
-  }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec, combineMethod]);
+  }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec, combineMethod, t]);
 
   // 2つのチャート共通の凡例アイテム
   const legendItems: RadarLegendItem[] = useMemo(() => {
     if (!targetRecord) return [];
     const list: RadarLegendItem[] = [
       {
-        name: `基準: ${getShortName(targetRecord)}`,
+        name: `${t('charts.radar.baseTarget')}: ${getShortName(targetRecord)}`,
         color: '#009688',
-        subLabel: '基準組織 (青緑)',
+        subLabel: t('charts.radar.baseOrg'),
       },
     ];
     if (partnerRecord) {
       list.push({
-        name: `相手: ${getShortName(partnerRecord)}`,
+        name: `${t('charts.radar.partnerTarget')}: ${getShortName(partnerRecord)}`,
         color: '#e0532b',
-        subLabel: 'パートナー候補 (橙)',
+        subLabel: t('charts.radar.basePartner'),
       });
       list.push({
-        name: `ペア結合 (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`,
+        name: `${t('charts.radar.teamCombined')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`,
         color: '#059669',
-        subLabel: '合成ベクトル',
+        subLabel: t('charts.radar.synergy'),
       });
     }
     return list;
-  }, [targetRecord, partnerRecord, combineMethod]);
+  }, [targetRecord, partnerRecord, combineMethod, t]);
 
   // AIコンテキスト共有
   useEffect(() => {
@@ -680,7 +682,7 @@ function BestPairContent() {
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`A: 知識関連スキル (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`}
+              title={`${t('charts.radar.knowledgeTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
               height={440}
@@ -691,7 +693,7 @@ function BestPairContent() {
           {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`B: 汎用スキル (${combineMethod === 'max' ? 'Max結合' : 'Mean結合'})`}
+              title={`${t('charts.radar.generalTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`}
               indicators={generalIndicators}
               seriesData={generalSeries}
               height={440}

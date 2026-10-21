@@ -10,11 +10,14 @@ import { AnalyticsProvider } from "@/context/AnalyticsContext";
 import { AcademicUnitModalProvider } from "@/context/AcademicUnitModalContext";
 import AcademicUnitInfoModal from "@/components/AcademicUnitInfoModal";
 
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/LanguageToggle";
+
 const MACRO_NAV_TABS = [
-  { href: '/macro', label: '学習支援メニュー', icon: LayoutDashboard, exact: true },
-  { href: '/macro/skill_complementation', label: 'スキル補完検索', icon: Compass },
-  { href: '/macro/best_pair', label: 'ベスト・ペア検索', icon: Sparkles },
-  { href: '/macro/greedy_team', label: 'チーム編成支援', icon: UserPlus },
+  { href: '/macro', label: '学習支援メニュー', labelKey: 'macro.tabs.menu', icon: LayoutDashboard, exact: true },
+  { href: '/macro/skill_complementation', label: 'スキル補完検索', labelKey: 'macro.tabs.complementation', icon: Compass },
+  { href: '/macro/best_pair', label: 'ベスト・ペア検索', labelKey: 'macro.tabs.bestPair', icon: Sparkles },
+  { href: '/macro/greedy_team', label: 'チーム編成支援', labelKey: 'macro.tabs.greedyTeam', icon: UserPlus },
 ];
 
 export default function MacroLayout({
@@ -23,6 +26,7 @@ export default function MacroLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <AnalyticsProvider>
@@ -37,14 +41,14 @@ export default function MacroLayout({
               title="ポータルホームに戻る"
             >
               <Home className="w-4 h-4" />
-              <span>ホーム</span>
+              <span>{t('nav.home', 'ホーム')}</span>
             </Link>
 
             <span className="text-slate-300 dark:text-slate-700">|</span>
 
             <Link href="/macro" className="flex items-center space-x-2 group shrink-0">
               <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-orange-600 to-amber-600 group-hover:opacity-85 transition">
-                マクロな学習支援
+                {t('nav.macroTitle', 'マクロな学習支援')}
               </h1>
               <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
                 Macro Support
@@ -69,7 +73,7 @@ export default function MacroLayout({
                     }`}
                   >
                     <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-500'}`} />
-                    <span>{tab.label}</span>
+                    <span>{t(tab.labelKey, tab.label)}</span>
                   </Link>
                 );
               })}
@@ -84,7 +88,7 @@ export default function MacroLayout({
                 title="スキルベクトル分析画面へ移動"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
-                <span>スキル分析</span>
+                <span>{t('nav.analytics', 'スキル分析')}</span>
               </Link>
               <Link
                 href="/micro"
@@ -92,9 +96,12 @@ export default function MacroLayout({
                 title="ミクロな教育支援へ移動"
               >
                 <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-                <span>ミクロ支援</span>
+                <span>{t('nav.micro', 'ミクロ支援')}</span>
               </Link>
             </div>
+
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <LanguageToggle />
           </div>
         </header>
 

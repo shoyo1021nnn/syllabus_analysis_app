@@ -5,86 +5,65 @@ import { Send, User, Bot, Sparkles, Layers, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { ja } from '@/locales/ja';
+import { en } from '@/locales/en';
 import MarkdownMessage from '@/components/MarkdownMessage';
-
-// フォールバック用のデフォルトプリセット質問
-const DEFAULT_PRESETS: Record<string, string[]> = {
-    radar_chart: [
-        "選択中の学科のスキルバランスの特徴は？",
-        "強みとなっている上位スキルを教えてください",
-        "他学科との主要な差異・改善ポイントは？",
-    ],
-    clustering: [
-        "各クラスタの教育的特徴・傾向を教えて",
-        "選択した学科がこのクラスタに属する理由は？",
-        "特異なカリキュラムを持つ外れ値はありますか？",
-    ],
-    similarity: [
-        "類似度上位の学科との共通点は何ですか？",
-        "類似度が低い学科との決定的な違いは？",
-        "この距離指標における結果の解釈を教えて",
-    ],
-    micro_portfolio: [
-        "私の現在のスキル蓄積における強みと特徴を分析して",
-        "不足しているスキルを補うためにはどのような科目を意識すべき？",
-        "この履修状況でバランスを整えるための次学期のアドバイスは？",
-    ],
-    micro_recommendation: [
-        "提示された推薦科目の中で最も効率的に弱点を埋められるものは？",
-        "基幹教育科目の中から特に汎用スキルが伸びるおすすめは？",
-        "私の不足スキルを補完する上で配慮すべき履修順序はありますか？",
-    ],
-    default: [
-        "この科目の前提知識は何ですか？",
-        "類似する科目を教えてください",
-        "このスキルが身につく科目は？",
-    ],
-};
 
 export function AgentPanel() {
     const [input, setInput] = useState('');
     const pathname = usePathname();
     const { contextData } = useAnalyticsContext();
+    const { language, t } = useLanguage();
 
     // Vercel AI SDK仕様の useChat
     const { messages, sendMessage, status, setMessages } = useChat();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isLoading = status === 'submitted' || status === 'streaming';
 
-    // 表示するプリセット質問を決定
+    // 表示するプリセット質問を決定 (言語に応じて ja / en の辞書から切り替え)
     const presetQuestions = useMemo(() => {
+        let key: keyof typeof ja.agent.presets = 'default';
+        if (pathname?.includes('portfolio')) key = 'micro_portfolio';
+        else if (pathname?.includes('recommendation')) key = 'micro_recommendation';
+        else if (pathname?.includes('radar_chart')) key = 'radar_chart';
+        else if (pathname?.includes('clustering')) key = 'clustering';
+        else if (pathname?.includes('similarity')) key = 'similarity';
+
+        // 英語モード時は英語辞書のプリセットを優先
+        if (language === 'en') {
+            return en.agent.presets[key];
+        }
+
+        // 日本語モード時は画面側から個別指定されていればそれを優先
         if (contextData.presetQuestions && contextData.presetQuestions.length > 0) {
             return contextData.presetQuestions;
         }
-        if (pathname?.includes('portfolio')) return DEFAULT_PRESETS.micro_portfolio;
-        if (pathname?.includes('recommendation')) return DEFAULT_PRESETS.micro_recommendation;
-        if (pathname?.includes('radar_chart')) return DEFAULT_PRESETS.radar_chart;
-        if (pathname?.includes('clustering')) return DEFAULT_PRESETS.clustering;
-        if (pathname?.includes('similarity')) return DEFAULT_PRESETS.similarity;
-        return DEFAULT_PRESETS.default;
-    }, [contextData.presetQuestions, pathname]);
+
+        return ja.agent.presets[key];
+    }, [contextData.presetQuestions, pathname, language]);
 
     // メッセージが増えたら一番下まで自動スクロール
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // プリセットチップをクリックした時の処理
+    // プリセットチップをクリックした時の処理（言語情報をbodyに付与）
     const handlePresetClick = (question: string) => {
         if (isLoading) return;
         sendMessage(
             { role: 'user', parts: [{ type: 'text', text: question }] },
-            { body: { context: contextData } }
+            { body: { context: contextData, language } }
         );
     };
 
-    // フォーム送信ハンドラ
+    // フォーム送信ハンドラ（言語情報をbodyに付与）
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
         sendMessage(
             { role: 'user', parts: [{ type: 'text', text: input }] },
-            { body: { context: contextData } }
+            { body: { context: contextData, language } }
         );
         setInput('');
     };
@@ -96,7 +75,9 @@ export function AgentPanel() {
                 <div className="px-3.5 py-2 bg-teal-50/90 dark:bg-teal-950/40 border-b border-teal-100 dark:border-teal-900/50 flex items-center justify-between text-xs transition-all">
                     <div className="flex items-center gap-1.5 min-w-0 text-teal-800 dark:text-teal-300">
                         <Sparkles className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
-                        <span className="font-semibold shrink-0">{contextData.pageTitle || '画面連動'}</span>
+                        <span className="font-semibold shrink-0">
+                            {contextData.pageTitle || t('agent.contextLinked', '画面連動')}
+                        </span>
                         {contextData.primaryTarget && (
                             <span className="truncate text-slate-600 dark:text-slate-400 font-normal">
                                 : {contextData.primaryTarget}
@@ -109,10 +90,10 @@ export function AgentPanel() {
                                 type="button"
                                 onClick={() => setMessages([])}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 transition-colors shadow-2xs cursor-pointer"
-                                title="会話履歴をクリアして新しい質問を始める"
+                                title={t('agent.resetTooltip', '会話履歴をクリアして新しい質問を始める')}
                             >
                                 <RotateCcw className="w-3 h-3 text-slate-500" />
-                                <span>リセット</span>
+                                <span>{t('agent.reset', 'リセット')}</span>
                             </button>
                         </div>
                     )}
@@ -126,11 +107,11 @@ export function AgentPanel() {
                         <Sparkles className="w-9 h-9 text-primary/30" />
                         <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                             {contextData.pageTitle
-                                ? `「${contextData.pageTitle}」の分析についてAIに質問できます`
-                                : "シラバスデータについて何でも質問してください"}
+                                ? t('agent.emptyTitleWithPage', '「{page}」の分析についてAIに質問できます').replace('{page}', contextData.pageTitle)
+                                : t('agent.emptyTitleDefault', 'シラバスデータについて何でも質問してください')}
                         </p>
                         <p className="text-xs text-slate-400 max-w-xs">
-                            画面の選択状態に応じたおすすめの質問チップをクリックするか、下部に質問を入力してください。
+                            {t('agent.emptyDescription', '画面の選択状態に応じたおすすめの質問チップをクリックするか、下部に質問を入力してください。')}
                         </p>
                     </div>
                 ) : (
@@ -202,7 +183,7 @@ export function AgentPanel() {
                     <input
                         value={input || ''}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="メッセージを入力..."
+                        placeholder={t('agent.inputPlaceholder', 'メッセージを入力...')}
                         className="flex-1 bg-background border border-panel-border rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                     <button

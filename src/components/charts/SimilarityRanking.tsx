@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { MetricType, SimilarityScoreItem } from '@/types/database';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
@@ -13,19 +14,14 @@ interface SimilarityRankingProps {
   height?: string | number;
 }
 
-const METRIC_LABELS: Record<MetricType, string> = {
-  cosine: 'コサイン類似度',
-  dot: '内積スコア',
-  euclidean: 'ユークリッド距離 (小さいほど類似)',
-  tanimoto: '谷本係数',
-};
-
 export default function SimilarityRanking({
   rankingItems = [],
   metric = 'cosine',
   title,
   height = '100%',
 }: SimilarityRankingProps) {
+  const { t } = useLanguage();
+
   // EChartsの横棒グラフでは、配列の下から上に描画されるため reverse する
   const displayItems = useMemo(() => {
     return [...rankingItems].slice(0, 10).reverse();
@@ -44,7 +40,16 @@ export default function SimilarityRanking({
 
   const option = useMemo(() => {
     const isEuclid = metric === 'euclidean';
-    const metricName = METRIC_LABELS[metric] || 'スコア';
+    const getMetricName = (m: MetricType) => {
+      switch (m) {
+        case 'cosine': return t('charts.similarity.cosine');
+        case 'dot': return t('charts.similarity.dot');
+        case 'euclidean': return t('charts.similarity.euclidean');
+        case 'tanimoto': return t('charts.similarity.tanimoto');
+        default: return t('charts.similarity.score');
+      }
+    };
+    const metricName = getMetricName(metric);
 
     return {
       backgroundColor: 'transparent',
@@ -140,7 +145,7 @@ export default function SimilarityRanking({
         },
       ],
     };
-  }, [displayItems, categories, scores, metric, title]);
+  }, [displayItems, categories, scores, metric, title, t]);
 
   return (
     <div className="w-full h-full min-h-[420px] relative">

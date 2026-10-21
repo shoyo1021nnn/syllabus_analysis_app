@@ -9,11 +9,16 @@ import { AnalyticsProvider } from "@/context/AnalyticsContext";
 import { AcademicUnitModalProvider } from "@/context/AcademicUnitModalContext";
 import AcademicUnitInfoModal from "@/components/AcademicUnitInfoModal";
 
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/LanguageToggle";
+
 export default function UniversitiesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useLanguage();
+
   return (
     <AnalyticsProvider>
       <AcademicUnitModalProvider>
@@ -27,7 +32,7 @@ export default function UniversitiesLayout({
                 title="ポータルホームに戻る"
               >
                 <Home className="w-4 h-4" />
-                <span>ホーム</span>
+                <span>{t('nav.home', 'ホーム')}</span>
               </Link>
 
               <span className="text-slate-300 dark:text-slate-700">|</span>
@@ -37,7 +42,7 @@ export default function UniversitiesLayout({
                   <Building2 className="w-4 h-4" />
                 </div>
                 <h1 className="text-base font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                  大学・学部・学科の基本情報ページ
+                  {t('nav.universitiesTitle', '大学・学部・学科の基本情報ページ')}
                 </h1>
               </div>
             </div>
@@ -50,7 +55,7 @@ export default function UniversitiesLayout({
                 title="スキル分析へ移動"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
-                <span>スキル分析</span>
+                <span>{t('nav.analytics', 'スキル分析')}</span>
               </Link>
               <Link
                 href="/macro"
@@ -58,7 +63,7 @@ export default function UniversitiesLayout({
                 title="マクロな学習支援へ移動"
               >
                 <Compass className="w-3.5 h-3.5 text-orange-600" />
-                <span>マクロ支援</span>
+                <span>{t('nav.macro', 'マクロ支援')}</span>
               </Link>
               <Link
                 href="/micro"
@@ -66,8 +71,11 @@ export default function UniversitiesLayout({
                 title="ミクロな学習支援へ移動"
               >
                 <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
-                <span>ミクロ支援</span>
+                <span>{t('nav.micro', 'ミクロ支援')}</span>
               </Link>
+
+              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <LanguageToggle />
             </div>
           </header>
 

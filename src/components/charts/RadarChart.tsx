@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { RadarIndicator } from '@/lib/vectorUtils';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
@@ -29,6 +30,7 @@ export default function RadarChart({
   height = '100%',
   showLegend = true,
 }: RadarChartProps) {
+  const { t } = useLanguage();
   const option = useMemo(() => {
     const isMultiSeries = seriesData.length >= 3;
 
@@ -123,7 +125,7 @@ export default function RadarChart({
       },
       series: [
         {
-          name: title || 'スキル比較',
+          name: title || t('charts.radar.defaultSeriesName'),
           type: 'radar',
           symbol: 'circle',
           symbolSize: 5,
@@ -148,7 +150,7 @@ export default function RadarChart({
         },
       ],
     };
-  }, [indicators, seriesData, title]);
+  }, [indicators, seriesData, title, t]);
 
   return (
     <div className="w-full h-full min-h-[380px] relative">

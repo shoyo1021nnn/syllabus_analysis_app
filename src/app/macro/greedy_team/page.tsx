@@ -27,6 +27,7 @@ import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { 
   UserPlus, 
   CheckCircle2, 
@@ -143,6 +144,7 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 type TargetFilter = 'all' | 'same' | 'diff';
 
 function GreedyTeamContent() {
+  const { language, t } = useLanguage();
   const searchParams = useSearchParams();
   const queryDept = searchParams.get('dept');
   const queryUniv = searchParams.get('univ');
@@ -345,8 +347,8 @@ function GreedyTeamContent() {
   ]);
 
   // レーダーチャート用（知識12項目 ＆ 汎用12項目の2分割）
-  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100 }), []);
-  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100 }), []);
+  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
+  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
   const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
   // チームメンバー全員の知識・汎用ベクトル
@@ -388,12 +390,12 @@ function GreedyTeamContent() {
     if (!teamResult || teamKnowledgeVectors.length === 0) return [];
     const list: RadarSeriesItem[] = [
       {
-        name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
+        name: `${t('charts.radar.origin')}: ${getShortLabel(teamResult.initialMember.label)}`,
         value: teamKnowledgeVectors[0] || [],
         color: '#009688', // teal
       },
       {
-        name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
+        name: `${t('charts.radar.teamCombined')} (${teamResult.teamMembers.length}${levelUnit})`,
         value: finalTeamKVec,
         color: '#059669',
       },
@@ -410,18 +412,18 @@ function GreedyTeamContent() {
       }
     });
     return list;
-  }, [teamResult, teamKnowledgeVectors, finalTeamKVec, levelUnit]);
+  }, [teamResult, teamKnowledgeVectors, finalTeamKVec, levelUnit, t]);
 
   const generalSeries: RadarSeriesItem[] = useMemo(() => {
     if (!teamResult || teamGeneralVectors.length === 0) return [];
     const list: RadarSeriesItem[] = [
       {
-        name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
+        name: `${t('charts.radar.origin')}: ${getShortLabel(teamResult.initialMember.label)}`,
         value: teamGeneralVectors[0] || [],
         color: '#009688',
       },
       {
-        name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
+        name: `${t('charts.radar.teamCombined')} (${teamResult.teamMembers.length}${levelUnit})`,
         value: finalTeamGVec,
         color: '#059669',
       },
@@ -438,16 +440,16 @@ function GreedyTeamContent() {
       }
     });
     return list;
-  }, [teamResult, teamGeneralVectors, finalTeamGVec, levelUnit]);
+  }, [teamResult, teamGeneralVectors, finalTeamGVec, levelUnit, t]);
 
   // 2つのチャート共通の凡例アイテム
   const legendItems: RadarLegendItem[] = useMemo(() => {
     if (!teamResult) return [];
     const list: RadarLegendItem[] = [
       {
-        name: `起点: ${getShortLabel(teamResult.initialMember.label)}`,
+        name: `${t('charts.radar.origin')}: ${getShortLabel(teamResult.initialMember.label)}`,
         color: '#009688',
-        subLabel: '起点メンバー (青緑)',
+        subLabel: t('charts.radar.baseOrg'),
       },
     ];
 
@@ -456,18 +458,18 @@ function GreedyTeamContent() {
       list.push({
         name: `+Step ${step.step}: ${getShortLabel(step.addedMember.label)}`,
         color: partnerColors[idx % partnerColors.length],
-        subLabel: `+${(step.improvement * 100).toFixed(1)}pt (橙)`,
+        subLabel: `+${(step.improvement * 100).toFixed(1)}pt`,
       });
     });
 
     list.push({
-      name: `チーム合成 (${teamResult.teamMembers.length}${levelUnit})`,
+      name: `${t('charts.radar.teamCombined')} (${teamResult.teamMembers.length}${levelUnit})`,
       color: '#059669',
-      subLabel: `達成度 ${(teamResult.finalScore * 100).toFixed(1)}%`,
+      subLabel: `${(teamResult.finalScore * 100).toFixed(1)}%`,
     });
 
     return list;
-  }, [teamResult, levelUnit]);
+  }, [teamResult, levelUnit, t]);
 
   // AIコンテキスト共有
   useEffect(() => {
@@ -806,7 +808,7 @@ function GreedyTeamContent() {
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`A: 知識関連スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
+              title={`${t('charts.radar.knowledgeTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
               height={440}
@@ -817,7 +819,7 @@ function GreedyTeamContent() {
           {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`B: 汎用スキル (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'}結合)`}
+              title={`${t('charts.radar.generalTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`}
               indicators={generalIndicators}
               seriesData={generalSeries}
               height={440}

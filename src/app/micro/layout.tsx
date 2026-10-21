@@ -8,10 +8,13 @@ import { usePathname } from "next/navigation";
 import { AgentPanel } from "@/components/AgentPanel";
 import { AnalyticsProvider } from "@/context/AnalyticsContext";
 
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageToggle from "@/components/LanguageToggle";
+
 const MICRO_NAV_TABS = [
-  { href: '/micro', label: 'ミクロ支援トップ', icon: LayoutDashboard, exact: true },
-  { href: '/micro/portfolio', label: '履修・スキルポートフォリオ', icon: GraduationCap },
-  { href: '/micro/recommendation', label: '不足スキル補完・科目推薦', icon: Sparkles },
+  { href: '/micro', label: 'ミクロ支援トップ', labelKey: 'micro.tabs.top', icon: LayoutDashboard, exact: true },
+  { href: '/micro/portfolio', label: '履修・スキルポートフォリオ', labelKey: 'micro.tabs.portfolio', icon: GraduationCap },
+  { href: '/micro/recommendation', label: '不足スキル補完・科目推薦', labelKey: 'micro.tabs.recommendation', icon: Sparkles },
 ];
 
 export default function MicroLayout({
@@ -20,6 +23,7 @@ export default function MicroLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <AnalyticsProvider>
@@ -33,14 +37,14 @@ export default function MicroLayout({
               title="ポータルホームに戻る"
             >
               <Home className="w-4 h-4" />
-              <span>ホーム</span>
+              <span>{t('nav.home', 'ホーム')}</span>
             </Link>
 
             <span className="text-slate-300 dark:text-slate-700">|</span>
 
             <Link href="/micro" className="flex items-center space-x-2 group shrink-0">
               <h1 className="text-lg font-bold font-sans bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-indigo-700 to-blue-600 group-hover:opacity-85 transition">
-                ミクロな学習支援
+                {t('nav.microTitle', 'ミクロな教育支援')}
               </h1>
               <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
                 Micro Support
@@ -65,7 +69,7 @@ export default function MicroLayout({
                     }`}
                   >
                     <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`} />
-                    <span>{tab.label}</span>
+                    <span>{t(tab.labelKey, tab.label)}</span>
                   </Link>
                 );
               })}
@@ -80,7 +84,7 @@ export default function MicroLayout({
                 title="マクロな学習支援へ移動"
               >
                 <Compass className="w-3.5 h-3.5 text-orange-600" />
-                <span>マクロ支援</span>
+                <span>{t('nav.macro', 'マクロ支援')}</span>
               </Link>
               <Link
                 href="/analytics"
@@ -88,9 +92,12 @@ export default function MicroLayout({
                 title="スキルベクトル分析画面へ移動"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
-                <span>スキル分析</span>
+                <span>{t('nav.analytics', 'スキル分析')}</span>
               </Link>
             </div>
+
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <LanguageToggle />
           </div>
         </header>
 

@@ -5,7 +5,7 @@ import { streamText } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-   const { messages, context } = await req.json();
+   const { messages, context, language = 'ja' } = await req.json();
 
    // v7のUIMessage形式(parts)をCoreMessage形式(content)にマッピングする
    const coreMessages = messages.map((m: any) => ({
@@ -203,6 +203,19 @@ UI側がこれを自動検知し、クリック可能なリッチアクション
 - icon: "radar" | "similarity" | "clustering" | "compass" | "sparkles" | "users"
 - badge: （任意）"類似度 #1", "おすすめ", "シナジー最大", "弱点相補" など`;
 
+   if (language === 'en') {
+      systemPrompt += `\n\n========================================
+【CRITICAL INSTRUCTION: LANGUAGE MODE = ENGLISH】
+The user is currently viewing the application in ENGLISH mode.
+You MUST formulate your ENTIRE response in clear, concise, professional ENGLISH.
+- All headings, subheadings, bullet points, and analytical conclusions must be written in English.
+- Use the official English names for all skills:
+  - Knowledge Skills: A-1 Education, A-2 Humanities, A-3 Arts, A-4 Social Sciences, Journalism & Informatics, A-5 Business, Administration & Law, A-6 Natural Sciences, Math & Statistics, A-7 ICT, A-8 Engineering, Manufacturing & Construction, A-9 Hardware Operation & Material Handling, A-10 Agriculture, Forestry, Fisheries & Veterinary, A-11 Health & Welfare, A-12 Services.
+  - Generic Skills: B-1 Teamwork & Communication, B-2 Critical & Logical Thinking, B-3 Language & Global Competence, B-4 Ethics, B-5 Self-Management & Autonomous Growth, B-6 Problem Solving, B-7 Adaptability, B-8 Creativity, B-9 Expressiveness & Presentation, B-10 Info Processing & Digital Literacy, B-11 Computer skills, B-12 Leadership & Management.
+- For Japanese university and department names (e.g., 九州大学, 電気情報工学科), you can use English translation with the original Japanese name if helpful (e.g., "Kyushu University, Dept. of Electrical Engineering and Computer Science").
+- In the \`\`\`analysis-actions code block at the very end of your response, ensure the "title", "description", and "badge" fields are ALSO in ENGLISH (e.g., title: "Compare on Radar with Chubu Univ", description: "Directly contrast 24 knowledge and generic skills", badge: "Top #1 Match").
+========================================`;
+   }
 
    const result = streamText({
       model: openai('gpt-4o-mini'),

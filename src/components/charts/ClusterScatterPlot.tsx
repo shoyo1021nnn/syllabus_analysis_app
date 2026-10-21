@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { ClusteringPoint } from '@/types/database';
+import { useLanguage } from '@/context/LanguageContext';
 
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
@@ -42,6 +43,7 @@ export default function ClusterScatterPlot({
   selectedPointId,
   onSelectPoint,
 }: ClusterScatterPlotProps) {
+  const { t } = useLanguage();
   // 大学名リストの一意化
   const universities = useMemo(() => {
     const set = new Set<string>();
@@ -104,10 +106,10 @@ export default function ClusterScatterPlot({
 
   // ECharts オプション設定
   const option = useMemo(() => {
-    const xName = `第1主成分 (PC1)${
+    const xName = `${t('charts.scatter.pc1')}${
       pc1Ratio !== undefined ? ` [${(pc1Ratio * 100).toFixed(1)}%]` : ''
     }`;
-    const yName = `第2主成分 (PC2)${
+    const yName = `${t('charts.scatter.pc2')}${
       pc2Ratio !== undefined ? ` [${(pc2Ratio * 100).toFixed(1)}%]` : ''
     }`;
 
@@ -135,7 +137,7 @@ export default function ClusterScatterPlot({
                 【${point.university_name}】 ${point.department_name}
               </div>
               <div style="color: #64748b; font-size: 12px;">
-                所属: <span style="font-weight: 600; color: ${params.color};">Cluster ${point.cluster_id}</span>
+                ${t('charts.scatter.cluster')}: <span style="font-weight: 600; color: ${params.color};">Cluster ${point.cluster_id}</span>
               </div>
               <div style="color: #64748b; font-size: 11px; margin-top: 2px;">
                 PC1: ${point.pca_x?.toFixed(3)} / PC2: ${point.pca_y?.toFixed(3)}
@@ -191,7 +193,7 @@ export default function ClusterScatterPlot({
       ],
       series: series,
     };
-  }, [series, pc1Ratio, pc2Ratio]);
+  }, [series, pc1Ratio, pc2Ratio, t]);
 
   // クリックイベントのハンドリング
   const onEvents = useMemo(() => {

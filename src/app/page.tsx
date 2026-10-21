@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { 
   BarChart3, 
@@ -14,8 +16,12 @@ import {
   GraduationCap,
   Building2
 } from "lucide-react";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HomePage() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-800 dark:text-slate-100 flex flex-col">
       {/* トップヘッダー */}
@@ -37,8 +43,10 @@ export default function HomePage() {
               className="flex items-center space-x-2 text-xs font-semibold px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-50/50 dark:hover:bg-slate-700 hover:border-emerald-500 transition-colors shadow-xs"
             >
               <Building2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>大学・学部・学科の基本情報</span>
+              <span>{t("nav.universitiesTitle", "大学・学部・学科の基本情報")}</span>
             </Link>
+            <span className="text-slate-200 dark:text-slate-700">|</span>
+            <LanguageToggle />
           </div>
         </div>
       </header>
