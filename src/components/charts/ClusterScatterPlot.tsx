@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Camera, Check, Loader2 } from 'lucide-react';
 import { ClusteringPoint } from '@/types/database';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -13,6 +14,7 @@ interface ClusterScatterPlotProps {
   pc2Ratio?: number;
   selectedPointId?: string | null;
   onSelectPoint?: (point: ClusteringPoint) => void;
+  exportFilename?: string;
 }
 
 // クラスタごとの洗練されたカラーパレット（ティール＆オレンジ基調）
@@ -42,8 +44,38 @@ export default function ClusterScatterPlot({
   pc2Ratio,
   selectedPointId,
   onSelectPoint,
+  exportFilename = 'clustering_scatter_plot.png',
 }: ClusterScatterPlotProps) {
   const { t } = useLanguage();
+  const [chartInstance, setChartInstance] = useState<any>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleExport = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isExporting || !chartInstance) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = chartInstance.getDataURL({
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        excludeComponents: ['toolbox', 'dataZoom'],
+      });
+      const link = document.createElement('a');
+      link.download = exportFilename.endsWith('.png') ? exportFilename : `${exportFilename}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to export scatter plot:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
   // 大学名リストの一意化
   const universities = useMemo(() => {
     const set = new Set<string>();
@@ -208,10 +240,42 @@ export default function ClusterScatterPlot({
   }, [onSelectPoint]);
 
   return (
-    <div className="w-full h-full min-h-[420px] relative">
+    <div className="w-full h-full min-h-[420px] relative group/scatterplot">
+      {points.length > 0 && (
+        <div className="absolute top-2 right-2 z-10">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md shadow-sm border transition-all duration-200 cursor-pointer ${
+              isSuccess
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                : 'bg-white/90 hover:bg-white text-slate-600 hover:text-slate-900 border-slate-200/80 hover:border-slate-300 shadow-slate-100 hover:shadow backdrop-blur-sm'
+            }`}
+            title={t('charts.export.tooltipSingle', '高解像度PNG画像として保存します')}
+            aria-label={t('charts.export.btnSaveSingle', '画像保存 (PNG)')}
+          >
+            {isExporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+            ) : isSuccess ? (
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+            ) : (
+              <Camera className="w-3.5 h-3.5 text-slate-500 group-hover/scatterplot:text-blue-600 transition-colors" />
+            )}
+            <span>
+              {isExporting
+                ? t('charts.export.exporting', '画像生成中...')
+                : isSuccess
+                ? t('charts.export.success', '保存完了')
+                : t('charts.export.btnSaveSingle', '画像保存 (PNG)')}
+            </span>
+          </button>
+        </div>
+      )}
       <ReactECharts
         option={option}
         onEvents={onEvents}
+        onChartReady={(instance) => setChartInstance(instance)}
         style={{ height: '100%', width: '100%' }}
         opts={{ renderer: 'canvas' }}
       />

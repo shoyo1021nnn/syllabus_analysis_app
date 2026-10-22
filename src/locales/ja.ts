@@ -729,6 +729,14 @@ export const ja = {
       tanimoto: "谷本係数",
       score: "スコア",
     },
+    export: {
+      btnSaveSingle: "画像保存 (PNG)",
+      btnSaveDual: "知識・汎用をまとめて保存 (PNG)",
+      tooltipSingle: "論文・スライド用高解像度PNGを保存（見切れ補正付き）",
+      tooltipDual: "左右2つのチャートを1枚の横長高解像度PNGとして結合保存",
+      exporting: "画像生成中...",
+      success: "保存完了",
+    },
   },
 };
 

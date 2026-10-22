@@ -22,6 +22,7 @@ import {
   normalizeL1 
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
@@ -699,6 +700,22 @@ function BestPairContent() {
                 </>
               )}
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DualChartExportButton
+              chart1={{
+                title: `${t('charts.radar.knowledgeTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                indicators: knowledgeIndicators,
+                seriesData: knowledgeSeries,
+              }}
+              chart2={{
+                title: `${t('charts.radar.generalTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                indicators: generalIndicators,
+                seriesData: generalSeries,
+              }}
+              mainTitle={`${formatLabel(targetRecord)} × ${partnerRecord ? formatLabel(partnerRecord) : ''} ${t('macro.bestPair.chartTitle')}`}
+              filename={`best_pair_${formatLabel(targetRecord)}_${partnerRecord ? formatLabel(partnerRecord) : ''}.png`}
+            />
           </div>
         </div>
 

@@ -1,9 +1,9 @@
-"use client";
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Camera, Check, Loader2 } from 'lucide-react';
 import { RadarIndicator } from '@/lib/vectorUtils';
 import { useLanguage } from '@/context/LanguageContext';
+import { exportRadarChartToPng } from '@/lib/chartExportUtils';
 
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
@@ -17,8 +17,11 @@ interface RadarChartProps {
   indicators: RadarIndicator[];
   seriesData: RadarSeriesItem[];
   title?: string;
+  subTitle?: string;
   height?: string | number;
   showLegend?: boolean;
+  exportable?: boolean;
+  exportFilename?: string;
 }
 
 const DEFAULT_COLORS = ['#3b82f6', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6'];
@@ -27,10 +30,36 @@ export default function RadarChart({
   indicators,
   seriesData,
   title,
+  subTitle,
   height = '100%',
   showLegend = true,
+  exportable = true,
+  exportFilename,
 }: RadarChartProps) {
   const { t } = useLanguage();
+  const [isExporting, setIsExporting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleExport = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      await exportRadarChartToPng({
+        title,
+        subTitle,
+        indicators,
+        seriesData,
+        filename: exportFilename,
+      });
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to export radar chart image:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
   const option = useMemo(() => {
     const isMultiSeries = seriesData.length >= 3;
 
@@ -153,7 +182,38 @@ export default function RadarChart({
   }, [indicators, seriesData, title, t]);
 
   return (
-    <div className="w-full h-full min-h-[380px] relative">
+    <div className="w-full h-full min-h-[380px] relative group/radarchart">
+      {exportable && seriesData.length > 0 && indicators.length > 0 && (
+        <div className="absolute top-2 right-2 z-10">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md shadow-sm border transition-all duration-200 ${
+              isSuccess
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                : 'bg-white/90 hover:bg-white text-slate-600 hover:text-slate-900 border-slate-200/80 hover:border-slate-300 shadow-slate-100 hover:shadow backdrop-blur-sm'
+            }`}
+            title={t('charts.export.tooltipSingle')}
+            aria-label={t('charts.export.btnSaveSingle')}
+          >
+            {isExporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+            ) : isSuccess ? (
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+            ) : (
+              <Camera className="w-3.5 h-3.5 text-slate-500 group-hover/radarchart:text-blue-600 transition-colors" />
+            )}
+            <span>
+              {isExporting
+                ? t('charts.export.exporting')
+                : isSuccess
+                ? t('charts.export.success')
+                : t('charts.export.btnSaveSingle')}
+            </span>
+          </button>
+        </div>
+      )}
       <ReactECharts
         option={option}
         style={{ height: height, width: '100%' }}

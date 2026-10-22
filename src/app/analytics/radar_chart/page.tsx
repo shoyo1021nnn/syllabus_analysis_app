@@ -19,6 +19,7 @@ import {
   combineVectors
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
@@ -713,7 +714,24 @@ function RadarChartContent() {
         ) : (
           <>
             {viewMode === 'split' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[480px]">
+              <>
+                <div className="flex justify-end mb-2">
+                  <DualChartExportButton
+                    chart1={{
+                      title: t('charts.radar.knowledgeTitle'),
+                      indicators: knowledgeIndicators,
+                      seriesData: knowledgeSeries,
+                    }}
+                    chart2={{
+                      title: t('charts.radar.generalTitle'),
+                      indicators: generalIndicators,
+                      seriesData: generalSeries,
+                    }}
+                    mainTitle={`${primaryRecord ? formatLabel(primaryRecord) : ''}${isCompareEnabled && compareRecord ? ` vs ${formatLabel(compareRecord)}` : ''} ${t('macro.radar.title', 'レーダーチャート分析')}`}
+                    filename={`radar_chart_${primaryRecord ? formatLabel(primaryRecord) : ''}${isCompareEnabled && compareRecord ? `_vs_${formatLabel(compareRecord)}` : ''}.png`}
+                  />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[480px]">
                 {/* 知識関連スキル (左) */}
                 <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
                   <RadarChart
@@ -735,7 +753,8 @@ function RadarChartContent() {
                   />
                 </div>
               </div>
-            )}
+            </>
+          )}
 
             {viewMode === 'combined' && (
               <div className="flex-1 min-h-[520px] flex flex-col justify-center">

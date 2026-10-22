@@ -728,6 +728,14 @@ export const en = {
       tanimoto: "Tanimoto Coefficient",
       score: "Score",
     },
+    export: {
+      btnSaveSingle: "Save Image (PNG)",
+      btnSaveDual: "Save Dual Charts (PNG)",
+      tooltipSingle: "Export High-Res PNG (Paper & Slide Ready with anti-clipping)",
+      tooltipDual: "Export both charts combined as a single panoramic high-res PNG",
+      exporting: "Generating image...",
+      success: "Saved",
+    },
   },
 };
 

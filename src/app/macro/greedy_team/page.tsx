@@ -23,6 +23,7 @@ import {
   combineMultipleVectors
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
@@ -825,6 +826,22 @@ function GreedyTeamContent() {
             <p className="text-xs text-slate-500 mt-0.5">
               {t('macro.greedyTeam.chartSubtitle', '起点単体 vs 各ステップ追加メンバー vs 最終チーム合成ベクトル')}
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DualChartExportButton
+              chart1={{
+                title: `${t('charts.radar.knowledgeTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                indicators: knowledgeIndicators,
+                seriesData: knowledgeSeries,
+              }}
+              chart2={{
+                title: `${t('charts.radar.generalTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                indicators: generalIndicators,
+                seriesData: generalSeries,
+              }}
+              mainTitle={`${initialRecord ? formatLabel(initialRecord) : ''} ${t('macro.greedyTeam.chartTitle')}`}
+              filename={`greedy_team_${initialRecord ? formatLabel(initialRecord) : ''}.png`}
+            />
           </div>
         </div>
 

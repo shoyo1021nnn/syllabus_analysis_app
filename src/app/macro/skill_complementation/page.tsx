@@ -19,6 +19,7 @@ import {
   SkillComplementationItem 
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
+import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
@@ -682,8 +683,24 @@ function SkillComplementationContent() {
             </p>
           </div>
 
-          <div className="text-2xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
-            💡 {t('charts.radar.hoverGuide', '各点にホバーして詳細比率（%）を確認')}
+          <div className="flex items-center gap-2">
+            <DualChartExportButton
+              chart1={{
+                title: t('charts.radar.knowledgeTitle'),
+                indicators: knowledgeIndicators,
+                seriesData: knowledgeSeries,
+              }}
+              chart2={{
+                title: t('charts.radar.generalTitle'),
+                indicators: generalIndicators,
+                seriesData: generalSeries,
+              }}
+              mainTitle={`${targetRecord ? formatLabel(targetRecord) : ''} × ${partnerRecord ? formatLabel(partnerRecord) : ''} ${t('macro.complementation.radarTitle')}`}
+              filename={`skill_complementation_${targetRecord ? formatLabel(targetRecord) : ''}_${partnerRecord ? formatLabel(partnerRecord) : ''}.png`}
+            />
+            <div className="hidden sm:inline-flex text-2xs text-slate-400 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-100">
+              💡 {t('charts.radar.hoverGuide', '各点にホバーして詳細比率（%）を確認')}
+            </div>
           </div>
         </div>
 
