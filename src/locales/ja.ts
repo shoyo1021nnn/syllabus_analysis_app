@@ -166,6 +166,13 @@ export const ja = {
       tableAction: "アクション",
       showing: "表示中",
       select: "選択",
+      approachNames: {
+        synergy: "専門一致・汎用相補 (バランス型)",
+        gap: "理想ギャップ補填特化",
+        ideal_max: "最大値結合 理想達成度",
+        ideal_mean: "平均値結合 理想達成度",
+        dissimilar_b: "汎用スキル相補 (非類似度重視)",
+      },
     },
     bestPair: {
       title: "ベスト・ペア検索",
@@ -247,6 +254,11 @@ export const ja = {
       tableTopSkills: "特に大きく強化されたスキル Top 3",
       originInitialConfig: "基準初期スキル構成",
       tableContribution: "寄与度",
+      unitDepartment: "学科",
+      unitFaculty: "学部",
+      unitUniversity: "大学",
+      teamOption: "{count}{unit}チーム",
+      teamOptionWithAdd: "{count}{unit}チーム (+{add}{unit})",
     },
   },
   micro: {
@@ -483,6 +495,10 @@ export const ja = {
       metricDot: "内積スコア",
       metricEuclidean: "ユークリッド距離 (小さい順)",
       metricTanimoto: "谷本係数",
+      cosine: "コサイン類似度 (標準)",
+      dot: "内積スコア",
+      euclidean: "ユークリッド距離 (小さい順)",
+      tanimoto: "谷本係数",
       skillsLabel: "対象スキル:",
       skillsAll: "全24スキル統合 (知識+汎用)",
       skillsKnowledge: "知識関連スキルのみ (12項目)",
@@ -657,6 +673,21 @@ export const ja = {
         "自組織のカリキュラム連携先を探す際、どの機能から始めるのがおすすめ？",
         "理想ベクトルとのギャップを埋める補完アプローチとは何ですか？",
       ],
+      macro_complementation: [
+        "基準組織の不足スキルを補完する上で、第1位の候補組織はどのように貢献していますか？",
+        "選択した補完アプローチの評価ポイントと教育的意義を解説して",
+        "大学間・学部間のカリキュラム連携で配慮すべき注意点は何ですか？",
+      ],
+      macro_best_pair: [
+        "基準組織とベストペア第1位の組み合わせで向上率が最大になる理由は？",
+        "最大値結合(Max)と平均値結合(Mean)でペア相手の選定基準はどう変化しますか？",
+        "2組織の1対1連携において、特にシナジーが期待できるスキル分野は？",
+      ],
+      macro_greedy_team: [
+        "貪欲法によって最初に選定されたパートナーの選定理由は何ですか？",
+        "編成されたチーム人数において各組織の役割分担はどのように機能しますか？",
+        "これ以上のメンバー追加で得られるスキルの限界収穫逓減についての評価は？",
+      ],
       default: [
         "この科目の前提知識は何ですか？",
         "類似する科目を教えてください",
@@ -684,6 +715,7 @@ export const ja = {
       simulated: "仮追加後 (シミュレーション)",
       specializedSkills: "専門知識スキル (A系列)",
       genericSkills: "汎用スキル (B系列)",
+      hoverGuide: "各点にホバーして詳細比率（%）を確認",
     },
     scatter: {
       pc1: "第1主成分 (PC1)",

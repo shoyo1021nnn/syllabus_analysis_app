@@ -226,16 +226,30 @@ function GreedyTeamContent() {
       });
       if (found) matchedId = found.id;
     }
-    setInitialId(matchedId || dataList[0].id);
+    const finalId = matchedId || dataList[0].id;
+    setInitialId(finalId);
+
+    // 選択された基準対象の大学に合わせて大学フィルターを同期
+    const target = dataList.find((d) => d.id === finalId);
+    if (target && selectedUnivFilter !== allUnivLabel && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== 'All Universities' && selectedUnivFilter !== target.university_name) {
+      setSelectedUnivFilter(allUnivLabel);
+    }
   }, [dataList, queryDept, queryUniv]);
+
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
 
   // 大学フィルター (学部・学科レベル時)
   const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
 
+  // 言語切替時に「全ての大学」ラベルを追従
+  useEffect(() => {
+    setSelectedUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
+  }, [allUnivLabel]);
+
   // レベル変更時に大学フィルターをリセット
   useEffect(() => {
-    setSelectedUnivFilter('全ての大学');
-  }, [level]);
+    setSelectedUnivFilter(allUnivLabel);
+  }, [level, allUnivLabel]);
 
   // 大学一覧リスト
   const universityList = useMemo(() => {
@@ -243,16 +257,16 @@ function GreedyTeamContent() {
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return ['全ての大学', ...Array.from(set)];
-  }, [dataList]);
+    return [allUnivLabel, ...Array.from(set)];
+  }, [dataList, allUnivLabel]);
 
   // 大学フィルター適用後の基準選択肢
   const filteredDataList = useMemo(() => {
-    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+    if (level === 'university' || selectedUnivFilter === allUnivLabel || selectedUnivFilter === '全ての大学' || selectedUnivFilter === 'All Universities') {
       return dataList;
     }
     return dataList.filter((d) => d.university_name === selectedUnivFilter);
-  }, [dataList, level, selectedUnivFilter]);
+  }, [dataList, level, selectedUnivFilter, allUnivLabel]);
 
   // フィルター切替時に未所属なら先頭を自動選択
   useEffect(() => {
@@ -275,10 +289,10 @@ function GreedyTeamContent() {
   };
 
   const levelUnit = useMemo(() => {
-    if (level === 'faculty') return '学部';
-    if (level === 'university') return '大学';
-    return '学科';
-  }, [level]);
+    if (level === 'faculty') return t('macro.greedyTeam.unitFaculty', '学部');
+    if (level === 'university') return t('macro.greedyTeam.unitUniversity', '大学');
+    return t('macro.greedyTeam.unitDepartment', '学科');
+  }, [level, t]);
 
   const extractVector = (rec?: SkillVectorRecord): number[] => {
     if (!rec) return [];
@@ -474,18 +488,29 @@ function GreedyTeamContent() {
   // AIコンテキスト共有
   useEffect(() => {
     if (!teamResult) return;
+    const isEn = language === 'en';
     const initialLabel = teamResult.initialMember.label;
 
     const presets: string[] = [];
-    presets.push(`貪欲法で「${initialLabel}」に最初に選ばれたパートナーの選定理由は？`);
-    presets.push(`チーム人数（${teamResult.teamMembers.length}名）で各組織の役割分担はどう機能しますか？`);
-    presets.push(`最大値結合(Max)と平均値結合(Mean)でチーム編成の最適戦略はどう変わる？`);
-    presets.push(`これ以上のメンバー追加で得られるスキルの限界収穫逓減についての評価は？`);
+    if (isEn) {
+      presets.push(`Why was the first partner chosen by the greedy algorithm for "${initialLabel}"?`);
+      presets.push(`How does role division function across the organizations within this ${teamResult.teamMembers.length}-member team?`);
+      presets.push(`How does the optimal team strategy shift between Max Pooling and Mean Pooling?`);
+      presets.push(`What is the evaluation regarding diminishing marginal skill returns with additional members?`);
+    } else {
+      presets.push(`貪欲法で「${initialLabel}」に最初に選ばれたパートナーの選定理由は？`);
+      presets.push(`チーム人数（${teamResult.teamMembers.length}名）で各組織の役割分担はどう機能しますか？`);
+      presets.push(`最大値結合(Max)と平均値結合(Mean)でチーム編成の最適戦略はどう変わる？`);
+      presets.push(`これ以上のメンバー追加で得られるスキルの限界収穫逓減についての評価は？`);
+    }
 
     setAnalyticsContext({
       pageTitle: t('macro.greedyTeam.title', 'チーム編成支援'),
+      pagePath: '/macro/greedy_team',
       primaryTarget: initialLabel,
-      summaryText: `起点: ${initialLabel} のGreedyチーム編成シミュレーション（${teamResult.teamMembers.length}組織、スコア: ${(teamResult.finalScore * 100).toFixed(1)}%）`,
+      summaryText: isEn
+        ? `Origin: ${initialLabel} Greedy Team Simulation (${teamResult.teamMembers.length} orgs, Score: ${(teamResult.finalScore * 100).toFixed(1)}%)`
+        : `起点: ${initialLabel} のGreedyチーム編成シミュレーション（${teamResult.teamMembers.length}組織、スコア: ${(teamResult.finalScore * 100).toFixed(1)}%）`,
       details: {
         initial: initialLabel,
         teamSize: teamResult.teamMembers.length,
@@ -503,7 +528,7 @@ function GreedyTeamContent() {
       },
       presetQuestions: presets,
     });
-  }, [teamResult, searchMode, combineMethod, setAnalyticsContext, t]);
+  }, [teamResult, searchMode, combineMethod, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -628,11 +653,11 @@ function GreedyTeamContent() {
                 onChange={(e) => setTargetTeamSize(Number(e.target.value))}
                 className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
               >
-                <option value={2}>2{levelUnit}チーム (+1{levelUnit})</option>
-                <option value={3}>3{levelUnit}チーム (+2{levelUnit})</option>
-                <option value={4}>4{levelUnit}チーム</option>
-                <option value={5}>5{levelUnit}チーム</option>
-                <option value={6}>6{levelUnit}チーム</option>
+                <option value={2}>{language === 'en' ? `2-${levelUnit} Team (+1 ${levelUnit})` : `2${levelUnit}チーム (+1${levelUnit})`}</option>
+                <option value={3}>{language === 'en' ? `3-${levelUnit} Team (+2 ${levelUnit})` : `3${levelUnit}チーム (+2${levelUnit})`}</option>
+                <option value={4}>{language === 'en' ? `4-${levelUnit} Team` : `4${levelUnit}チーム`}</option>
+                <option value={5}>{language === 'en' ? `5-${levelUnit} Team` : `5${levelUnit}チーム`}</option>
+                <option value={6}>{language === 'en' ? `6-${levelUnit} Team` : `6${levelUnit}チーム`}</option>
               </select>
             </div>
           ) : (
@@ -694,9 +719,9 @@ function GreedyTeamContent() {
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="department">{t('common.level.department', '学科レベル')}</option>
-              <option value="faculty">{t('common.level.faculty', '学部レベル')}</option>
-              <option value="university">{t('common.level.university', '大学レベル')}</option>
+              <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
+              <option value="faculty">{t('common.facultyLevel', '学部レベル')}</option>
+              <option value="university">{t('common.universityLevel', '大学レベル')}</option>
             </select>
           </div>
         </div>

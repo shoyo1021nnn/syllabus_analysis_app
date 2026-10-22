@@ -166,6 +166,13 @@ export const en = {
       tableAction: "Action",
       showing: "Viewing",
       select: "Select",
+      approachNames: {
+        synergy: "Domain Match & Generic Complementary (Balanced)",
+        gap: "Ideal Gap Filling Focused",
+        ideal_max: "Max Pooling Ideal Attainment",
+        ideal_mean: "Mean Pooling Ideal Attainment",
+        dissimilar_b: "Generic Skills Complementary (Dissimilarity Focus)",
+      },
     },
     bestPair: {
       title: "Best Pairs Search",
@@ -247,6 +254,11 @@ export const en = {
       tableTopSkills: "Top 3 Reinforced Skills",
       originInitialConfig: "Base Initial Skill Profile",
       tableContribution: "Contribution",
+      unitDepartment: "Dept",
+      unitFaculty: "Faculty",
+      unitUniversity: "Univ",
+      teamOption: "{count}-{unit} Team",
+      teamOptionWithAdd: "{count}-{unit} Team (+{add} {unit})",
     },
   },
   micro: {
@@ -483,6 +495,10 @@ export const en = {
       metricDot: "Dot Product Score",
       metricEuclidean: "Euclidean Distance (Ascending)",
       metricTanimoto: "Tanimoto Coefficient",
+      cosine: "Cosine Similarity (Default)",
+      dot: "Dot Product Score",
+      euclidean: "Euclidean Distance (Ascending)",
+      tanimoto: "Tanimoto Coefficient",
       skillsLabel: "Target Skills:",
       skillsAll: "All 24 Skills Combined (Knowledge + Generic)",
       skillsKnowledge: "Knowledge Skills Only (12 items)",
@@ -656,6 +672,21 @@ export const en = {
         "When should I use complementation, best pair, or team formation?",
         "How is the ideal benchmark vector defined for organizations?",
       ],
+      macro_complementation: [
+        "How does the top-ranked partner organization complement the weak skill areas of the base organization?",
+        "Explain the evaluation criteria and educational significance of this complementation approach.",
+        "What governance and curriculum considerations are needed for inter-university collaboration?",
+      ],
+      macro_best_pair: [
+        "Why does the combination with the top partner achieve the highest score improvement rate?",
+        "How do selection criteria differ between Max Pooling (strengths) and Mean Pooling (average uplift)?",
+        "Which skill areas demonstrate the greatest synergies in this 1-on-1 partnership?",
+      ],
+      macro_greedy_team: [
+        "Why was the first partner organization chosen by the greedy algorithm from the origin organization?",
+        "How does role division function across the organizations within this team size?",
+        "What is the evaluation regarding diminishing marginal skill returns with additional members?",
+      ],
       default: [
         "What prerequisite knowledge is required for this subject?",
         "What are similar or related courses?",
@@ -683,6 +714,7 @@ export const en = {
       simulated: "After Simulation",
       specializedSkills: "Specialized Knowledge (Series A)",
       genericSkills: "Generic Competencies (Series B)",
+      hoverGuide: "Hover over points to view detailed ratio (%)",
     },
     scatter: {
       pc1: "1st Principal Component (PC1)",

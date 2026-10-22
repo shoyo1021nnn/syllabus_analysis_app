@@ -3,12 +3,15 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, Check, X, Building2 } from 'lucide-react';
 
+import { useLanguage } from '@/context/LanguageContext';
+
 export interface SearchableSelectProps {
   label?: string;
   options: string[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  allOptionLabel?: string;
   colorScheme?: 'blue' | 'indigo' | 'rose' | 'teal' | 'orange' | 'emerald';
   disabled?: boolean;
   className?: string;
@@ -19,11 +22,15 @@ export function SearchableSelect({
   options,
   value,
   onChange,
-  placeholder = '大学名を検索・選択...',
+  placeholder,
+  allOptionLabel,
   colorScheme = 'teal',
   disabled = false,
   className = '',
 }: SearchableSelectProps) {
+  const { t } = useLanguage();
+  const defaultAll = allOptionLabel || t('common.allUniversities', '全ての大学');
+  const effectivePlaceholder = placeholder || t('universities.searchUnivPlaceholder', '大学名を検索...');
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -138,9 +145,13 @@ export function SearchableSelect({
     setSearchTerm('');
   };
 
+  const isAllValue = (val: string) => {
+    return !val || val === defaultAll || val === '全ての大学' || val === 'All Universities';
+  };
+
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange('全ての大学');
+    onChange(options.length > 0 && isAllValue(options[0]) ? options[0] : defaultAll);
     setSearchTerm('');
   };
 
@@ -155,6 +166,8 @@ export function SearchableSelect({
       }
     }
   };
+
+  const displayLabel = isAllValue(value) ? defaultAll : value;
 
   return (
     <div ref={containerRef} className={`relative space-y-1.5 ${className}`}>
@@ -182,17 +195,17 @@ export function SearchableSelect({
       >
         <div className="flex items-center gap-2 truncate">
           <Building2 className={`w-3.5 h-3.5 shrink-0 ${theme.icon}`} />
-          <span className={`truncate font-medium ${value === '全ての大学' ? 'text-slate-600' : 'text-slate-900 font-semibold'}`}>
-            {value || '全ての大学'}
+          <span className={`truncate font-medium ${isAllValue(value) ? 'text-slate-600' : 'text-slate-900 font-semibold'}`}>
+            {displayLabel}
           </span>
         </div>
 
         <div className="flex items-center gap-1 shrink-0 ml-1.5">
-          {value && value !== '全ての大学' && !disabled && (
+          {!isAllValue(value) && !disabled && (
             <button
               type="button"
               onClick={handleClear}
-              title="絞り込みを解除（全ての大学）"
+              title={t('common.clearFilter', '絞り込みを解除')}
               className="p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
             >
               <X className="w-3.5 h-3.5" />
@@ -217,7 +230,7 @@ export function SearchableSelect({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={placeholder}
+                placeholder={effectivePlaceholder}
                 className="w-full pl-8 pr-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1.5 focus:ring-blue-500"
               />
             </div>

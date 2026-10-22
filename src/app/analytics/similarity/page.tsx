@@ -142,7 +142,7 @@ function SimilarityPageContent() {
   const queryDept = searchParams.get('dept') || searchParams.get('primaryDept');
   const queryUniv = searchParams.get('univ') || searchParams.get('primaryUniv');
   const { setAnalyticsContext } = useAnalyticsContext();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
@@ -429,22 +429,37 @@ function SimilarityPageContent() {
       ? `上位5学科間で過半数が一致する決定的な主力スキルはなく、各学科の主力分野は部分的に重なる程度で比較的バラバラに分散しています（最も共通しているスキルでも最大${sharedSkills[0]?.count || 0}学科のみ）。`
       : `上位5学科の主力スキルは完全にバラバラに分散しており、学科ごとに全く異なる専門領域を強みとしています。`;
 
-    const presets: string[] = [
-      `上位学科に共通するスキル傾向はある？それともカリキュラムはバラバラ？`,
-    ];
-    if (top1) {
-      presets.push(`「${targetLabel}」と第1位の「${top1.label}」（スコア: ${top1.score.toFixed(3)}）の共通点は？`);
-      if (top2) {
-        presets.push(`上位2学科（${top1.label}、${top2.label}）と「${targetLabel}」のカリキュラム傾向を比較して`);
+    const isEn = language === 'en';
+    const presets: string[] = [];
+    if (isEn) {
+      presets.push(`Are there common skill trends among the top similar departments, or are curricula varied?`);
+      if (top1) {
+        presets.push(`What are the key curricular commonalities between "${targetLabel}" and #1 "${top1.label}" (Score: ${top1.score.toFixed(3)})?`);
+        if (top2) {
+          presets.push(`Compare the curriculum patterns of "${targetLabel}" against top 2 departments (${top1.label}, ${top2.label}).`);
+        }
       }
+      presets.push(`How should I interpret these ranking features based on metric "${currentMetricName}"?`);
+      presets.push(`What are the distinct differentiation factors compared to departments with low similarity?`);
+    } else {
+      presets.push(`上位学科に共通するスキル傾向はある？それともカリキュラムはバラバラ？`);
+      if (top1) {
+        presets.push(`「${targetLabel}」と第1位の「${top1.label}」（スコア: ${top1.score.toFixed(3)}）の共通点は？`);
+        if (top2) {
+          presets.push(`上位2学科（${top1.label}、${top2.label}）と「${targetLabel}」のカリキュラム傾向を比較して`);
+        }
+      }
+      presets.push(`計算指標（${currentMetricName}）から見たこのランキングの特徴と解釈のポイントは？`);
+      presets.push(`「${targetLabel}」と類似度が低い学科との違いや差別化ポイントは？`);
     }
-    presets.push(`計算指標（${currentMetricName}）から見たこのランキングの特徴と解釈のポイントは？`);
-    presets.push(`「${targetLabel}」と類似度が低い学科との違いや差別化ポイントは？`);
 
     setAnalyticsContext({
       pageTitle: t('analytics.similarity.pageTitle', '類似度計算ランキング'),
+      pagePath: '/analytics/similarity',
       primaryTarget: targetLabel,
-      summaryText: `基準対象: ${targetLabel}（計算指標: ${currentMetricName}、対象スキル: ${vectorTarget}）`,
+      summaryText: isEn
+        ? `Base: ${targetLabel} (Metric: ${currentMetricName}, Target Skills: ${vectorTarget})`
+        : `基準対象: ${targetLabel}（計算指標: ${currentMetricName}、対象スキル: ${vectorTarget}）`,
       details: {
         target: {
           label: targetLabel,
@@ -463,7 +478,7 @@ function SimilarityPageContent() {
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, rankingResults, metric, vectorTarget, dataList, setAnalyticsContext, t]);
+  }, [targetRecord, rankingResults, metric, vectorTarget, dataList, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">

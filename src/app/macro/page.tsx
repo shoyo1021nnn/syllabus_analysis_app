@@ -19,9 +19,10 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function MacroMenuPage() {
   const { setAnalyticsContext } = useAnalyticsContext();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   useEffect(() => {
+    const isEn = language === 'en';
     setAnalyticsContext({
       pageTitle: t('macro.hub.pageTitle', 'マクロな学習支援ポータル'),
       pagePath: '/macro',
@@ -31,35 +32,50 @@ export default function MacroMenuPage() {
       details: {
         availableFeatures: [
           {
-            name: 'スキル補完検索',
+            name: isEn ? 'Skill Complementation Search' : 'スキル補完検索',
             path: '/macro/skill_complementation',
-            purpose: '自組織の不足スキルを補完できる他大学・他組織をランキングし、相乗効果のある連携先を発見'
+            purpose: isEn
+              ? 'Ranks other universities/organizations capable of complementing weak skills to discover synergistic partners'
+              : '自組織の不足スキルを補完できる他大学・他組織をランキングし、相乗効果のある連携先を発見'
           },
           {
-            name: 'ベスト・ペア検索',
+            name: isEn ? 'Best Pairs Search' : 'ベスト・ペア検索',
             path: '/macro/best_pair',
-            purpose: '2組織（1対1）で結合した際、最大値(Max)または平均値(Mean)で最高の総合スキル向上を達成するペアを探索'
+            purpose: isEn
+              ? 'Explores 1-on-1 pairs achieving highest overall skill uplift via Max or Mean pooling'
+              : '2組織（1対1）で結合した際、最大値(Max)または平均値(Mean)で最高の総合スキル向上を達成するペアを探索'
           },
           {
-            name: 'チーム編成支援',
+            name: isEn ? 'Team Formation Support' : 'チーム編成支援',
             path: '/macro/greedy_team',
-            purpose: '貪欲法(Greedy)により、指定人数または目標スキル閾値を達成する最適な多人数チームを段階的シミュレーション'
+            purpose: isEn
+              ? 'Simulates multi-member teams stepwise via greedy algorithm to satisfy member counts or skill thresholds'
+              : '貪欲法(Greedy)により、指定人数または目標スキル閾値を達成する最適な多人数チームを段階的シミュレーション'
           }
         ],
-        theoreticalFramework: [
+        theoreticalFramework: isEn ? [
+          'Max Pooling: Collaborative model where individual strengths and standout skills drive overall team outcomes',
+          'Mean Pooling: Baseline model where all member skills average out to evaluate overall uplift',
+          'Ideal Vector: Evaluated against an ideal state where all 24 skills are uniformly high (3.0)'
+        ] : [
           '最大値結合(Max Pooling): 各組織の得意分野・突出した強みがチーム全体の成果に活かされる協働モデル',
           '平均値結合(Mean Pooling): 参加者全員のスキルが平均化され、チーム全体の総合的ベースラインを想定するモデル',
           '理想ベクトル(Ideal Vector): 全スキルが均等に高い水準(3.0)を満たす理想状態を目標として評価'
         ]
       },
-      presetQuestions: [
+      presetQuestions: isEn ? [
+        'What are the differences and primary use cases of the 3 macro analysis methods?',
+        'How do educational interpretations differ between Max Pooling and Mean Pooling?',
+        'Which feature should an institution start with when exploring collaboration partners?',
+        'What is the complementation approach designed to close gaps with the ideal vector?'
+      ] : [
         'マクロな学習支援における3つの分析手法の違いと活用シーンは？',
         '「最大値結合」と「平均値結合」の教育的な解釈はどう違いますか？',
         '自組織のカリキュラム連携先を探す際、どの機能から始めるのがおすすめ？',
         '理想ベクトルとのギャップを埋める補完アプローチとは何ですか？'
       ],
     });
-  }, [setAnalyticsContext, t]);
+  }, [setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">

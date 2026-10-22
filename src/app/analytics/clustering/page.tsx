@@ -68,7 +68,7 @@ const MOCK_POINTS: Record<string, ClusteringPoint[]> = {
 };
 
 export default function ClusteringPage() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
   const [runs, setRuns] = useState<ClusteringRun[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string>('');
@@ -172,25 +172,44 @@ export default function ClusteringPage() {
 
   // AIエージェントへの画面コンテキスト共有
   useEffect(() => {
+    const isEn = language === 'en';
     const selectedTargetName = selectedPoint
       ? `【${selectedPoint.university_name}】${selectedPoint.department_name}`
       : undefined;
 
     const presets: string[] = [];
     if (selectedPoint) {
-      presets.push(`「${selectedTargetName}」がクラスタ${selectedPoint.cluster_id}に分類された要因・特徴は？`);
-      presets.push(`「${selectedTargetName}」と同じクラスタに属する他学科との類似点は？`);
+      if (isEn) {
+        presets.push(`What are the key factors and skill features that placed "${selectedTargetName}" into Cluster ${selectedPoint.cluster_id}?`);
+        presets.push(`What curricular commonalities exist between "${selectedTargetName}" and other departments in this cluster?`);
+      } else {
+        presets.push(`「${selectedTargetName}」がクラスタ${selectedPoint.cluster_id}に分類された要因・特徴は？`);
+        presets.push(`「${selectedTargetName}」と同じクラスタに属する他学科との類似点は？`);
+      }
     } else {
-      presets.push(`クラスタ数（k=${activeRun?.k || 3}）における各グループの教育的特徴を教えて`);
-      presets.push(`分布図の中で特異な位置にある外れ値学科はありますか？`);
+      if (isEn) {
+        presets.push(`What are the distinct educational features and trends across each cluster (k=${activeRun?.k || 3})?`);
+        presets.push(`Are there any outlier departments located in unique positions on this PCA map?`);
+      } else {
+        presets.push(`クラスタ数（k=${activeRun?.k || 3}）における各グループの教育的特徴を教えて`);
+        presets.push(`分布図の中で特異な位置にある外れ値学科はありますか？`);
+      }
     }
-    presets.push(`PC1（第1主成分）とPC2（第2主成分）が表すスキルの意味は何ですか？`);
-    presets.push(`シルエットスコア（${activeRun?.silhouette_score?.toFixed(3) || '-'}）から見る分類妥当性の評価は？`);
+    if (isEn) {
+      presets.push(`What skills are primarily represented by PC1 and PC2 on these axes?`);
+      presets.push(`How should I evaluate clustering validity based on Silhouette Score (${activeRun?.silhouette_score?.toFixed(3) || '-'})?`);
+    } else {
+      presets.push(`PC1（第1主成分）とPC2（第2主成分）が表すスキルの意味は何ですか？`);
+      presets.push(`シルエットスコア（${activeRun?.silhouette_score?.toFixed(3) || '-'}）から見る分類妥当性の評価は？`);
+    }
 
     setAnalyticsContext({
       pageTitle: t('analytics.clustering.pageTitle', 'K-means クラスタリング'),
+      pagePath: '/analytics/clustering',
       primaryTarget: selectedTargetName,
-      summaryText: `k=${activeRun?.k || 3} による学科スキルクラスタリング分析（総学科数: ${points.length}件）`,
+      summaryText: isEn
+        ? `Department skill clustering analysis with k=${activeRun?.k || 3} (Total: ${points.length} departments)`
+        : `k=${activeRun?.k || 3} による学科スキルクラスタリング分析（総学科数: ${points.length}件）`,
       details: {
         k: activeRun?.k,
         silhouetteScore: activeRun?.silhouette_score,
@@ -209,7 +228,7 @@ export default function ClusteringPage() {
       },
       presetQuestions: presets,
     });
-  }, [activeRun, selectedPoint, points.length, setAnalyticsContext, t]);
+  }, [activeRun, selectedPoint, points.length, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">

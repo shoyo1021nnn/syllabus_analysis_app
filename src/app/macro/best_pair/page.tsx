@@ -228,18 +228,25 @@ function BestPairContent() {
 
     // 選択された基準対象の大学に合わせて大学フィルターを同期
     const target = dataList.find((d) => d.id === finalId);
-    if (target && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== target.university_name) {
-      setSelectedUnivFilter('全ての大学');
+    if (target && selectedUnivFilter !== allUnivLabel && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== 'All Universities' && selectedUnivFilter !== target.university_name) {
+      setSelectedUnivFilter(allUnivLabel);
     }
   }, [dataList, queryId, queryDept, queryUniv]);
+
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
 
   // 大学フィルター (学部・学科レベル時)
   const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
 
+  // 言語切替時に「全ての大学」ラベルを追従
+  useEffect(() => {
+    setSelectedUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
+  }, [allUnivLabel]);
+
   // レベル変更時に大学フィルターをリセット
   useEffect(() => {
-    setSelectedUnivFilter('全ての大学');
-  }, [level]);
+    setSelectedUnivFilter(allUnivLabel);
+  }, [level, allUnivLabel]);
 
   // 大学一覧リスト
   const universityList = useMemo(() => {
@@ -247,16 +254,16 @@ function BestPairContent() {
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return ['全ての大学', ...Array.from(set)];
-  }, [dataList]);
+    return [allUnivLabel, ...Array.from(set)];
+  }, [dataList, allUnivLabel]);
 
   // 大学フィルター適用後の基準選択肢
   const filteredDataList = useMemo(() => {
-    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+    if (level === 'university' || selectedUnivFilter === allUnivLabel || selectedUnivFilter === '全ての大学' || selectedUnivFilter === 'All Universities') {
       return dataList;
     }
     return dataList.filter((d) => d.university_name === selectedUnivFilter);
-  }, [dataList, level, selectedUnivFilter]);
+  }, [dataList, level, selectedUnivFilter, allUnivLabel]);
 
   // フィルター切替時に未所属なら先頭を自動選択
   useEffect(() => {
@@ -430,28 +437,46 @@ function BestPairContent() {
   // AIコンテキスト共有
   useEffect(() => {
     if (!targetRecord) return;
+    const isEn = language === 'en';
     const targetLabel = formatLabel(targetRecord);
     const top1 = rankingResults[0];
 
     const presets: string[] = [];
     if (top1) {
-      presets.push(`「${targetLabel}」と第1位「${top1.label}」のベストペアで、向上率が最大になる理由は？`);
-      presets.push(`最大値結合(Max)と平均値結合(Mean)でペア相手のランキングはどう変化しますか？`);
-      if (partnerRecord) {
-        presets.push(`「${targetLabel}」と「${formatLabel(partnerRecord)}」の連携において、特に伸びるスキル分野を教えて`);
+      if (isEn) {
+        presets.push(`Why does the best pair combination with #1 "${top1.label}" achieve the highest score improvement for "${targetLabel}"?`);
+        presets.push(`How do ranking results differ between Max Pooling (strengths) and Mean Pooling (overall uplift)?`);
+        if (partnerRecord) {
+          presets.push(`Which specific skill domains show the greatest synergy between "${targetLabel}" and "${formatLabel(partnerRecord)}"?`);
+        }
+      } else {
+        presets.push(`「${targetLabel}」と第1位「${top1.label}」のベストペアで、向上率が最大になる理由は？`);
+        presets.push(`最大値結合(Max)と平均値結合(Mean)でペア相手のランキングはどう変化しますか？`);
+        if (partnerRecord) {
+          presets.push(`「${targetLabel}」と「${formatLabel(partnerRecord)}」の連携において、特に伸びるスキル分野を教えて`);
+        }
       }
     }
-    presets.push(`カリキュラム連携で「1対1のベストペア」を組む際の教育ガバナンス上のアドバイスは？`);
+    if (isEn) {
+      presets.push(`What educational governance and curriculum advice is crucial when establishing a 1-to-1 best partnership?`);
+    } else {
+      presets.push(`カリキュラム連携で「1対1のベストペア」を組む際の教育ガバナンス上のアドバイスは？`);
+    }
 
     setAnalyticsContext({
       pageTitle: t('macro.bestPair.title', 'ベスト・ペア検索'),
+      pagePath: '/macro/best_pair',
       primaryTarget: targetLabel,
       compareTarget: partnerRecord ? formatLabel(partnerRecord) : undefined,
-      summaryText: `基準対象: ${targetLabel} のベスト・ペア探索（結合方法: ${combineMethod === 'max' ? '最大値結合' : '平均値結合'}、対象: ${vectorTarget}）`,
+      summaryText: isEn
+        ? `Base: ${targetLabel} best pair search (Method: ${combineMethod === 'max' ? 'Max Pooling' : 'Mean Pooling'}, Target: ${vectorTarget})`
+        : `基準対象: ${targetLabel} のベスト・ペア探索（結合方法: ${combineMethod === 'max' ? '最大値結合' : '平均値結合'}、対象: ${vectorTarget}）`,
       details: {
         target: targetLabel,
-        partner: partnerRecord ? formatLabel(partnerRecord) : '未選択',
-        combineMethod: combineMethod === 'max' ? '最大値結合 (各々の強み重視)' : '平均値結合 (総合底上げ)',
+        partner: partnerRecord ? formatLabel(partnerRecord) : (isEn ? 'Not selected' : '未選択'),
+        combineMethod: combineMethod === 'max' 
+          ? (isEn ? 'Max Pooling (Leverage strengths)' : '最大値結合 (各々の強み重視)') 
+          : (isEn ? 'Mean Pooling (Overall uplift)' : '平均値結合 (総合底上げ)'),
         vectorTarget,
         metric,
         topPairs: rankingResults.slice(0, 5).map((r) => ({
@@ -463,7 +488,7 @@ function BestPairContent() {
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, partnerRecord, rankingResults, combineMethod, vectorTarget, metric, setAnalyticsContext, t]);
+  }, [targetRecord, partnerRecord, rankingResults, combineMethod, vectorTarget, metric, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -619,9 +644,9 @@ function BestPairContent() {
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="department">{t('common.level.department', '学科レベル')}</option>
-              <option value="faculty">{t('common.level.faculty', '学部レベル')}</option>
-              <option value="university">{t('common.level.university', '大学レベル')}</option>
+              <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
+              <option value="faculty">{t('common.facultyLevel', '学部レベル')}</option>
+              <option value="university">{t('common.universityLevel', '大学レベル')}</option>
             </select>
           </div>
         </div>

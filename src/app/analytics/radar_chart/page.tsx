@@ -429,6 +429,7 @@ function RadarChartContent() {
   // AIエージェントへの画面コンテキスト共有
   useEffect(() => {
     if (!primaryRecord) return;
+    const isEn = language === 'en';
 
     const primaryName = formatLabel(primaryRecord);
     const compareName = isCompareEnabled && compareRecord && compareRecord.id !== primaryRecord.id
@@ -437,23 +438,41 @@ function RadarChartContent() {
 
     const presets: string[] = [];
     if (compareName) {
-      presets.push(`「${primaryName}」と「${compareName}」の最大の違いは何ですか？`);
-      presets.push(`2つの学科で共通している強みスキルを分析して`);
+      if (isEn) {
+        presets.push(`What is the greatest curricular difference between "${primaryName}" and "${compareName}"?`);
+        presets.push(`Analyze the common strengths shared between these two departments.`);
+      } else {
+        presets.push(`「${primaryName}」と「${compareName}」の最大の違いは何ですか？`);
+        presets.push(`2つの学科で共通している強みスキルを分析して`);
+      }
     } else {
-      presets.push(`「${primaryName}」のスキルバランスの特徴と強みを要約して`);
-      presets.push(`「${primaryName}」で不足しているスキル領域を補う科目の提案をして`);
+      if (isEn) {
+        presets.push(`Summarize the characteristics and key strengths of skill balance for "${primaryName}".`);
+        presets.push(`Suggest courses that would help supplement weak skill domains for "${primaryName}".`);
+      } else {
+        presets.push(`「${primaryName}」のスキルバランスの特徴と強みを要約して`);
+        presets.push(`「${primaryName}」で不足しているスキル領域を補う科目の提案をして`);
+      }
     }
-    presets.push(`知識スキル(A群)と汎用スキル(B群)のバランスについての教育的評価は？`);
-    presets.push(`カリキュラム改善のための具体的なアクションプランは？`);
+    if (isEn) {
+      presets.push(`What is the educational assessment regarding the balance between Knowledge (A) and Generic (B) skills?`);
+      presets.push(`What concrete action plans can you recommend for curriculum reform?`);
+    } else {
+      presets.push(`知識スキル(A群)と汎用スキル(B群)のバランスについての教育的評価は？`);
+      presets.push(`カリキュラム改善のための具体的なアクションプランは？`);
+    }
 
     setAnalyticsContext({
       pageTitle: t('analytics.radar.pageTitle', 'スキルレーダーチャート'),
+      pagePath: '/analytics/radar_chart',
       primaryTarget: primaryName,
       compareTarget: compareName || undefined,
-      summaryText: `${primaryName} のシラバススキル分析（${compareName ? `vs ${compareName}` : '単体表示'}）`,
+      summaryText: isEn
+        ? `${primaryName} syllabus skill analysis (${compareName ? `vs ${compareName}` : 'Solo view'})`
+        : `${primaryName} のシラバススキル分析（${compareName ? `vs ${compareName}` : '単体表示'}）`,
       details: {
         viewMode,
-        normalization: 'L1正規化（全軸合計=100%の構成比率）',
+        normalization: isEn ? 'L1 Normalization (Total = 100% composition)' : 'L1正規化（全軸合計=100%の構成比率）',
         primary: {
           name: primaryName,
           subjectCount: primaryRecord.subject_count,
@@ -483,6 +502,7 @@ function RadarChartContent() {
     compareTopK5,
     compareTopG5,
     setAnalyticsContext,
+    language,
     t,
   ]);
 

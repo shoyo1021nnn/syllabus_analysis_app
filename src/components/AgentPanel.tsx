@@ -23,8 +23,9 @@ export function AgentPanel() {
 
     // 表示するプリセット質問を決定 (画面側指定を最優先、未指定時は言語とパスに応じた辞書プリセット)
     const presetQuestions = useMemo(() => {
-        // 画面側から個別指定されていれば最優先（各画面で言語連動済み）
-        if (contextData.presetQuestions && contextData.presetQuestions.length > 0) {
+        // パスが一致する場合のみ画面側指定を最優先（古い画面の質問残存を防止）
+        const pathMatches = !contextData.pagePath || pathname === contextData.pagePath || pathname?.startsWith(contextData.pagePath);
+        if (pathMatches && contextData.presetQuestions && contextData.presetQuestions.length > 0) {
             return contextData.presetQuestions;
         }
 
@@ -32,13 +33,17 @@ export function AgentPanel() {
         if (pathname?.includes('portfolio')) key = 'micro_portfolio';
         else if (pathname?.includes('recommendation')) key = 'micro_recommendation';
         else if (pathname?.includes('micro')) key = 'micro_hub';
+        else if (pathname?.includes('skill_complementation')) key = 'macro_complementation';
+        else if (pathname?.includes('best_pair')) key = 'macro_best_pair';
+        else if (pathname?.includes('greedy_team')) key = 'macro_greedy_team';
+        else if (pathname?.includes('macro')) key = 'macro_hub';
         else if (pathname?.includes('radar_chart')) key = 'radar_chart';
         else if (pathname?.includes('clustering')) key = 'clustering';
         else if (pathname?.includes('similarity')) key = 'similarity';
-        else if (pathname?.includes('macro')) key = 'macro_hub';
 
-        return language === 'en' ? en.agent.presets[key] : ja.agent.presets[key];
-    }, [contextData.presetQuestions, pathname, language]);
+        const dict = language === 'en' ? en.agent.presets : ja.agent.presets;
+        return dict[key] || dict.default;
+    }, [contextData.presetQuestions, contextData.pagePath, pathname, language]);
 
     // メッセージが増えたら一番下まで自動スクロール
     useEffect(() => {

@@ -21,9 +21,10 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function AnalyticsIndexPage() {
   const { setAnalyticsContext } = useAnalyticsContext();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   useEffect(() => {
+    const isEn = language === 'en';
     setAnalyticsContext({
       pageTitle: t('analytics.hub.pageTitle', 'スキルベクトル分析ポータル'),
       pagePath: '/analytics',
@@ -32,25 +33,54 @@ export default function AnalyticsIndexPage() {
       summaryText: t('analytics.hub.summaryText', 'シラバス分析ダッシュボードのトップポータル（3つの客観的分析機能を提供）'),
       details: {
         availableFeatures: [
-          { name: 'K-meansクラスタリング', path: '/analytics/clustering', purpose: '全国の学科のスキル分布をPCAで2次元に縮約・散布図表示し、全体傾向やグループ分けを把握' },
-          { name: '類似度計算ランキング', path: '/analytics/similarity', purpose: '基準学科と他大学のカリキュラム類似度を計算し、類似学科を特定・ベンチマーク' },
-          { name: 'スキルレーダーチャート', path: '/analytics/radar_chart', purpose: '知識12項目・汎用12項目の計24スキル構成比を2学科で直接重ね合わせ詳細対比' }
+          { 
+            name: isEn ? 'K-Means Clustering' : 'K-meansクラスタリング', 
+            path: '/analytics/clustering', 
+            purpose: isEn 
+              ? 'Reduces nationwide skill distribution to 2D via PCA to identify overall patterns and groupings' 
+              : '全国の学科のスキル分布をPCAで2次元に縮約・散布図表示し、全体傾向やグループ分けを把握' 
+          },
+          { 
+            name: isEn ? 'Similarity Ranking' : '類似度計算ランキング', 
+            path: '/analytics/similarity', 
+            purpose: isEn 
+              ? 'Calculates real-time curriculum similarity between your base department and others nationwide' 
+              : '基準学科と他大学のカリキュラム類似度を計算し、類似学科を特定・ベンチマーク' 
+          },
+          { 
+            name: isEn ? 'Skill Radar Chart' : 'スキルレーダーチャート', 
+            path: '/analytics/radar_chart', 
+            purpose: isEn 
+              ? 'Directly overlays and compares all 24 skill distributions across two departments' 
+              : '知識12項目・汎用12項目の計24スキル構成比を2学科で直接重ね合わせ詳細対比' 
+          }
         ],
-        recommendedWorkflow: [
+        recommendedWorkflow: isEn ? [
+          'Step 1: Use K-means clustering to understand where your department sits in the overall nationwide map',
+          'Step 2: Use similarity ranking to find benchmark partner departments with matching curricula',
+          'Step 3: Overlay and compare the 24 skill distributions on radar charts to identify specific strengths and gaps'
+        ] : [
           'ステップ1: K-meansクラスタリングで自学科が全体の中でどのような位置に属しているかを俯瞰',
           'ステップ2: 類似度計算ランキングで自学科と類似しているベンチマーク対象の他大学学科を特定',
           'ステップ3: スキルレーダーチャートでベンチマーク学科と自学科の24スキル構成比を重ね合わせ、強みや補強点を詳細比較'
         ],
-        taxonomySummary: 'A群(知識スキル12項目: A-1〜A-12)およびB群(汎用スキル12項目: B-1〜B-12)の計24項目'
+        taxonomySummary: isEn
+          ? 'Group A (Knowledge Skills 12 items: A-1 to A-12) & Group B (Generic Competencies 12 items: B-1 to B-12) = Total 24 dimensions'
+          : 'A群(知識スキル12項目: A-1〜A-12)およびB群(汎用スキル12項目: B-1〜B-12)の計24項目'
       },
-      presetQuestions: [
+      presetQuestions: isEn ? [
+        'What types of analysis can I perform in Syllabus AI and what are their features?',
+        'Which analysis should I start with to review my department curriculum?',
+        'What is the 24-skill framework extracted from the syllabi?',
+        'What kind of bias is eliminated by L1 vector normalization?'
+      ] : [
         'Syllabus AIでできる分析の種類と特徴を教えて',
         '自学科のカリキュラムを見直すにはどの分析から始めるべき？',
         'シラバスから抽出される24のスキル体系とは何ですか？',
         'L1正規化によってどのようなバイアスが排除されますか？',
       ],
     });
-  }, [setAnalyticsContext, t]);
+  }, [setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">

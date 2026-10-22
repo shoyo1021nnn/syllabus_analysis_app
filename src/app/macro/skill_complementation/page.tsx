@@ -227,18 +227,25 @@ function SkillComplementationContent() {
 
     // 選択された基準対象の大学に合わせて大学フィルターを同期
     const target = dataList.find((d) => d.id === finalId);
-    if (target && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== target.university_name) {
-      setSelectedUnivFilter('全ての大学');
+    if (target && selectedUnivFilter !== allUnivLabel && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== 'All Universities' && selectedUnivFilter !== target.university_name) {
+      setSelectedUnivFilter(allUnivLabel);
     }
   }, [dataList, queryId, queryDept, queryUniv]);
+
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
 
   // 大学フィルター (学部・学科レベル時)
   const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
 
+  // 言語切替時に「全ての大学」ラベルを追従
+  useEffect(() => {
+    setSelectedUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
+  }, [allUnivLabel]);
+
   // レベル変更時に大学フィルターをリセット
   useEffect(() => {
-    setSelectedUnivFilter('全ての大学');
-  }, [level]);
+    setSelectedUnivFilter(allUnivLabel);
+  }, [level, allUnivLabel]);
 
   // 大学一覧リスト
   const universityList = useMemo(() => {
@@ -246,16 +253,16 @@ function SkillComplementationContent() {
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return ['全ての大学', ...Array.from(set)];
-  }, [dataList]);
+    return [allUnivLabel, ...Array.from(set)];
+  }, [dataList, allUnivLabel]);
 
   // 大学フィルター適用後の基準選択肢
   const filteredDataList = useMemo(() => {
-    if (level === 'university' || selectedUnivFilter === '全ての大学') {
+    if (level === 'university' || selectedUnivFilter === allUnivLabel || selectedUnivFilter === '全ての大学' || selectedUnivFilter === 'All Universities') {
       return dataList;
     }
     return dataList.filter((d) => d.university_name === selectedUnivFilter);
-  }, [dataList, level, selectedUnivFilter]);
+  }, [dataList, level, selectedUnivFilter, allUnivLabel]);
 
   // フィルター切替時に未所属なら先頭を自動選択
   useEffect(() => {
@@ -399,37 +406,52 @@ function SkillComplementationContent() {
   // AIエージェントコンテキスト供給
   useEffect(() => {
     if (!targetRecord) return;
+    const isEn = language === 'en';
     const targetLabel = formatLabel(targetRecord);
     const top1 = rankingResults[0];
 
-    const approachNames: Record<ComplementationApproach, string> = {
-      synergy: '専門一致・汎用相補 (バランス型)',
-      gap: '理想ギャップ補填特化',
-      ideal_max: '最大値結合 理想達成度',
-      ideal_mean: '平均値結合 理想達成度',
-      dissimilar_b: '汎用スキル相補（非類似度重視）',
-    };
+    const approachName = t(`macro.complementation.approachNames.${approach}`, 
+      approach === 'synergy' ? '専門一致・汎用相補 (バランス型)' :
+      approach === 'gap' ? '理想ギャップ補填特化' :
+      approach === 'ideal_max' ? '最大値結合 理想達成度' :
+      approach === 'ideal_mean' ? '平均値結合 理想達成度' : '汎用スキル相補 (非類似度重視)'
+    );
 
     const presets: string[] = [];
     if (top1) {
-      presets.push(`「${targetLabel}」の不足スキルを第1位の「${top1.label}」はどう補完していますか？`);
-      presets.push(`補完アプローチ（${approachNames[approach]}）の評価ポイントと教育的意義を解説して`);
-      if (partnerRecord) {
-        presets.push(`「${targetLabel}」と「${formatLabel(partnerRecord)}」が共同カリキュラムを組むメリットは？`);
+      if (isEn) {
+        presets.push(`How does the #1 partner "${top1.label}" complement the weak skills of "${targetLabel}"?`);
+        presets.push(`Explain the educational significance and evaluation criteria of "${approachName}".`);
+        if (partnerRecord) {
+          presets.push(`What are the key curricular benefits if "${targetLabel}" and "${formatLabel(partnerRecord)}" form a joint curriculum?`);
+        }
+      } else {
+        presets.push(`「${targetLabel}」の不足スキルを第1位の「${top1.label}」はどう補完していますか？`);
+        presets.push(`補完アプローチ（${approachName}）の評価ポイントと教育的意義を解説して`);
+        if (partnerRecord) {
+          presets.push(`「${targetLabel}」と「${formatLabel(partnerRecord)}」が共同カリキュラムを組むメリットは？`);
+        }
       }
     }
-    presets.push(`弱点スキルを補強するために、大学間連携で配慮すべき注意点は何ですか？`);
+    if (isEn) {
+      presets.push(`What precautions and governance factors should universities consider when supplementing skill gaps through collaboration?`);
+    } else {
+      presets.push(`弱点スキルを補強するために、大学間連携で配慮すべき注意点は何ですか？`);
+    }
 
     setAnalyticsContext({
       pageTitle: t('macro.complementation.title', 'スキル補完検索'),
+      pagePath: '/macro/skill_complementation',
       primaryTarget: targetLabel,
       compareTarget: partnerRecord ? formatLabel(partnerRecord) : undefined,
-      summaryText: `基準対象: ${targetLabel} のスキル補完検索（アプローチ: ${approachNames[approach]}）`,
+      summaryText: isEn
+        ? `Base: ${targetLabel} skill complementation search (Approach: ${approachName})`
+        : `基準対象: ${targetLabel} のスキル補完検索（アプローチ: ${approachName}）`,
       details: {
         target: targetLabel,
-        approach: approachNames[approach],
+        approach: approachName,
         metric,
-        partner: partnerRecord ? formatLabel(partnerRecord) : '未選択',
+        partner: partnerRecord ? formatLabel(partnerRecord) : (isEn ? 'Not selected' : '未選択'),
         topRankings: rankingResults.slice(0, 5).map((r) => ({
           rank: r.rank,
           label: r.label,
@@ -441,7 +463,7 @@ function SkillComplementationContent() {
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, partnerRecord, rankingResults, approach, metric, setAnalyticsContext, t]);
+  }, [targetRecord, partnerRecord, rankingResults, approach, metric, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -569,8 +591,8 @@ function SkillComplementationContent() {
               onChange={(e) => setMetric(e.target.value as MetricType)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="cosine">{t('analytics.similarity.cosine', 'コサイン類似度 (標準)')}</option>
-              <option value="tanimoto">{t('analytics.similarity.tanimoto', '谷本係数 (Tanimoto)')}</option>
+              <option value="cosine">{t('analytics.similarity.metricCosine', 'コサイン類似度 (標準)')}</option>
+              <option value="tanimoto">{t('analytics.similarity.metricTanimoto', '谷本係数 (Tanimoto)')}</option>
             </select>
           </div>
 
@@ -600,9 +622,9 @@ function SkillComplementationContent() {
               onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
-              <option value="department">{t('common.level.department', '学科レベル')}</option>
-              <option value="faculty">{t('common.level.faculty', '学部レベル')}</option>
-              <option value="university">{t('common.level.university', '大学レベル')}</option>
+              <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
+              <option value="faculty">{t('common.facultyLevel', '学部レベル')}</option>
+              <option value="university">{t('common.universityLevel', '大学レベル')}</option>
             </select>
           </div>
         </div>
@@ -661,7 +683,7 @@ function SkillComplementationContent() {
           </div>
 
           <div className="text-2xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
-            💡 各点にホバーして詳細比率（%）を確認
+            💡 {t('charts.radar.hoverGuide', '各点にホバーして詳細比率（%）を確認')}
           </div>
         </div>
 
