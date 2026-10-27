@@ -131,6 +131,9 @@ function RadarChartContent() {
   // 表示モード & 正規化
   const [viewMode, setViewMode] = useState<ViewMode>('split');
 
+  // スケール上限（ズーム倍率: auto | 100 | 50 | 35 | 25）
+  const [scaleMode, setScaleMode] = useState<'auto' | '100' | '50' | '35' | '25'>('auto');
+
   // 1. データ取得
   useEffect(() => {
     async function fetchData() {
@@ -315,11 +318,6 @@ function RadarChartContent() {
   const toPercent = (vec: number[] = []) =>
     normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
-  // 各種インジケーター (軸)
-  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
-  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
-  const combinedIndicators = useMemo(() => getRadarIndicators('all', { max: 100, language }), [language]);
-
   // シリーズデータの生成
   // 分割表示: 知識12次元・汎用12次元をそれぞれL1正規化 (各総和100%)
   // 統合表示: 24次元全体でL1正規化 (総和100%)
@@ -336,6 +334,40 @@ function RadarChartContent() {
     () => toPercent(combineVectors(compareRecord?.knowledge_vector || [], compareRecord?.general_vector || [])),
     [compareRecord]
   );
+
+  // スケール上限 (最大値) の自動計算 (Auto Fit)
+  const computedMax = useMemo(() => {
+    if (scaleMode !== 'auto') {
+      return Number(scaleMode);
+    }
+    let values: number[] = [];
+    if (viewMode === 'knowledge') {
+      values = [...primaryKVec, ...(isCompareEnabled ? compareKVec : [])];
+    } else if (viewMode === 'general') {
+      values = [...primaryGVec, ...(isCompareEnabled ? compareGVec : [])];
+    } else if (viewMode === 'combined') {
+      values = [...primaryAllVec, ...(isCompareEnabled ? compareAllVec : [])];
+    } else {
+      // split: 知識・汎用両方の最大値
+      values = [
+        ...primaryKVec,
+        ...primaryGVec,
+        ...(isCompareEnabled ? [...compareKVec, ...compareGVec] : []),
+      ];
+    }
+    const maxVal = values.length > 0 ? Math.max(...values, 5) : 30;
+    if (maxVal <= 16) return 20;
+    if (maxVal <= 22) return 25;
+    if (maxVal <= 30) return 35;
+    if (maxVal <= 42) return 50;
+    if (maxVal <= 65) return 75;
+    return 100;
+  }, [scaleMode, viewMode, primaryKVec, primaryGVec, primaryAllVec, compareKVec, compareGVec, compareAllVec, isCompareEnabled]);
+
+  // 各種インジケーター (軸) - スケール上限を動的適用
+  const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: computedMax, language }), [computedMax, language]);
+  const generalIndicators = useMemo(() => getRadarIndicators('general', { max: computedMax, language }), [computedMax, language]);
+  const combinedIndicators = useMemo(() => getRadarIndicators('all', { max: computedMax, language }), [computedMax, language]);
 
   // EChartsへ渡すシリーズ配列
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
@@ -571,6 +603,22 @@ function RadarChartContent() {
                 <option value="combined">{t('analytics.radar.combined', '統合表示 (24角形)')}</option>
                 <option value="knowledge">{t('analytics.radar.knowledgeOnly', '知識関連スキルのみ (12角形)')}</option>
                 <option value="general">{t('analytics.radar.generalOnly', '汎用スキルのみ (12角形)')}</option>
+              </select>
+            </div>
+
+            {/* スケール上限 (ズーム) */}
+            <div className="flex items-center space-x-1.5">
+              <span className="text-xs font-semibold text-slate-600">{t('analytics.radar.scaleLabel', 'スケール:')}</span>
+              <select
+                value={scaleMode}
+                onChange={(e) => setScaleMode(e.target.value as any)}
+                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              >
+                <option value="auto">{t('analytics.radar.scaleAuto', '自動最適化 (フィット)')}</option>
+                <option value="100">{t('analytics.radar.scale100', '100% (全体比率)')}</option>
+                <option value="50">{t('analytics.radar.scale50', '50% (中倍率 2x)')}</option>
+                <option value="35">{t('analytics.radar.scale35', '35% (高倍率 2.8x)')}</option>
+                <option value="25">{t('analytics.radar.scale25', '25% (超高倍率 4x)')}</option>
               </select>
             </div>
           </div>
