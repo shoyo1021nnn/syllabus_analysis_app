@@ -217,9 +217,19 @@ export function SearchableSelect({
 
       {/* ドロップダウンメニュー */}
       {isOpen && (
-        <div
-          className={`absolute left-0 right-0 z-40 mt-1 bg-white border ${theme.border} rounded-xl shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100`}
-        >
+        <>
+          {/* 外側クリック吸収用オーバーレイ（背後要素への誤クリック貫通を防止） */}
+          <div
+            className="fixed inset-0 z-30 bg-transparent"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              setSearchTerm('');
+            }}
+          />
+          <div
+            className={`absolute left-0 right-0 z-40 mt-1 bg-white border ${theme.border} rounded-xl shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100`}
+          >
           {/* 検索入力フィールド */}
           <div className="p-2 border-b border-slate-100 bg-slate-50/70">
             <div className="relative">
@@ -266,6 +276,7 @@ export function SearchableSelect({
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );

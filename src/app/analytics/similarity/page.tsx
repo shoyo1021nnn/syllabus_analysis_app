@@ -191,7 +191,11 @@ function SimilarityPageContent() {
           setIsUsingMock(true);
         } else {
           setDbError(null);
-          setDataList(data);
+          // 実験用レコード（gpt-5.6-terra等）を除外
+          const validData = (data as SkillVectorRecord[]).filter(
+            (d) => !d.university_name.includes('gpt-')
+          );
+          setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
         }
       } catch (err: any) {

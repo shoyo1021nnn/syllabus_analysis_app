@@ -161,7 +161,11 @@ function RadarChartContent() {
           setIsUsingMock(true);
         } else {
           setDbError(null);
-          setDataList(data);
+          // 実験用レコード（gpt-5.6-terra等）を除外
+          const validData = (data as SkillVectorRecord[]).filter(
+            (d) => !d.university_name.includes('gpt-')
+          );
+          setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
         }
       } catch (err: any) {
@@ -635,71 +639,94 @@ function RadarChartContent() {
           </div>
 
           {/* 対象 2 (比較: 橙/テラコッタオレンジ) */}
-          <div className={`p-3.5 rounded-lg border transition space-y-2.5 ${isCompareEnabled ? 'bg-orange-50/40 border-orange-200' : 'bg-slate-50/50 border-slate-200 opacity-70'}`}>
-            {/* 比較対象用 大学フィルター (学部・学科時) */}
-            {isCompareEnabled && level !== 'university' && universityList.length > 1 && (
-              <div className="pb-2 border-b border-orange-200/60">
-                <SearchableSelect
-                  label={t('analytics.radar.univFilterCompare', '大学絞り込み (比較):')}
-                  options={universityList}
-                  value={compareUnivFilter}
-                  onChange={setCompareUnivFilter}
-                  placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
-                  colorScheme="orange"
-                />
+          <div className={`p-3.5 rounded-lg border transition space-y-2.5 ${isCompareEnabled ? 'bg-orange-50/40 border-orange-200' : 'bg-slate-50/60 border-slate-200'}`}>
+            {/* ヘッダー: 見出し + 比較ON/OFFトグル */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-orange-800 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                  {t('analytics.radar.compareTarget', '比較対象 (橙)')}
+                </span>
+                <label className="inline-flex items-center gap-1.5 text-2xs font-semibold cursor-pointer select-none text-slate-700 bg-white px-2 py-0.5 rounded-full border border-orange-200 hover:bg-orange-50 transition shadow-2xs">
+                  <input
+                    type="checkbox"
+                    checked={isCompareEnabled}
+                    onChange={(e) => setIsCompareEnabled(e.target.checked)}
+                    className="w-3.5 h-3.5 text-orange-600 rounded border-orange-300 focus:ring-orange-500 cursor-pointer"
+                  />
+                  <span>{isCompareEnabled ? t('analytics.radar.compareModeOn', '比較ON') : t('analytics.radar.compareModeOff', '比較OFF')}</span>
+                </label>
               </div>
-            )}
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
+              {isCompareEnabled && compareRecord && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-orange-700 font-medium flex items-center gap-1">
+                    <BookOpen className="w-3.5 h-3.5" /> {t('common.subjectCount', '科目数')}: {compareRecord.subject_count}
+                  </span>
+                  <AcademicUnitInfoButton
+                    target={{
+                      id: compareRecord.id,
+                      universityName: compareRecord.university_name,
+                      facultyName: (compareRecord as any).faculty_name,
+                      departmentName: (compareRecord as any).department_name,
+                      subjectCount: compareRecord.subject_count,
+                      websiteUrl: compareRecord.website_url,
+                      level,
+                      knowledgeVector: compareRecord.knowledge_vector,
+                      generalVector: compareRecord.general_vector,
+                    }}
+                    variant="badge"
+                    size="2xs"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* 比較有効時のセレクター群 / 無効時のガイダンス */}
+            {!isCompareEnabled ? (
+              <div className="py-4 px-3 text-center rounded-lg border border-dashed border-orange-300/80 bg-white/80 flex flex-col items-center justify-center gap-2">
+                <p className="text-xs text-slate-600 font-medium">
+                  {t('analytics.radar.compareDisabledNotice', '現在は基準対象のみの「単体表示」です')}
+                </p>
                 <button
                   type="button"
-                  onClick={() => setIsCompareEnabled(!isCompareEnabled)}
-                  className="text-xs font-bold text-orange-800 flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer"
+                  onClick={() => setIsCompareEnabled(true)}
+                  className="px-3 py-1.5 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-lg shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  {isCompareEnabled ? (
-                    <CheckSquare className="w-4 h-4 text-orange-600" />
-                  ) : (
-                    <Square className="w-4 h-4 text-slate-400" />
-                  )}
-                  <span>{t('analytics.radar.compareTarget', '比較対象 (橙)')}</span>
+                  <CheckSquare className="w-3.5 h-3.5" />
+                  {t('analytics.radar.enableCompareBtn', '比較対象を追加して比較する')}
                 </button>
-                {isCompareEnabled && compareRecord && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-orange-700 font-medium flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5" /> {t('common.subjectCount', '科目数')}: {compareRecord.subject_count}
-                    </span>
-                    <AcademicUnitInfoButton
-                      target={{
-                        id: compareRecord.id,
-                        universityName: compareRecord.university_name,
-                        facultyName: (compareRecord as any).faculty_name,
-                        departmentName: (compareRecord as any).department_name,
-                        subjectCount: compareRecord.subject_count,
-                        websiteUrl: compareRecord.website_url,
-                        level,
-                        knowledgeVector: compareRecord.knowledge_vector,
-                        generalVector: compareRecord.general_vector,
-                      }}
-                      variant="badge"
-                      size="2xs"
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {/* 比較対象用 大学フィルター (学部・学科時) */}
+                {level !== 'university' && universityList.length > 1 && (
+                  <div className="pb-2 border-b border-orange-200/60">
+                    <SearchableSelect
+                      label={t('analytics.radar.univFilterCompare', '大学絞り込み (比較):')}
+                      options={universityList}
+                      value={compareUnivFilter}
+                      onChange={setCompareUnivFilter}
+                      placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
+                      colorScheme="orange"
                     />
                   </div>
                 )}
+
+                <select
+                  value={compareId}
+                  onChange={(e) => setCompareId(e.target.value)}
+                  disabled={isLoading || filteredCompareList.length === 0}
+                  className="w-full px-3 py-2 text-sm bg-white border border-orange-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  {filteredCompareList.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {formatLabel(item)}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <select
-                value={compareId}
-                onChange={(e) => setCompareId(e.target.value)}
-                disabled={!isCompareEnabled || isLoading || filteredCompareList.length === 0}
-                className="w-full px-3 py-2 text-sm bg-white border border-orange-200 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm disabled:bg-slate-100 disabled:text-slate-400"
-              >
-                {filteredCompareList.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {formatLabel(item)}
-                  </option>
-                ))}
-              </select>
-            </div>
+            )}
           </div>
         </div>
       </div>
