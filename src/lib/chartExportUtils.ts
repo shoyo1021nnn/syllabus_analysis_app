@@ -124,8 +124,9 @@ export async function exportRadarChartToPng(options: ExportRadarOptions): Promis
       name: formatRadarAxisName(ind.name),
     }));
 
-    // 4. 見切れ完全防止の最適化オプション
+    // 4. 見切れ完全防止の最適化オプション (animation: false で完全レンダリングを強制)
     const option: echarts.EChartsOption = {
+      animation: false,
       backgroundColor,
       title: {
         text: title,
@@ -193,16 +194,28 @@ export async function exportRadarChartToPng(options: ExportRadarOptions): Promis
         {
           name: title,
           type: 'radar',
+          animation: false,
           symbol: 'circle',
-          symbolSize: 6,
+          symbolSize: 7,
           data: seriesData.map((item, idx) => {
             const color = item.color || DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
             return {
               value: item.value,
               name: item.name,
-              itemStyle: { color },
-              lineStyle: { width: 2.5, color },
-              areaStyle: { color, opacity: 0.25 },
+              itemStyle: {
+                color,
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
+              },
+              lineStyle: {
+                width: 3.0,
+                color,
+                opacity: 0.95,
+              },
+              areaStyle: {
+                color,
+                opacity: 0.32,
+              },
             };
           }),
         },
@@ -275,6 +288,7 @@ export async function exportDualRadarChartsToPng(options: ExportDualRadarOptions
     }));
 
     const option: echarts.EChartsOption = {
+      animation: false,
       backgroundColor,
       title: [
         {
@@ -381,16 +395,28 @@ export async function exportDualRadarChartsToPng(options: ExportDualRadarOptions
           name: leftTitle,
           type: 'radar',
           radarIndex: 0,
+          animation: false,
           symbol: 'circle',
-          symbolSize: 6,
+          symbolSize: 7,
           data: leftSeriesData.map((item, idx) => {
             const color = item.color || DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
             return {
               value: item.value,
               name: item.name,
-              itemStyle: { color },
-              lineStyle: { width: 2.5, color },
-              areaStyle: { color, opacity: 0.25 },
+              itemStyle: {
+                color,
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
+              },
+              lineStyle: {
+                width: 3.0,
+                color,
+                opacity: 0.95,
+              },
+              areaStyle: {
+                color,
+                opacity: 0.32,
+              },
             };
           }),
         },
@@ -398,16 +424,28 @@ export async function exportDualRadarChartsToPng(options: ExportDualRadarOptions
           name: rightTitle,
           type: 'radar',
           radarIndex: 1,
+          animation: false,
           symbol: 'circle',
-          symbolSize: 6,
+          symbolSize: 7,
           data: rightSeriesData.map((item, idx) => {
             const color = item.color || DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
             return {
               value: item.value,
               name: item.name,
-              itemStyle: { color },
-              lineStyle: { width: 2.5, color },
-              areaStyle: { color, opacity: 0.25 },
+              itemStyle: {
+                color,
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
+              },
+              lineStyle: {
+                width: 3.0,
+                color,
+                opacity: 0.95,
+              },
+              areaStyle: {
+                color,
+                opacity: 0.32,
+              },
             };
           }),
         },
