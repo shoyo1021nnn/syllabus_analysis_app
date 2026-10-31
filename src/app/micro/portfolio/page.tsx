@@ -24,6 +24,7 @@ import {
   FileText
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { ilikeContains } from "@/lib/postgrestFilter";
 import { CourseSkillVector, EnrolledCourse } from "@/types/database";
 import { 
   calculatePersonalSkillProfile, 
@@ -242,7 +243,10 @@ export default function MicroPortfolioPage() {
 
       if (searchQuery.trim()) {
         const term = searchQuery.trim();
-        query = query.or(`course_name.ilike.%${term}%,course_code.ilike.%${term}%,instructor.ilike.%${term}%`);
+        // 入力に , ( ) などが含まれても .or() の構文が壊れないよう、値をクォートしてエスケープする
+        query = query.or(
+          ['course_name', 'course_code', 'instructor'].map((col) => ilikeContains(col, term)).join(',')
+        );
       }
 
       const { data, error } = await query;

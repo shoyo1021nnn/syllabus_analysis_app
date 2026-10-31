@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractText } from "unpdf";
 import { createClient } from "@supabase/supabase-js";
+import { ilikeEndsWith } from "@/lib/postgrestFilter";
 import { CourseSkillVector } from "@/types/database";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -293,7 +294,8 @@ export async function POST(req: NextRequest) {
     let bySuffixData: CourseSkillVector[] = [];
     if (codeSuffixes.length > 0) {
       // 50件ずつバッチ照会
-      const orConditions = codeSuffixes.map((s) => `course_code.ilike.%${s}`).join(",");
+      // PDF から読み取った値を .or() の文字列に埋め込むため、念のためクォートしてエスケープする
+      const orConditions = codeSuffixes.map((s) => ilikeEndsWith("course_code", s)).join(",");
       const { data: suffixMatches } = await supabase
         .from("course_skill_vectors")
         .select("*")
