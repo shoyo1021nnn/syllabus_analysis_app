@@ -660,6 +660,10 @@ export const ja = {
       generic: "回答の取得に失敗しました。時間をおいて再度お試しください。",
       dismiss: "閉じる",
     },
+    actions: {
+      title: "おすすめの分析アクション",
+      applying: "反映中...",
+    },
     send: "送信",
     presets: {
       radar_chart: [

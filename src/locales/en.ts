@@ -660,6 +660,10 @@ export const en = {
       generic: "Failed to get a response. Please try again later.",
       dismiss: "Dismiss",
     },
+    actions: {
+      title: "Recommended analysis actions",
+      applying: "Applying...",
+    },
     send: "Send",
     presets: {
       radar_chart: [
