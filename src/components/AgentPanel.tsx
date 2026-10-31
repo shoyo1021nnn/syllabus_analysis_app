@@ -1,14 +1,16 @@
 "use client";
 
 import { useChat } from '@ai-sdk/react';
-import { Send, User, Bot, Sparkles, Layers, RotateCcw } from 'lucide-react';
+import { Send, User, Bot, Sparkles, RotateCcw, AlertCircle } from 'lucide-react';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useSharedChat } from '@/context/ChatContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { ja } from '@/locales/ja';
 import { en } from '@/locales/en';
 import MarkdownMessage from '@/components/MarkdownMessage';
+import { APICallError, type TextUIPart } from 'ai';
 
 export function AgentPanel() {
     const [input, setInput] = useState('');
@@ -16,8 +18,29 @@ export function AgentPanel() {
     const { contextData } = useAnalyticsContext();
     const { language, t } = useLanguage();
 
-    // Vercel AI SDK仕様の useChat
-    const { messages, sendMessage, status, setMessages } = useChat();
+    // ルート（ChatProvider）で保持する Chat インスタンスを共有し、セクション移動後も履歴を残す
+    const chat = useSharedChat();
+    const { messages, sendMessage, status, setMessages, error, clearError } = useChat({ chat });
+
+    // /api/chat のエラー（429 レート制限 / 400 入力上限超過 など）を利用者向けの文言に変換する
+    const errorText = useMemo(() => {
+        if (!error) return null;
+        if (APICallError.isInstance(error)) {
+            if (error.statusCode === 429) {
+                let seconds = '';
+                try {
+                    const parsed = JSON.parse(error.responseBody || '{}');
+                    if (typeof parsed.retryAfterSec === 'number') seconds = String(parsed.retryAfterSec);
+                } catch { /* 本文が JSON でない場合は秒数なしで表示 */ }
+                return t('agent.errors.rateLimited', '短時間に送信が集中したため一時的に制限しています。{seconds}秒ほど待ってから再度お試しください。')
+                    .replace('{seconds}', seconds || '60');
+            }
+            if (error.statusCode === 400) {
+                return t('agent.errors.invalidRequest', '送信内容が上限（メッセージの長さ・件数、画面データの大きさ）を超えたため処理できませんでした。質問を短くするか、リセットしてからお試しください。');
+            }
+        }
+        return t('agent.errors.generic', '回答の取得に失敗しました。時間をおいて再度お試しください。');
+    }, [error, t]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isLoading = status === 'submitted' || status === 'streaming';
 
@@ -130,11 +153,11 @@ export function AgentPanel() {
                                 }`}>
                                 {m.role === 'user' ? (
                                     <div className="whitespace-pre-wrap leading-relaxed">
-                                        {m.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')}
+                                        {m.parts?.filter((p): p is TextUIPart => p.type === 'text').map((p) => p.text).join('\n')}
                                     </div>
                                 ) : (
                                     <MarkdownMessage
-                                        content={m.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n') || ''}
+                                        content={m.parts?.filter((p): p is TextUIPart => p.type === 'text').map((p) => p.text).join('\n') || ''}
                                     />
                                 )}
                             </div>
@@ -158,6 +181,20 @@ export function AgentPanel() {
                             <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
                             <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                         </div>
+                    </div>
+                )}
+                {/* 送信エラー表示 */}
+                {errorText && !isLoading && (
+                    <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs text-rose-700 dark:text-rose-300">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <p className="flex-1 leading-relaxed">{errorText}</p>
+                        <button
+                            type="button"
+                            onClick={() => clearError()}
+                            className="shrink-0 text-[11px] font-medium underline underline-offset-2 hover:text-rose-900 dark:hover:text-rose-100 cursor-pointer"
+                        >
+                            {t('agent.errors.dismiss', '閉じる')}
+                        </button>
                     </div>
                 )}
                 <div ref={messagesEndRef} />

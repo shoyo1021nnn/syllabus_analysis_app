@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ChatProvider } from "@/context/ChatContext";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <LanguageProvider>{children}</LanguageProvider>
+        <LanguageProvider>
+          {/* チャット履歴はセクションをまたいで保持するためルートに置く */}
+          <ChatProvider>{children}</ChatProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

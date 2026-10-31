@@ -1,5 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 環境変数（`.env.local`）
+
+| 変数 | 既定値 | 用途 |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | なし | Supabase の URL（末尾の `/rest/v1` は自動除去） |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | なし | Supabase の anon キー |
+| `OPENAI_API_KEY` | なし | `/api/chat` が使用 |
+| `CHAT_RATE_LIMIT_MAX` | `20` | `/api/chat` のレート制限：ウィンドウ内に許可する IP ごとのリクエスト数（超過時は 429） |
+| `CHAT_RATE_LIMIT_WINDOW_SEC` | `60` | `/api/chat` のレート制限：ウィンドウの長さ（秒） |
+| `CHAT_MAX_MESSAGES` | `40` | 1 リクエストで受け付けるメッセージ数の上限（超過時は 400） |
+| `CHAT_MAX_HISTORY` | `20` | モデルに渡す直近メッセージ数（古い履歴は切り捨て） |
+| `CHAT_MAX_MESSAGE_CHARS` | `4000` | ユーザーメッセージ 1 件の最大文字数（アシスタントの過去回答はその 4 倍。超過時は 400） |
+| `CHAT_MAX_CONTEXT_BYTES` | `32768` | 画面文脈 `context` の JSON の最大バイト数（超過時は 400） |
+
+`CHAT_*` はサーバー側でのみ読み込む（`src/lib/chatGuard.ts`）。レート制限はプロセスのメモリ内で数えるため、学内 VM（PM2 単一プロセス）では有効だが、Vercel のサーバーレス環境では厳密には効かない。VM では Nginx の `limit_req` も併用する（[docs/nginx-rate-limit.md](docs/nginx-rate-limit.md)）。
+
 ## Getting Started
 
 First, run the development server:

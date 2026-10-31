@@ -1,17 +1,38 @@
 import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
+import { checkRateLimit, getClientIp, validateChatRequest } from '@/lib/chatGuard';
 
 // レスポンスのストリーミングを最大30秒まで許可
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-   const { messages, context, language = 'ja' } = await req.json();
+   // 1. IP 単位の簡易レート制限（メモリ内。Vercel では厳密に効かない点は chatGuard.ts を参照）
+   const rate = checkRateLimit(getClientIp(req));
+   if (!rate.ok) {
+      return Response.json(
+         { error: 'rate_limited', message: `Too many requests. Retry after ${rate.retryAfterSec} seconds.`, retryAfterSec: rate.retryAfterSec },
+         { status: 429, headers: { 'Retry-After': String(rate.retryAfterSec) } }
+      );
+   }
 
-   // v7のUIMessage形式(parts)をCoreMessage形式(content)にマッピングする
-   const coreMessages = messages.map((m: any) => ({
-      role: m.role,
-      content: m.content || (m.parts ? m.parts.map((p: any) => p.text || '').join('') : '')
-   }));
+   // 2. 入力の検証（メッセージ数・文字数・context サイズ）と直近 N 件への切り詰め
+   let body: unknown;
+   try {
+      body = await req.json();
+   } catch {
+      return Response.json({ error: 'invalid_json', message: 'Request body must be valid JSON.' }, { status: 400 });
+   }
+   const validated = validateChatRequest(body);
+   if (!validated.ok) {
+      return Response.json({ error: validated.error, message: validated.message }, { status: 400 });
+   }
+   const { language } = validated;
+   // 既存のプロンプト組み立てが context のプロパティを直接参照するため、ここでは緩い型で扱う
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   const context = validated.context as Record<string, any> | undefined;
+
+   // v7のUIMessage形式(parts)は validateChatRequest で {role, content} 形式に変換済み
+   const coreMessages = validated.messages;
 
    let systemPrompt = `あなたは大学のシラバス・カリキュラム分析を専門とする客観的で誠実な教育データ分析AI「Syllabus AI」です。
 学生、大学教員、カリキュラム設計者に対し、**『提示された分析結果が客観的に何を示しているか』を誰でも素早く、直感的に読み解けるように導くこと**を使命として回答してください。

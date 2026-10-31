@@ -360,6 +360,8 @@ export const ja = {
       categoryKnowledge: "専門知識 (A群)",
       categoryGeneral: "汎用スキル (B群)",
       gapEmpty: "履修科目が登録されると不足スキルが判定されます",
+      tieNote: "同じ {score}pt のスキルが他に {count} 項目あります（同点のときはスキル定義順の先頭から表示しています）",
+      tieShowList: "同点のスキルを表示",
       currentScore: "現在",
       filterFaculty: "学部:",
       filterSemester: "学期:",
@@ -367,6 +369,9 @@ export const ja = {
       displayCount: "上位 {{count}} 科目を表示",
       loadingDesc: "シラバスデータを分析し、あなたに最適な補完科目を計算しています...",
       noCourses: "条件に一致する推薦科目が見つかりませんでした。絞り込み条件を緩和してください。",
+      noEnrollmentTitle: "まず履修科目を登録してください",
+      noEnrollmentDesc: "不足スキルの判定と科目推薦は、履修済み科目のスキル合計をもとに計算します。履修・スキルポートフォリオで受講した科目を追加すると、ここに推薦結果が表示されます。",
+      goToPortfolio: "履修ポートフォリオで科目を登録する",
       credits: "単位",
       noInstructor: "教員未記載",
       gapFillScore: "補完適合度",
@@ -649,6 +654,12 @@ export const ja = {
     emptyTitleDefault: "シラバスデータについて何でも質問してください",
     emptyDescription: "画面の選択状態に応じたおすすめの質問チップをクリックするか、下部に質問を入力してください。",
     inputPlaceholder: "メッセージを入力...",
+    errors: {
+      rateLimited: "短時間に送信が集中したため一時的に制限しています。{seconds}秒ほど待ってから再度お試しください。",
+      invalidRequest: "送信内容が上限（メッセージの長さ・件数、画面データの大きさ）を超えたため処理できませんでした。質問を短くするか、リセットしてからお試しください。",
+      generic: "回答の取得に失敗しました。時間をおいて再度お試しください。",
+      dismiss: "閉じる",
+    },
     send: "送信",
     presets: {
       radar_chart: [

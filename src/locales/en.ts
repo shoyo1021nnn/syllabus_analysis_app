@@ -360,6 +360,8 @@ export const en = {
       categoryKnowledge: "Specialized (Group A)",
       categoryGeneral: "Generic (Group B)",
       gapEmpty: "Skill gaps will be detected once enrolled courses are added.",
+      tieNote: "{count} more skills share the same score of {score}pt (ties are shown in skill-definition order)",
+      tieShowList: "Show tied skills",
       currentScore: "Current",
       filterFaculty: "Faculty:",
       filterSemester: "Semester:",
@@ -367,6 +369,9 @@ export const en = {
       displayCount: "Showing top {{count}} courses",
       loadingDesc: "Analyzing syllabus data and computing optimal courses for you...",
       noCourses: "No courses found matching criteria. Please loosen your filters.",
+      noEnrollmentTitle: "Please register your enrolled courses first",
+      noEnrollmentDesc: "Skill gaps and course recommendations are calculated from the summed skills of the courses you have taken. Add your courses in the Academic & Skill Portfolio, and recommendations will appear here.",
+      goToPortfolio: "Register courses in the portfolio",
       credits: "credits",
       noInstructor: "Instructor not listed",
       gapFillScore: "Gap Fit Score",
@@ -649,6 +654,12 @@ export const en = {
     emptyTitleDefault: "Ask anything about syllabus and curriculum data",
     emptyDescription: "Click a suggested question chip below or type your question in the input box.",
     inputPlaceholder: "Type a message...",
+    errors: {
+      rateLimited: "Too many requests in a short time. Please wait about {seconds} seconds and try again.",
+      invalidRequest: "The request exceeded the limits (message length/count or screen data size). Please shorten your question or reset the chat and try again.",
+      generic: "Failed to get a response. Please try again later.",
+      dismiss: "Dismiss",
+    },
     send: "Send",
     presets: {
       radar_chart: [
