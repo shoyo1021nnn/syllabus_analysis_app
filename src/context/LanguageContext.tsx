@@ -48,10 +48,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (path: string, fallback?: string): string => {
     const dict = language === "en" ? en : ja;
     const keys = path.split(".");
-    let current: any = dict;
+    let current: unknown = dict;
     for (const key of keys) {
       if (current && typeof current === "object" && key in current) {
-        current = current[key];
+        current = (current as Record<string, unknown>)[key];
       } else {
         return fallback || path;
       }

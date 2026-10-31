@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
+import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -196,7 +197,7 @@ function SimilarityPageContent() {
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error in fetching skill vectors:', err);
         setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
@@ -251,10 +252,10 @@ function SimilarityPageContent() {
     if (queryId && dataList.some((d) => d.id === queryId)) {
       matchedId = queryId;
     } else if (queryDept) {
-      const found = dataList.find((item: any) => {
+      const found = dataList.find((item) => {
         const matchDept =
-          item.department_name === queryDept ||
-          item.faculty_name === queryDept ||
+          getDepartmentName(item) === queryDept ||
+          getFacultyName(item) === queryDept ||
           item.university_name === queryDept;
         if (queryUniv) return matchDept && item.university_name === queryUniv;
         return matchDept;
@@ -287,8 +288,8 @@ function SimilarityPageContent() {
   // 表示名フォーマッタ
   const formatLabel = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
-    const dept = (rec as any).department_name;
-    const fac = (rec as any).faculty_name;
+    const dept = getDepartmentName(rec);
+    const fac = getFacultyName(rec);
     if (dept) return `【${rec.university_name}】 ${dept}`;
     if (fac) return `【${rec.university_name}】 ${fac}`;
     return `【${rec.university_name}】`;
@@ -322,8 +323,8 @@ function SimilarityPageContent() {
       id: item.id,
       label: formatLabel(item),
       university_name: item.university_name,
-      faculty_name: (item as any).faculty_name,
-      department_name: (item as any).department_name,
+      faculty_name: getFacultyName(item),
+      department_name: getDepartmentName(item),
       vector: extractVector(item),
       subject_count: item.subject_count,
       website_url: item.website_url,
@@ -557,8 +558,8 @@ function SimilarityPageContent() {
                     target={{
                       id: targetRecord.id,
                       universityName: targetRecord.university_name,
-                      facultyName: (targetRecord as any).faculty_name,
-                      departmentName: (targetRecord as any).department_name,
+                      facultyName: getFacultyName(targetRecord),
+                      departmentName: getDepartmentName(targetRecord),
                       subjectCount: targetRecord.subject_count,
                       websiteUrl: targetRecord.website_url,
                       level,
@@ -670,8 +671,8 @@ function SimilarityPageContent() {
                 target={{
                   id: targetRecord.id,
                   universityName: targetRecord.university_name,
-                  facultyName: (targetRecord as any).faculty_name,
-                  departmentName: (targetRecord as any).department_name,
+                  facultyName: getFacultyName(targetRecord),
+                  departmentName: getDepartmentName(targetRecord),
                   subjectCount: targetRecord.subject_count,
                   websiteUrl: targetRecord.website_url,
                   level,

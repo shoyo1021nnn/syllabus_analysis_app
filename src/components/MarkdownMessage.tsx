@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type ExtraProps } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -82,7 +82,7 @@ export default function MarkdownMessage({ content }: MarkdownMessageProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ inline, className, children, ...props }: any) {
+          code({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & ExtraProps & { inline?: boolean }) {
             const match = /language-([a-zA-Z0-9_-]+)/.exec(className || '');
             const lang = match ? match[1].toLowerCase() : '';
             const codeString = String(children).replace(/\n$/, '');

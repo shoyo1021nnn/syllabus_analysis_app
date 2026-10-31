@@ -470,13 +470,16 @@ export async function POST(req: NextRequest) {
       extractedCount: detectedItems.length,
       detectedItems,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("PDF parse error:", err);
+    // 従来の err?.message と同じく、message を持つ値ならその文字列を使う
+    const message =
+      err && typeof err === "object" && "message" in err && err.message ? String(err.message) : "";
     return NextResponse.json(
       {
-        error: "PDFの処理中にエラーが発生しました: " + (err?.message || "不明なエラー"),
+        error: "PDFの処理中にエラーが発生しました: " + (message || "不明なエラー"),
         code: "processing_failed",
-        detail: err?.message || "",
+        detail: message,
       },
       { status: 500 }
     );

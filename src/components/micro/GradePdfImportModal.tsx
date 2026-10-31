@@ -113,9 +113,9 @@ export default function GradePdfImportModal({
       setSelectedIds(initialSelected);
 
       setStep("confirm");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setErrorMessage(err.message || t('modal.gradePdf.errorParse'));
+      setErrorMessage((err instanceof Error && err.message) || t('modal.gradePdf.errorParse'));
     } finally {
       setIsUploading(false);
     }

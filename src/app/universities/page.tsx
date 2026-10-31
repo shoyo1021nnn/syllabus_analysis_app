@@ -177,7 +177,7 @@ export default function UniversitiesPage() {
             }
           }
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Fetch exception:', err);
         setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setUniversities(MOCK_UNIVERSITIES);

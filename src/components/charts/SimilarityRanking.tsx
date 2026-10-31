@@ -73,7 +73,7 @@ export default function SimilarityRanking({
         borderWidth: 1,
         textStyle: { color: '#1e293b' },
         extraCssText: 'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 8px;',
-        formatter: (params: any) => {
+        formatter: (params: Array<{ name?: string; value?: number }>) => {
           const p = params[0];
           if (!p) return '';
           return `
@@ -124,14 +124,14 @@ export default function SimilarityRanking({
           label: {
             show: true,
             position: 'right',
-            formatter: (params: any) => params.value.toFixed(3),
+            formatter: (params: { value: number }) => params.value.toFixed(3),
             color: '#475569',
             fontSize: 11,
             fontWeight: 600,
           },
           itemStyle: {
             borderRadius: [0, 6, 6, 0],
-            color: (params: any) => {
+            color: (params: { dataIndex: number }) => {
               // 上位（配列の末尾）ほど濃い色にグラデーション
               const idx = params.dataIndex; // 0 (10位) 〜 9 (1位)
               if (isEuclid) {

@@ -4,9 +4,15 @@ import React, { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Camera, Check, Loader2 } from 'lucide-react';
 import { ClusteringPoint } from '@/types/database';
+import type { EChartsInstance } from 'echarts-for-react/lib/types';
 import { useLanguage } from '@/context/LanguageContext';
 
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
+
+/** 散布図の 1 点：[PC1, PC2, 元の ClusteringPoint] */
+type ScatterDatum = [number, number, ClusteringPoint];
+/** tooltip / click で受け取る値のうち、この画面で使うもの */
+type ScatterEventParams = { value?: ScatterDatum; color?: string };
 
 interface ClusterScatterPlotProps {
   points?: ClusteringPoint[];
@@ -47,7 +53,7 @@ export default function ClusterScatterPlot({
   exportFilename = 'clustering_scatter_plot.png',
 }: ClusterScatterPlotProps) {
   const { t } = useLanguage();
-  const [chartInstance, setChartInstance] = useState<any>(null);
+  const [chartInstance, setChartInstance] = useState<EChartsInstance | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -107,7 +113,7 @@ export default function ClusterScatterPlot({
       return {
         name: `Cluster ${cid}`,
         type: 'scatter',
-        symbolSize: (dataItem: any) => {
+        symbolSize: (dataItem: ScatterDatum) => {
           // 選択されたポイントはサイズを拡大してハイライト
           const isSelected = selectedPointId && dataItem[2]?.id === selectedPointId;
           return isSelected ? 18 : 11;
@@ -160,8 +166,8 @@ export default function ClusterScatterPlot({
         borderWidth: 1,
         textStyle: { color: '#0f172a' },
         extraCssText: 'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 8px;',
-        formatter: (params: any) => {
-          const point: ClusteringPoint = params.value?.[2];
+        formatter: (params: ScatterEventParams) => {
+          const point: ClusteringPoint | undefined = params.value?.[2];
           if (!point) return '';
           return `
             <div style="font-size: 13px; line-height: 1.5;">
@@ -230,8 +236,8 @@ export default function ClusterScatterPlot({
   // クリックイベントのハンドリング
   const onEvents = useMemo(() => {
     return {
-      click: (params: any) => {
-        const point: ClusteringPoint = params.value?.[2];
+      click: (params: ScatterEventParams) => {
+        const point: ClusteringPoint | undefined = params.value?.[2];
         if (point && onSelectPoint) {
           onSelectPoint(point);
         }
