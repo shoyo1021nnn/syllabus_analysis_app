@@ -12,7 +12,6 @@ import {
   GitCompare, 
   CheckCircle2, 
   Sparkles,
-  Award,
   Globe
 } from 'lucide-react';
 import { useAcademicUnitModal } from '@/context/AcademicUnitModalContext';
@@ -89,10 +88,6 @@ export default function AcademicUnitInfoModal() {
     subjectCount,
     websiteUrl,
   } = targetUnit;
-
-  const unitTitle = departmentName 
-    ? `${facultyName ? facultyName + ' ' : ''}${departmentName}`
-    : (facultyName || universityName);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">

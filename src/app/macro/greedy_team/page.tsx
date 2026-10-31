@@ -34,8 +34,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { 
   UserPlus, 
   CheckCircle2, 
-  Database, 
-  AlertCircle, 
   BarChart2, 
   Filter, 
   GraduationCap, 
@@ -45,8 +43,6 @@ import {
   Sliders,
   Users,
   Target,
-  ArrowRight,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
@@ -156,7 +152,7 @@ function GreedyTeamContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 初期メンバー
@@ -173,9 +169,9 @@ function GreedyTeamContent() {
   // 結合・計算パラメータ
   const [combineMethod, setCombineMethod] = useState<'max' | 'mean'>('max');
   const [vectorTarget, setVectorTarget] = useState<VectorTarget>('all');
-  const [metric, setMetric] = useState<MetricType>('cosine');
-  const [normalization, setNormalization] = useState<NormalizationType>('l1');
-  const [filterUniversity, setFilterUniversity] = useState<TargetFilter>('all');
+  const [metric] = useState<MetricType>('cosine');
+  const [normalization] = useState<NormalizationType>('l1');
+  const [filterUniversity] = useState<TargetFilter>('all');
 
   useEffect(() => {
     async function fetchData() {

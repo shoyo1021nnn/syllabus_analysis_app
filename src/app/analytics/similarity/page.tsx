@@ -28,9 +28,6 @@ import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
   Users, 
-  CheckCircle2, 
-  Database, 
-  AlertCircle, 
   BarChart2, 
   Radar, 
   Filter, 
@@ -148,7 +145,7 @@ function SimilarityPageContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 選択中の基準対象
@@ -421,7 +418,7 @@ function SimilarityPageContent() {
 
     // 2学科以上で上位3位以内に登場するスキル（共通候補）
     const sharedSkills = Object.entries(skillOccurrence)
-      .filter(([_, data]) => data.count >= 2)
+      .filter(([, data]) => data.count >= 2)
       .map(([code, data]) => ({
         code,
         name: data.name,

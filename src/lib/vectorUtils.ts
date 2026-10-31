@@ -645,7 +645,7 @@ export function runGreedyTeamBuild(
   const baselineScore = computeMetric(initVec, idealVec, metric);
 
   const team = [initialTarget];
-  let currentTeamVectors = [initVec];
+  const currentTeamVectors = [initVec];
   let currentCombinedVector = [...initVec];
   let currentScore = baselineScore;
 

@@ -9,7 +9,6 @@ import {
   SkillVectorUniversity 
 } from '@/types/database';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
-import { useAcademicUnitModal } from '@/context/AcademicUnitModalContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { KNOWLEDGE_SKILLS, GENERAL_SKILLS } from '@/lib/vectorUtils';
 import { 
@@ -24,9 +23,7 @@ import {
   GitCompare, 
   Compass, 
   CheckCircle2, 
-  ArrowRight,
   Globe,
-  Database
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
@@ -99,9 +96,8 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 export default function UniversitiesPage() {
   const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
-  const { openUnitInfo } = useAcademicUnitModal();
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // DBデータ

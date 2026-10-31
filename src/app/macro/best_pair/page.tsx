@@ -15,7 +15,6 @@ import {
   BestPairItem, 
   calculateBestPairs, 
   combineVectors, 
-  createIdealVector, 
   elementwiseMax, 
   elementwiseMean, 
   getRadarIndicators, 
@@ -32,8 +31,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { 
   Sparkles, 
   CheckCircle2, 
-  Database, 
-  AlertCircle, 
   BarChart2, 
   Filter, 
   GraduationCap, 
@@ -41,7 +38,6 @@ import {
   Radar as RadarIcon, 
   TrendingUp,
   Sliders,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
@@ -152,7 +148,7 @@ function BestPairContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 基準対象
@@ -164,8 +160,8 @@ function BestPairContent() {
   // パラメータ
   const [combineMethod, setCombineMethod] = useState<'max' | 'mean'>('max');
   const [vectorTarget, setVectorTarget] = useState<VectorTarget>('all');
-  const [metric, setMetric] = useState<MetricType>('cosine');
-  const [normalization, setNormalization] = useState<NormalizationType>('l1');
+  const [metric] = useState<MetricType>('cosine');
+  const [normalization] = useState<NormalizationType>('l1');
   const [filterUniversity, setFilterUniversity] = useState<TargetFilter>('all');
 
   useEffect(() => {

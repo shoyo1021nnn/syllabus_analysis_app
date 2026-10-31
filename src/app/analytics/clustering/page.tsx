@@ -15,8 +15,6 @@ import {
   Layers, 
   Award, 
   Activity, 
-  Database, 
-  AlertCircle, 
   Compass, 
   Radar, 
   Users 

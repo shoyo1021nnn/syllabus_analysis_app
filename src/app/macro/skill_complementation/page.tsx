@@ -29,17 +29,12 @@ import { useLanguage } from '@/context/LanguageContext';
 import { 
   Compass, 
   CheckCircle2, 
-  Database, 
-  AlertCircle, 
   BarChart2, 
   Filter, 
   GraduationCap, 
-  BookOpen, 
   Sparkles, 
   Layers,
-  ArrowRight,
   Radar,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
@@ -150,7 +145,7 @@ function SkillComplementationContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 基準対象
@@ -162,7 +157,7 @@ function SkillComplementationContent() {
   // 探索パラメータ
   const [approach, setApproach] = useState<ComplementationApproach>('synergy');
   const [metric, setMetric] = useState<MetricType>('cosine');
-  const [normalization, setNormalization] = useState<NormalizationType>('l1');
+  const [normalization] = useState<NormalizationType>('l1');
   const [filterUniversity, setFilterUniversity] = useState<TargetFilter>('all');
 
   // データ取得

@@ -9,13 +9,10 @@ import {
   X,
   Loader2,
   Sparkles,
-  Check,
   CheckSquare,
   Square,
   User,
   Info,
-  Calendar,
-  Award
 } from "lucide-react";
 import { CourseSkillVector, EnrolledCourse } from "@/types/database";
 import { useLanguage } from "@/context/LanguageContext";

@@ -5,23 +5,17 @@ import Link from "next/link";
 import { 
   Sparkles, 
   GraduationCap, 
-  ArrowLeft, 
   Plus, 
   Check, 
   Filter, 
-  TrendingUp, 
   AlertCircle, 
-  BookOpen, 
   Eye, 
   ChevronRight,
-  RotateCcw,
   SlidersHorizontal,
-  Layers,
-  Award,
   User
 } from "lucide-react";
 import { fetchCandidateCourses } from "@/lib/courseCandidates";
-import { CourseSkillVector, EnrolledCourse, CourseRecommendationItem } from "@/types/database";
+import { CourseSkillVector, EnrolledCourse } from "@/types/database";
 import { 
   calculatePersonalSkillProfile, 
   recommendCoursesForPersonalGaps, 

@@ -9,9 +9,7 @@ import {
   Compass, 
   Sparkles, 
   Users, 
-  ArrowRight, 
   Check, 
-  ExternalLink,
   ChevronRight
 } from 'lucide-react';
 import { AnalysisAction, ActionIconType } from '@/types/actions';

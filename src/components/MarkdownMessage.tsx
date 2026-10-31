@@ -7,7 +7,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import ActionCards from '@/components/ActionCards';
-import { AnalysisAction } from '@/types/actions';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface CodeBlockProps {

@@ -8,13 +8,9 @@ import {
   GitCompare, 
   Radar, 
   ArrowRight, 
-  Layers, 
   CheckCircle2, 
-  Sparkles,
   Compass,
-  TrendingUp,
   Database,
-  Building2
 } from 'lucide-react';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';

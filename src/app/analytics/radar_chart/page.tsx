@@ -6,15 +6,12 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { 
   HierarchyLevel, 
   SkillVectorDepartment, 
-  SkillVectorFaculty, 
-  SkillVectorUniversity,
   SkillVectorRecord
 } from '@/types/database';
 import { 
   getRadarIndicators, 
   KNOWLEDGE_SKILLS, 
   GENERAL_SKILLS, 
-  ALL_SKILLS,
   normalizeL1,
   combineVectors
 } from '@/lib/vectorUtils';
@@ -28,14 +25,9 @@ import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
   Radar as RadarIcon, 
-  Layers, 
-  Database, 
-  AlertCircle, 
   CheckSquare, 
-  Square, 
   TrendingUp, 
   BookOpen,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
@@ -117,7 +109,7 @@ function RadarChartContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 対象1 (基準) & 対象2 (比較) の選択ID
