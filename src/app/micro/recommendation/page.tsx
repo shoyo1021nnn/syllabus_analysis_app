@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { 
   Sparkles, 
@@ -27,8 +27,8 @@ import {
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useEnrolledCourses } from "@/lib/enrolledCoursesStore";
 
-const STORAGE_KEY = "syllabus_enrolled_courses";
 
 const FACULTIES_LIST = [
   "すべて",
@@ -57,8 +57,8 @@ const SEMESTERS_LIST = [
 ];
 
 export default function MicroRecommendationPage() {
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // 履修科目リスト（localStorage の共通ストア。src/lib/enrolledCoursesStore.ts）
+  const { enrolledCourses, isLoaded, saveCourses } = useEnrolledCourses();
 
   // フィルタステート
   const [facultyFilter, setFacultyFilter] = useState("すべて");
@@ -75,32 +75,6 @@ export default function MicroRecommendationPage() {
   const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
 
-  // LocalStorageから履修科目リスト取得
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setEnrolledCourses(parsed);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
-
-  // 履修科目の保存
-  const saveCourses = useCallback((courses: EnrolledCourse[]) => {
-    setEnrolledCourses(courses);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
 
   // プロファイル計算
   const profile = useMemo(() => {
