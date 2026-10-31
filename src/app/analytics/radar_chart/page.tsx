@@ -30,6 +30,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
@@ -118,9 +119,9 @@ function RadarChartContent() {
   const [isCompareEnabled, setIsCompareEnabled] = useState<boolean>(true);
   const [compareId, setCompareId] = useState<string>('');
 
-  // 大学フィルター (基準・比較それぞれ)
-  const [primaryUnivFilter, setPrimaryUnivFilter] = useState<string>(allUnivLabel);
-  const [compareUnivFilter, setCompareUnivFilter] = useState<string>(allUnivLabel);
+  // 大学フィルター (基準・比較それぞれ)。値は ALL_UNIVERSITIES か大学名（表示ラベルは持たない）
+  const [primaryUnivFilter, setPrimaryUnivFilter] = useState<UnivFilterValue>(ALL_UNIVERSITIES);
+  const [compareUnivFilter, setCompareUnivFilter] = useState<UnivFilterValue>(ALL_UNIVERSITIES);
 
   // 表示モード & 正規化
   const [viewMode, setViewMode] = useState<ViewMode>('split');
@@ -179,8 +180,15 @@ function RadarChartContent() {
   }, [level]);
 
   // 2. 初期IDの設定（URLクエリ優先、または先頭要素）
-  useEffect(() => {
-    if (dataList.length === 0) return;
+  // データまたは URL クエリが変わったときに 1 度だけ、レンダー中に state を調整する
+  // （effect 内の setState による連鎖レンダーを避ける React 推奨のパターン）
+  const initKey = JSON.stringify([
+    queryPrimaryId, queryCompareId, queryDept, queryUniv,
+    queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv,
+  ]);
+  const [appliedInit, setAppliedInit] = useState<{ data: SkillVectorRecord[]; key: string } | null>(null);
+  if (dataList.length > 0 && (appliedInit?.data !== dataList || appliedInit.key !== initKey)) {
+    setAppliedInit({ data: dataList, key: initKey });
 
     // 1. 基準対象 (primary) の決定
     let targetPrimaryId = '';
@@ -203,9 +211,7 @@ function RadarChartContent() {
 
     // 選択された基準対象の大学に合わせて大学フィルターを同期（リスト外リセットを防止）
     const pRecord = dataList.find((d) => d.id === finalPrimaryId);
-    if (pRecord && primaryUnivFilter !== allUnivLabel && primaryUnivFilter !== '全ての大学' && primaryUnivFilter !== 'All Universities' && primaryUnivFilter !== pRecord.university_name) {
-      setPrimaryUnivFilter(allUnivLabel);
-    }
+    setPrimaryUnivFilter(filterForTarget(primaryUnivFilter, pRecord));
 
     // 2. 比較対象 (compare) の決定
     let targetCompareId = '';
@@ -226,68 +232,52 @@ function RadarChartContent() {
 
     if (!targetCompareId) {
       // 比較対象がクエリにない場合は、基準と異なる大学のものを優先して初期選択
-      const currentPrimary = dataList.find((d) => d.id === finalPrimaryId);
-      const diffUniv = dataList.find((d) => d.university_name !== currentPrimary?.university_name);
+      const diffUniv = dataList.find((d) => d.university_name !== pRecord?.university_name);
       targetCompareId = diffUniv ? diffUniv.id : dataList[1]?.id || dataList[0].id;
     }
     setCompareId(targetCompareId);
 
     // 選択された比較対象の大学に合わせて大学フィルターを同期
-    const cRecord = dataList.find((d) => d.id === targetCompareId);
-    if (cRecord && compareUnivFilter !== allUnivLabel && compareUnivFilter !== '全ての大学' && compareUnivFilter !== 'All Universities' && compareUnivFilter !== cRecord.university_name) {
-      setCompareUnivFilter(allUnivLabel);
-    }
-  }, [dataList, queryPrimaryId, queryCompareId, queryDept, queryUniv, queryPrimaryDept, queryPrimaryUniv, queryCompareDept, queryCompareUniv, allUnivLabel]);
+    setCompareUnivFilter(filterForTarget(compareUnivFilter, dataList.find((d) => d.id === targetCompareId)));
+  }
 
-  // レベル変更時に大学フィルターをリセット
-  useEffect(() => {
-    setPrimaryUnivFilter(allUnivLabel);
-    setCompareUnivFilter(allUnivLabel);
-  }, [level, allUnivLabel]);
+  // レベル変更：大学フィルターも全大学に戻す（以前は effect で行っていた）
+  const handleLevelChange = (next: HierarchyLevel) => {
+    setLevel(next);
+    setPrimaryUnivFilter(ALL_UNIVERSITIES);
+    setCompareUnivFilter(ALL_UNIVERSITIES);
+  };
 
-  // 言語切替時に「全ての大学」ラベルを追従
-  useEffect(() => {
-    setPrimaryUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
-    setCompareUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
-  }, [allUnivLabel]);
-
-  // 大学一覧リスト
-  const universityList = useMemo(() => {
+  // 大学一覧（フィルターの選択肢。先頭の「全ての大学」は univSelectProps が付ける）
+  const universityNames = useMemo(() => {
     const set = new Set<string>();
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return [allUnivLabel, ...Array.from(set)];
-  }, [dataList, allUnivLabel]);
+    return Array.from(set);
+  }, [dataList]);
 
   // 基準対象用の大学絞り込みリスト
-  const filteredPrimaryList = useMemo(() => {
-    if (level === 'university' || primaryUnivFilter === allUnivLabel || primaryUnivFilter === '全ての大学' || primaryUnivFilter === 'All Universities') {
-      return dataList;
-    }
-    return dataList.filter((d) => d.university_name === primaryUnivFilter);
-  }, [dataList, level, primaryUnivFilter, allUnivLabel]);
+  const filteredPrimaryList = useMemo(
+    () => filterByUniversity(dataList, primaryUnivFilter, level),
+    [dataList, level, primaryUnivFilter]
+  );
 
   // 比較対象用の大学絞り込みリスト
-  const filteredCompareList = useMemo(() => {
-    if (level === 'university' || compareUnivFilter === allUnivLabel || compareUnivFilter === '全ての大学' || compareUnivFilter === 'All Universities') {
-      return dataList;
-    }
-    return dataList.filter((d) => d.university_name === compareUnivFilter);
-  }, [dataList, level, compareUnivFilter, allUnivLabel]);
+  const filteredCompareList = useMemo(
+    () => filterByUniversity(dataList, compareUnivFilter, level),
+    [dataList, level, compareUnivFilter]
+  );
 
-  // 大学フィルター切替時に選択中IDがリスト外なら先頭を選択
-  useEffect(() => {
-    if (filteredPrimaryList.length > 0 && !filteredPrimaryList.some((d) => d.id === primaryId)) {
-      setPrimaryId(filteredPrimaryList[0].id);
-    }
-  }, [filteredPrimaryList, primaryId]);
-
-  useEffect(() => {
-    if (filteredCompareList.length > 0 && !filteredCompareList.some((d) => d.id === compareId)) {
-      setCompareId(filteredCompareList[0].id);
-    }
-  }, [filteredCompareList, compareId]);
+  // 大学フィルター変更：選択中 ID がリスト外になる場合は先頭を選ぶ（以前は effect で行っていた）
+  const handlePrimaryUnivFilterChange = (next: UnivFilterValue) => {
+    setPrimaryUnivFilter(next);
+    setPrimaryId((prev) => keepOrFirstId(filterByUniversity(dataList, next, level), prev));
+  };
+  const handleCompareUnivFilterChange = (next: UnivFilterValue) => {
+    setCompareUnivFilter(next);
+    setCompareId((prev) => keepOrFirstId(filterByUniversity(dataList, next, level), prev));
+  };
 
   // 現在選択されているレコード
   const primaryRecord = useMemo(() => {
@@ -576,7 +566,7 @@ function RadarChartContent() {
               <span className="text-xs font-semibold text-slate-600">{t('analytics.radar.levelLabel', '階層:')}</span>
               <select
                 value={level}
-                onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
+                onChange={(e) => handleLevelChange(e.target.value as HierarchyLevel)}
                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
               >
                 <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
@@ -623,13 +613,11 @@ function RadarChartContent() {
           {/* 対象 1 (基準: 青緑/ティール) */}
           <div className="p-3.5 rounded-lg bg-teal-50/40 border border-teal-200 space-y-2.5">
             {/* 基準対象用 大学フィルター (学部・学科時) */}
-            {level !== 'university' && universityList.length > 1 && (
+            {level !== 'university' && universityNames.length > 0 && (
               <div className="pb-2 border-b border-teal-200/60">
                 <SearchableSelect
                   label={t('analytics.radar.univFilterPrimary', '大学絞り込み (基準):')}
-                  options={universityList}
-                  value={primaryUnivFilter}
-                  onChange={setPrimaryUnivFilter}
+                  {...univSelectProps(universityNames, primaryUnivFilter, allUnivLabel, handlePrimaryUnivFilterChange)}
                   placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
                   colorScheme="teal"
                 />
@@ -742,13 +730,11 @@ function RadarChartContent() {
             ) : (
               <div className="space-y-2.5">
                 {/* 比較対象用 大学フィルター (学部・学科時) */}
-                {level !== 'university' && universityList.length > 1 && (
+                {level !== 'university' && universityNames.length > 0 && (
                   <div className="pb-2 border-b border-orange-200/60">
                     <SearchableSelect
                       label={t('analytics.radar.univFilterCompare', '大学絞り込み (比較):')}
-                      options={universityList}
-                      value={compareUnivFilter}
-                      onChange={setCompareUnivFilter}
+                      {...univSelectProps(universityNames, compareUnivFilter, allUnivLabel, handleCompareUnivFilterChange)}
                       placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
                       colorScheme="orange"
                     />
