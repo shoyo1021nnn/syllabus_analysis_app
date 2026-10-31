@@ -654,6 +654,12 @@ export const ja = {
     emptyTitleDefault: "シラバスデータについて何でも質問してください",
     emptyDescription: "画面の選択状態に応じたおすすめの質問チップをクリックするか、下部に質問を入力してください。",
     inputPlaceholder: "メッセージを入力...",
+    errors: {
+      rateLimited: "短時間に送信が集中したため一時的に制限しています。{seconds}秒ほど待ってから再度お試しください。",
+      invalidRequest: "送信内容が上限（メッセージの長さ・件数、画面データの大きさ）を超えたため処理できませんでした。質問を短くするか、リセットしてからお試しください。",
+      generic: "回答の取得に失敗しました。時間をおいて再度お試しください。",
+      dismiss: "閉じる",
+    },
     send: "送信",
     presets: {
       radar_chart: [

@@ -13,6 +13,9 @@ import { DefaultChatTransport, UIMessage } from "ai";
  * - 画面文脈（AnalyticsContext）は各セクションの layout に残し、送信時に AgentPanel が body に付与する。
  * - 履歴はメモリのみで保持し、ページの再読み込みで消える。
  */
+/** /api/chat に送る直近メッセージ数（サーバーの CHAT_MAX_HISTORY 既定値と揃える） */
+const CLIENT_MAX_HISTORY = 20;
+
 const ChatContext = createContext<Chat<UIMessage> | undefined>(undefined);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
@@ -23,7 +26,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         // id を省略すると構築時に generateId()（Math.random）が呼ばれ、Next.js 16 のプリレンダーで
         // blocking-prerender-random-client エラーになる。アプリ内で Chat は 1 つだけなので固定 ID でよい
         id: "syllabus-agent",
-        transport: new DefaultChatTransport({ api: "/api/chat" }),
+        transport: new DefaultChatTransport({
+          api: "/api/chat",
+          // 履歴が長くなっても送信量を抑えるため、直近 CLIENT_MAX_HISTORY 件だけを送る
+          // （画面上の履歴はすべて残る。サーバー側でも CHAT_MAX_HISTORY 件に切り詰める）
+          prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
+            body: {
+              ...body,
+              id,
+              messages: messages.slice(-CLIENT_MAX_HISTORY),
+              trigger,
+              messageId,
+            },
+          }),
+        }),
       })
   );
 

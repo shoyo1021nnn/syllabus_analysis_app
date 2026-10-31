@@ -654,6 +654,12 @@ export const en = {
     emptyTitleDefault: "Ask anything about syllabus and curriculum data",
     emptyDescription: "Click a suggested question chip below or type your question in the input box.",
     inputPlaceholder: "Type a message...",
+    errors: {
+      rateLimited: "Too many requests in a short time. Please wait about {seconds} seconds and try again.",
+      invalidRequest: "The request exceeded the limits (message length/count or screen data size). Please shorten your question or reset the chat and try again.",
+      generic: "Failed to get a response. Please try again later.",
+      dismiss: "Dismiss",
+    },
     send: "Send",
     presets: {
       radar_chart: [
