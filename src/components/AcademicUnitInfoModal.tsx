@@ -52,10 +52,13 @@ export default function AcademicUnitInfoModal() {
     };
   }, [isOpen]);
 
-  // スキルTop3の算出
+  // スキルTop3の算出（依存配列を React Compiler の推論と一致させるため、先にベクトルを取り出す）
+  const knowledgeVector = targetUnit?.knowledgeVector;
+  const generalVector = targetUnit?.generalVector;
+
   const topKnowledgeSkills = useMemo(() => {
-    if (!targetUnit?.knowledgeVector || targetUnit.knowledgeVector.length === 0) return [];
-    return targetUnit.knowledgeVector
+    if (!knowledgeVector || knowledgeVector.length === 0) return [];
+    return knowledgeVector
       .map((val, idx) => ({ 
         name: language === 'en' 
           ? (KNOWLEDGE_SKILLS[idx]?.nameEn || KNOWLEDGE_SKILLS[idx]?.nameJa || `A-${idx+1}`) 
@@ -64,11 +67,11 @@ export default function AcademicUnitInfoModal() {
       }))
       .sort((a, b) => b.val - a.val)
       .slice(0, 3);
-  }, [targetUnit?.knowledgeVector, language]);
+  }, [knowledgeVector, language]);
 
   const topGeneralSkills = useMemo(() => {
-    if (!targetUnit?.generalVector || targetUnit.generalVector.length === 0) return [];
-    return targetUnit.generalVector
+    if (!generalVector || generalVector.length === 0) return [];
+    return generalVector
       .map((val, idx) => ({ 
         name: language === 'en' 
           ? (GENERAL_SKILLS[idx]?.nameEn || GENERAL_SKILLS[idx]?.nameJa || `B-${idx+1}`) 
@@ -77,7 +80,7 @@ export default function AcademicUnitInfoModal() {
       }))
       .sort((a, b) => b.val - a.val)
       .slice(0, 3);
-  }, [targetUnit?.generalVector, language]);
+  }, [generalVector, language]);
 
   if (!isOpen || !targetUnit) return null;
 

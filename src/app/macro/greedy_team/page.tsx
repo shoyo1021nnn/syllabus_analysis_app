@@ -13,7 +13,6 @@ import {
 } from '@/types/database';
 import { 
   ALL_SKILLS, 
-  combineVectors, 
   GENERAL_SKILLS, 
   getRadarIndicators, 
   GreedyTeamResult, 
@@ -46,7 +45,7 @@ import {
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
-import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -301,13 +300,6 @@ function GreedyTeamContent() {
     return t('macro.greedyTeam.unitDepartment', '学科');
   }, [level, t]);
 
-  const extractVector = (rec?: SkillVectorRecord): number[] => {
-    if (!rec) return [];
-    if (vectorTarget === 'knowledge') return rec.knowledge_vector || [];
-    if (vectorTarget === 'general') return rec.general_vector || [];
-    return combineVectors(rec.knowledge_vector || [], rec.general_vector || []);
-  };
-
   const candidates = useMemo(() => {
     if (!initialRecord) return [];
     let filtered = dataList.filter((d) => d.id !== initialRecord.id);
@@ -322,7 +314,7 @@ function GreedyTeamContent() {
       university_name: d.university_name,
       faculty_name: getFacultyName(d),
       department_name: getDepartmentName(d),
-      vector: extractVector(d),
+      vector: extractRecordVector(d, vectorTarget),
       subject_count: d.subject_count,
       website_url: d.website_url,
     }));
@@ -342,7 +334,7 @@ function GreedyTeamContent() {
         id: initialRecord.id,
         label: formatLabel(initialRecord),
         university_name: initialRecord.university_name,
-        vector: extractVector(initialRecord),
+        vector: extractRecordVector(initialRecord, vectorTarget),
       },
       candidates,
       {
@@ -365,6 +357,7 @@ function GreedyTeamContent() {
     metric,
     normalization,
     skillDefinitions,
+    vectorTarget,
   ]);
 
   // レーダーチャート用（知識12項目 ＆ 汎用12項目の2分割）

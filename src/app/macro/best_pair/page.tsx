@@ -14,7 +14,6 @@ import {
 import { 
   BestPairItem, 
   calculateBestPairs, 
-  combineVectors, 
   elementwiseMax, 
   elementwiseMean, 
   getRadarIndicators, 
@@ -41,7 +40,7 @@ import {
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
-import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -288,13 +287,6 @@ function BestPairContent() {
     return `【${rec.university_name}】`;
   };
 
-  const extractVector = (rec?: SkillVectorRecord): number[] => {
-    if (!rec) return [];
-    if (vectorTarget === 'knowledge') return rec.knowledge_vector || [];
-    if (vectorTarget === 'general') return rec.general_vector || [];
-    return combineVectors(rec.knowledge_vector || [], rec.general_vector || []);
-  };
-
   const candidates = useMemo(() => {
     if (!targetRecord) return [];
     let filtered = dataList.filter((d) => d.id !== targetRecord.id);
@@ -309,7 +301,7 @@ function BestPairContent() {
       university_name: d.university_name,
       faculty_name: getFacultyName(d),
       department_name: getDepartmentName(d),
-      vector: extractVector(d),
+      vector: extractRecordVector(d, vectorTarget),
       subject_count: d.subject_count,
       website_url: d.website_url,
     }));
@@ -320,7 +312,7 @@ function BestPairContent() {
     return calculateBestPairs(
       {
         id: targetRecord.id,
-        vector: extractVector(targetRecord),
+        vector: extractRecordVector(targetRecord, vectorTarget),
       },
       candidates,
       {
@@ -330,7 +322,7 @@ function BestPairContent() {
         topN: 20,
       }
     );
-  }, [targetRecord, candidates, combineMethod, metric, normalization]);
+  }, [targetRecord, candidates, combineMethod, metric, normalization, vectorTarget]);
 
   useEffect(() => {
     if (rankingResults.length > 0) {

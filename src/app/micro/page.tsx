@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { 
   GraduationCap, 
@@ -40,8 +40,8 @@ export default function MicroIndexPage() {
     }
   }, []);
 
-  // プロファイルの算出
-  const profile = calculatePersonalSkillProfile(enrolledCourses);
+  // プロファイルの算出（毎回新しい配列にならないようメモ化し、下の effect の依存に使う）
+  const profile = useMemo(() => calculatePersonalSkillProfile(enrolledCourses), [enrolledCourses]);
 
   // AIエージェント用コンテキストを更新
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function MicroIndexPage() {
         "現在登録されている履修内容から見込める強みは？",
       ],
     });
-  }, [isLoaded, enrolledCourses.length, profile.totalCredits, setAnalyticsContext, language, t]);
+  }, [isLoaded, enrolledCourses.length, profile.totalCredits, profile.strengths, profile.weaknesses, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
