@@ -37,6 +37,7 @@ import {
   Radar,
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
@@ -213,11 +214,16 @@ function SkillComplementationContent() {
   // 初期ターゲット設定
   const allUnivLabel = t('common.allUniversities', '全ての大学');
 
-  // 大学フィルター (学部・学科レベル時)。下の URL クエリ同期の effect から参照するため先に宣言する
-  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+  // 大学フィルター (学部・学科レベル時)。値は ALL_UNIVERSITIES か大学名（表示ラベルは持たない）
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<UnivFilterValue>(ALL_UNIVERSITIES);
 
-  useEffect(() => {
-    if (dataList.length === 0) return;
+  // 初期の基準対象（URL クエリ優先、または先頭要素）
+  // データまたは URL クエリが変わったときに 1 度だけ、レンダー中に state を調整する
+  // （effect 内の setState による連鎖レンダーを避ける React 推奨のパターン）
+  const initKey = JSON.stringify([queryId, queryDept, queryUniv]);
+  const [appliedInit, setAppliedInit] = useState<{ data: SkillVectorRecord[]; key: string } | null>(null);
+  if (dataList.length > 0 && (appliedInit?.data !== dataList || appliedInit.key !== initKey)) {
+    setAppliedInit({ data: dataList, key: initKey });
     let matchedId = '';
     if (queryId && dataList.some((d) => d.id === queryId)) {
       matchedId = queryId;
@@ -233,45 +239,35 @@ function SkillComplementationContent() {
     setTargetId(finalId);
 
     // 選択された基準対象の大学に合わせて大学フィルターを同期
-    const target = dataList.find((d) => d.id === finalId);
-    if (target && selectedUnivFilter !== allUnivLabel && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== 'All Universities' && selectedUnivFilter !== target.university_name) {
-      setSelectedUnivFilter(allUnivLabel);
-    }
-  }, [dataList, queryId, queryDept, queryUniv]);
+    setSelectedUnivFilter(filterForTarget(selectedUnivFilter, dataList.find((d) => d.id === finalId)));
+  }
 
-  // 言語切替時に「全ての大学」ラベルを追従
-  useEffect(() => {
-    setSelectedUnivFilter((prev) => (prev === '全ての大学' || prev === 'All Universities') ? allUnivLabel : prev);
-  }, [allUnivLabel]);
+  // レベル変更：大学フィルターも全大学に戻す（以前は effect で行っていた）
+  const handleLevelChange = (next: HierarchyLevel) => {
+    setLevel(next);
+    setSelectedUnivFilter(ALL_UNIVERSITIES);
+  };
 
-  // レベル変更時に大学フィルターをリセット
-  useEffect(() => {
-    setSelectedUnivFilter(allUnivLabel);
-  }, [level, allUnivLabel]);
-
-  // 大学一覧リスト
-  const universityList = useMemo(() => {
+  // 大学一覧（フィルターの選択肢。先頭の「全ての大学」は univSelectProps が付ける）
+  const universityNames = useMemo(() => {
     const set = new Set<string>();
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return [allUnivLabel, ...Array.from(set)];
-  }, [dataList, allUnivLabel]);
+    return Array.from(set);
+  }, [dataList]);
 
   // 大学フィルター適用後の基準選択肢
-  const filteredDataList = useMemo(() => {
-    if (level === 'university' || selectedUnivFilter === allUnivLabel || selectedUnivFilter === '全ての大学' || selectedUnivFilter === 'All Universities') {
-      return dataList;
-    }
-    return dataList.filter((d) => d.university_name === selectedUnivFilter);
-  }, [dataList, level, selectedUnivFilter, allUnivLabel]);
+  const filteredDataList = useMemo(
+    () => filterByUniversity(dataList, selectedUnivFilter, level),
+    [dataList, level, selectedUnivFilter]
+  );
 
-  // フィルター切替時に未所属なら先頭を自動選択
-  useEffect(() => {
-    if (filteredDataList.length > 0 && !filteredDataList.some((d) => d.id === targetId)) {
-      setTargetId(filteredDataList[0].id);
-    }
-  }, [filteredDataList, targetId]);
+  // 大学フィルター変更：選択中の基準が一覧から外れる場合は先頭を選ぶ（以前は effect で行っていた）
+  const handleUnivFilterChange = (next: UnivFilterValue) => {
+    setSelectedUnivFilter(next);
+    setTargetId((prev) => keepOrFirstId(filterByUniversity(dataList, next, level), prev));
+  };
 
   const targetRecord = useMemo(() => {
     return filteredDataList.find((d) => d.id === targetId) || filteredDataList[0] || dataList[0];
@@ -328,13 +324,10 @@ function SkillComplementationContent() {
   }, [targetRecord, candidates, metric, normalization, approach]);
 
   // ランキング算出後に選択パートナーを更新
-  useEffect(() => {
-    if (rankingResults.length > 0) {
-      if (!selectedPartnerId || !rankingResults.some((r) => r.id === selectedPartnerId)) {
-        setSelectedPartnerId(rankingResults[0].id);
-      }
-    }
-  }, [rankingResults, selectedPartnerId]);
+  // ランキングが変わり選択中のパートナーが含まれなくなったら 1 位を選ぶ（レンダー中に調整。以前は effect で行っていた）
+  if (rankingResults.length > 0 && !rankingResults.some((r) => r.id === selectedPartnerId)) {
+    setSelectedPartnerId(rankingResults[0].id);
+  }
 
   const partnerRecord = useMemo(() => {
     return dataList.find((d) => d.id === selectedPartnerId) || (rankingResults[0] ? dataList.find(d => d.id === rankingResults[0].id) : null);
@@ -507,13 +500,11 @@ function SkillComplementationContent() {
         {/* 基準対象選択 */}
         <div className="p-4 rounded-lg bg-orange-50/50 border border-orange-200 space-y-3">
           {/* 大学フィルター (学部・学科レベル時) */}
-          {level !== 'university' && universityList.length > 1 && (
+          {level !== 'university' && universityNames.length > 0 && (
             <div className="pb-2 border-b border-orange-200/60">
               <SearchableSelect
                 label={t('macro.bestPair.filterUniv', '大学で絞り込み:')}
-                options={universityList}
-                value={selectedUnivFilter}
-                onChange={setSelectedUnivFilter}
+                {...univSelectProps(universityNames, selectedUnivFilter, allUnivLabel, handleUnivFilterChange)}
                 placeholder={t('complementation.searchPlaceholder', '大学名を検索・選択...')}
                 colorScheme="orange"
               />
@@ -621,7 +612,7 @@ function SkillComplementationContent() {
             </label>
             <select
               value={level}
-              onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
+              onChange={(e) => handleLevelChange(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
               <option value="department">{t('common.departmentLevel', '学科レベル')}</option>

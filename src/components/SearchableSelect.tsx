@@ -145,8 +145,9 @@ export function SearchableSelect({
     setSearchTerm('');
   };
 
+  // 「全て」を表す値か（呼び出し側は表示言語の allOptionLabel / 「全ての大学」ラベルを渡す。src/lib/univFilter.ts 参照）
   const isAllValue = (val: string) => {
-    return !val || val === defaultAll || val === '全ての大学' || val === 'All Universities';
+    return !val || val === defaultAll;
   };
 
   const handleClear = (e: React.MouseEvent) => {
