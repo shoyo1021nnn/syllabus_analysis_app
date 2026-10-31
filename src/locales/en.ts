@@ -360,6 +360,8 @@ export const en = {
       categoryKnowledge: "Specialized (Group A)",
       categoryGeneral: "Generic (Group B)",
       gapEmpty: "Skill gaps will be detected once enrolled courses are added.",
+      tieNote: "{count} more skills share the same score of {score}pt (ties are shown in skill-definition order)",
+      tieShowList: "Show tied skills",
       currentScore: "Current",
       filterFaculty: "Faculty:",
       filterSemester: "Semester:",

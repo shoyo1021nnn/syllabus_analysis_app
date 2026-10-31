@@ -360,6 +360,8 @@ export const ja = {
       categoryKnowledge: "専門知識 (A群)",
       categoryGeneral: "汎用スキル (B群)",
       gapEmpty: "履修科目が登録されると不足スキルが判定されます",
+      tieNote: "同じ {score}pt のスキルが他に {count} 項目あります（同点のときはスキル定義順の先頭から表示しています）",
+      tieShowList: "同点のスキルを表示",
       currentScore: "現在",
       filterFaculty: "学部:",
       filterSemester: "学期:",

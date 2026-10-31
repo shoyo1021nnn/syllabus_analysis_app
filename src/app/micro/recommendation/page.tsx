@@ -26,7 +26,9 @@ import {
   calculatePersonalSkillProfile, 
   recommendCoursesForPersonalGaps, 
   simulateCourseAddition,
-  getRadarIndicators 
+  getRadarIndicators,
+  KNOWLEDGE_SKILLS,
+  GENERAL_SKILLS,
 } from "@/lib/vectorUtils";
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
@@ -113,6 +115,23 @@ export default function MicroRecommendationPage() {
 
   // 履修 0 件のときは全スキルが 0 で弱みが一意に決まらないため、推薦を計算せず案内を表示する
   const hasEnrollment = enrolledCourses.length > 0;
+
+  // 表示専用：弱み（下位 4 件）の境界スコアと同点で、表示から漏れているスキルを洗い出す。
+  // calculatePersonalSkillProfile の結果（弱みの選び方）は一切変更しない。
+  const weaknessTies = useMemo(() => {
+    const shown = profile.weaknesses;
+    if (!hasEnrollment || shown.length === 0) return { boundaryScore: 0, hidden: [] as Array<{ code: string; nameJa: string; nameEn?: string }> };
+    const boundaryScore = shown[shown.length - 1].score;
+    const shownCodes = new Set(shown.map((w) => w.code));
+    const allSkills = [
+      ...KNOWLEDGE_SKILLS.map((s, i) => ({ ...s, score: profile.cumulativeKnowledgeVector[i] })),
+      ...GENERAL_SKILLS.map((s, i) => ({ ...s, score: profile.cumulativeGeneralVector[i] })),
+    ];
+    const hidden = allSkills
+      .filter((s) => s.score === boundaryScore && !shownCodes.has(s.code))
+      .map((s) => ({ code: s.code, nameJa: s.nameJa, nameEn: s.nameEn }));
+    return { boundaryScore, hidden };
+  }, [hasEnrollment, profile]);
 
   const enrolledCourseIds = useMemo(() => {
     return new Set(enrolledCourses.map((c) => c.course.id));
@@ -258,6 +277,11 @@ export default function MicroRecommendationPage() {
       details: {
         enrolledCount: enrolledCourses.length,
         weaknesses: !hasEnrollment ? [] : profile.weaknesses.map((w) => `${isEn ? (w.nameEn || w.nameJa) : w.nameJa} (${t('micro.recommendation.currentScore')} ${w.score}pt)`),
+        // 下位 4 件の境界と同点で、弱みとして表示されていないスキル（同点はスキル定義順で先頭が選ばれる）
+        tiedWeaknessesNotShown: weaknessTies.hidden.length > 0 ? {
+          score: `${weaknessTies.boundaryScore}pt`,
+          skills: weaknessTies.hidden.map((s) => isEn ? (s.nameEn || s.nameJa) : s.nameJa),
+        } : null,
         simulatedCourse: simulatedCourse ? {
           name: simulatedCourse.course_name,
           faculty: simulatedCourse.faculty_name,
@@ -286,7 +310,7 @@ export default function MicroRecommendationPage() {
         "専門知識と汎用スキルのどちらを優先して補うべき？",
       ],
     });
-  }, [isLoaded, hasEnrollment, enrolledCourses.length, profile.weaknesses, simulatedCourse, simulationResult, recommendations, setAnalyticsContext, language, t]);
+  }, [isLoaded, hasEnrollment, weaknessTies, enrolledCourses.length, profile.weaknesses, simulatedCourse, simulationResult, recommendations, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16">
@@ -362,6 +386,32 @@ export default function MicroRecommendationPage() {
             ))
           )}
         </div>
+
+        {/* 同点注記：下位 4 件の境界スコアと同じスキルが表示外にもある場合に明示する（計算には影響しない） */}
+        {weaknessTies.hidden.length > 0 && (
+          <details className="mt-3 text-2xs text-slate-500 dark:text-slate-400">
+            <summary className="cursor-pointer select-none">
+              <span>
+                {t('micro.recommendation.tieNote', '同じ {score}pt のスキルが他に {count} 項目あります（同点のときはスキル定義順の先頭から表示しています）')
+                  .replace('{score}', String(weaknessTies.boundaryScore))
+                  .replace('{count}', String(weaknessTies.hidden.length))}
+              </span>
+              <span className="ml-1.5 text-indigo-600 dark:text-indigo-400 font-semibold">
+                {t('micro.recommendation.tieShowList', '同点のスキルを表示')}
+              </span>
+            </summary>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {weaknessTies.hidden.map((s) => (
+                <span
+                  key={s.code}
+                  className="px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-dashed border-rose-200 dark:border-rose-900/60 text-slate-700 dark:text-slate-200"
+                >
+                  {language === 'en' ? (s.nameEn || s.nameJa) : s.nameJa} ({weaknessTies.boundaryScore}pt)
+                </span>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
 
       {/* メインレイアウト: 左側=推薦科目リスト(7/12) / 右側=シミュレーター＆ビフォーアフター(5/12) */}
