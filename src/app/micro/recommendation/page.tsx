@@ -20,7 +20,7 @@ import {
   Award,
   User
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { fetchCandidateCourses } from "@/lib/courseCandidates";
 import { CourseSkillVector, EnrolledCourse, CourseRecommendationItem } from "@/types/database";
 import { 
   calculatePersonalSkillProfile, 
@@ -118,33 +118,28 @@ export default function MicroRecommendationPage() {
   // 推薦用候補科目のフェッチ（不足スキルやフィルタに合致する科目をロード）
   useEffect(() => {
     if (!isLoaded) return;
+    // フィルタ切替が連続したとき、古い条件の結果で上書きしないためのフラグ
+    let cancelled = false;
     const fetchCandidates = async () => {
       setIsLoadingCourses(true);
       try {
-        let query = supabase
-          .from('course_skill_vectors')
-          .select('*')
-          .eq('is_zero_vector', false)
-          .limit(1000);
-
-        if (facultyFilter !== "すべて") {
-          query = query.eq('faculty_name', facultyFilter);
-        }
-        if (semesterFilter !== "すべて") {
-          query = query.ilike('semester', `%${semesterFilter}%`);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        setCandidateCourses(data || []);
+        // .range() によるページングで条件に合う全件を取得（条件ごとにキャッシュ）
+        const data = await fetchCandidateCourses({
+          faculty: facultyFilter !== "すべて" ? facultyFilter : undefined,
+          semester: semesterFilter !== "すべて" ? semesterFilter : undefined,
+        });
+        if (!cancelled) setCandidateCourses(data);
       } catch (err) {
         console.error("Failed to fetch candidate courses", err);
       } finally {
-        setIsLoadingCourses(false);
+        if (!cancelled) setIsLoadingCourses(false);
       }
     };
 
     fetchCandidates();
+    return () => {
+      cancelled = true;
+    };
   }, [isLoaded, facultyFilter, semesterFilter]);
 
   // 推薦科目の計算
