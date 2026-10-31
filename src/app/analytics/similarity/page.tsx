@@ -35,6 +35,7 @@ import {
   GraduationCap 
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
+import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
@@ -151,8 +152,8 @@ function SimilarityPageContent() {
   // 選択中の基準対象
   const [targetId, setTargetId] = useState<string>('');
 
-  // 大学フィルター (学部・学科レベル時)
-  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+  // 大学フィルター (学部・学科レベル時)。値は ALL_UNIVERSITIES か大学名（表示ラベルは持たない）
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<UnivFilterValue>(ALL_UNIVERSITIES);
 
   // 計算設定 (※正規化はご要望に基づき L1正規化 に固定)
   const [metric, setMetric] = useState<MetricType>('cosine');
@@ -211,41 +212,28 @@ function SimilarityPageContent() {
 
   const allUnivLabel = t('common.allUniversities', '全ての大学');
 
-  // レベル変更時に大学フィルターをリセット
-  useEffect(() => {
-    setSelectedUnivFilter(allUnivLabel);
-  }, [level, allUnivLabel]);
-
-  // 言語切替時に「全ての大学」ラベルを追従
-  useEffect(() => {
-    setSelectedUnivFilter((prev) => {
-      if (prev === '全ての大学' || prev === 'All Universities') {
-        return allUnivLabel;
-      }
-      return prev;
-    });
-  }, [allUnivLabel]);
-
-  // 大学一覧リスト
-  const universityList = useMemo(() => {
+  // 大学一覧（フィルターの選択肢。先頭の「全ての大学」は univSelectProps が付ける）
+  const universityNames = useMemo(() => {
     const set = new Set<string>();
     dataList.forEach((d) => {
       if (d.university_name) set.add(d.university_name);
     });
-    return [allUnivLabel, ...Array.from(set)];
-  }, [dataList, allUnivLabel]);
+    return Array.from(set);
+  }, [dataList]);
 
   // 大学フィルター適用後の基準選択肢
-  const filteredDataList = useMemo(() => {
-    if (level === 'university' || selectedUnivFilter === allUnivLabel || selectedUnivFilter === '全ての大学' || selectedUnivFilter === 'All Universities') {
-      return dataList;
-    }
-    return dataList.filter((d) => d.university_name === selectedUnivFilter);
-  }, [dataList, level, selectedUnivFilter, allUnivLabel]);
+  const filteredDataList = useMemo(
+    () => filterByUniversity(dataList, selectedUnivFilter, level),
+    [dataList, level, selectedUnivFilter]
+  );
 
   // 2. 初期基準IDの設定（URLクエリ優先、または先頭要素）
-  useEffect(() => {
-    if (dataList.length === 0) return;
+  // データまたは URL クエリが変わったときに 1 度だけ、レンダー中に state を調整する
+  // （effect 内の setState による連鎖レンダーを避ける React 推奨のパターン）
+  const initKey = JSON.stringify([queryId, queryDept, queryUniv]);
+  const [appliedInit, setAppliedInit] = useState<{ data: SkillVectorRecord[]; key: string } | null>(null);
+  if (dataList.length > 0 && (appliedInit?.data !== dataList || appliedInit.key !== initKey)) {
+    setAppliedInit({ data: dataList, key: initKey });
 
     let matchedId = '';
     if (queryId && dataList.some((d) => d.id === queryId)) {
@@ -266,18 +254,20 @@ function SimilarityPageContent() {
     setTargetId(finalId);
 
     // 選択された基準対象の大学に合わせて大学フィルターを同期
-    const target = dataList.find((d) => d.id === finalId);
-    if (target && selectedUnivFilter !== '全ての大学' && selectedUnivFilter !== target.university_name) {
-      setSelectedUnivFilter('全ての大学');
-    }
-  }, [dataList, queryId, queryDept, queryUniv]);
+    setSelectedUnivFilter(filterForTarget(selectedUnivFilter, dataList.find((d) => d.id === finalId)));
+  }
 
-  // 大学フィルター切替時に、選択中IDがリスト内にない場合は先頭を選択
-  useEffect(() => {
-    if (filteredDataList.length > 0 && !filteredDataList.some((d) => d.id === targetId)) {
-      setTargetId(filteredDataList[0].id);
-    }
-  }, [filteredDataList, targetId]);
+  // レベル変更：大学フィルターも全大学に戻す（以前は effect で行っていた）
+  const handleLevelChange = (next: HierarchyLevel) => {
+    setLevel(next);
+    setSelectedUnivFilter(ALL_UNIVERSITIES);
+  };
+
+  // 大学フィルター変更：選択中の基準が一覧から外れる場合は先頭を選ぶ（以前は effect で行っていた）
+  const handleUnivFilterChange = (next: UnivFilterValue) => {
+    setSelectedUnivFilter(next);
+    setTargetId((prev) => keepOrFirstId(filterByUniversity(dataList, next, level), prev));
+  };
 
   // 現在選択されている基準レコード
   const targetRecord = useMemo(() => {
@@ -518,13 +508,11 @@ function SimilarityPageContent() {
         {/* 基準対象の選択 */}
         <div className="p-4 rounded-lg bg-teal-50/50 border border-teal-200 space-y-3">
           {/* 大学フィルター (学部・学科レベル時) */}
-          {level !== 'university' && universityList.length > 1 && (
+          {level !== 'university' && universityNames.length > 0 && (
             <div className="pb-2 border-b border-teal-200/60">
               <SearchableSelect
                 label={t('common.filterUniv', '大学で絞り込み:')}
-                options={universityList}
-                value={selectedUnivFilter}
-                onChange={setSelectedUnivFilter}
+                {...univSelectProps(universityNames, selectedUnivFilter, allUnivLabel, handleUnivFilterChange)}
                 placeholder={t('analytics.radar.searchUniv', '大学名を検索・選択...')}
                 colorScheme="teal"
               />
@@ -632,7 +620,7 @@ function SimilarityPageContent() {
             </label>
             <select
               value={level}
-              onChange={(e) => setLevel(e.target.value as HierarchyLevel)}
+              onChange={(e) => handleLevelChange(e.target.value as HierarchyLevel)}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
             >
               <option value="department">{t('common.departmentLevel', '学科レベル')}</option>
