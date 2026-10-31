@@ -222,6 +222,11 @@ function GreedyTeamContent() {
     fetchData();
   }, [level]);
 
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
+
+  // 大学フィルター (学部・学科レベル時)。下の URL クエリ同期の effect から参照するため先に宣言する
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+
   useEffect(() => {
     if (dataList.length === 0) return;
     let matchedId = '';
@@ -242,11 +247,6 @@ function GreedyTeamContent() {
       setSelectedUnivFilter(allUnivLabel);
     }
   }, [dataList, queryDept, queryUniv]);
-
-  const allUnivLabel = t('common.allUniversities', '全ての大学');
-
-  // 大学フィルター (学部・学科レベル時)
-  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
 
   // 言語切替時に「全ての大学」ラベルを追従
   useEffect(() => {
