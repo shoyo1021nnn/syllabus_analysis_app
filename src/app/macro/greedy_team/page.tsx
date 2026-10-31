@@ -163,7 +163,10 @@ function GreedyTeamContent() {
   // 探索モード
   const [searchMode, setSearchMode] = useState<'team_size' | 'threshold'>('team_size');
   const [targetTeamSize, setTargetTeamSize] = useState<number>(4);
-  const [targetThreshold, setTargetThreshold] = useState<number>(0.92);
+  // 目標スコア閾値の初期値。セレクトの選択肢（0.85 / 0.90 / 0.93 / 0.95）のいずれかに揃える。
+  // runGreedyTeamBuild の既定値（0.95）は呼び出し側が閾値を渡さないときのフォールバックで、
+  // この画面は常に targetThreshold を渡すため、画面上の初期値はこちら（0.90）が優先される。
+  const [targetThreshold, setTargetThreshold] = useState<number>(0.90);
 
   // 結合・計算パラメータ
   const [combineMethod, setCombineMethod] = useState<'max' | 'mean'>('max');

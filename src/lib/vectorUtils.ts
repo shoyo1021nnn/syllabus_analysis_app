@@ -618,6 +618,9 @@ export function runGreedyTeamBuild(
   const {
     searchMode = 'team_size',
     targetTeamSize = 4,
+    // 既定値 0.95 は options.targetThreshold が省略されたときのみ使うフォールバック。
+    // /macro/greedy_team は常に値を渡す（画面の初期値は 0.90、選択肢は 0.85 / 0.90 / 0.93 / 0.95）。
+    // 卒業論文の分析条件に関わるため、この既定値は変更しない。
     targetThreshold = 0.95,
     combineMethod = 'max',
     metric = 'cosine',
