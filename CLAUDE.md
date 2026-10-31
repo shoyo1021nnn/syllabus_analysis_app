@@ -41,9 +41,10 @@ npm run lint    # ESLint
 - **クライアント主体の構成。** 各ページ（`"use client"`）がブラウザから Supabase へ直接クエリし、計算はすべて `src/lib/vectorUtils.ts` でクライアント側に都度実行する。
 - **サーバー処理は API ルート 2 本のみ。**
   - `src/app/api/chat/route.ts`：システムプロンプト（システム仕様、24 スキル定義、画面文脈、回答フォーマット）を組み立て、`gpt-4o-mini` でストリーミング応答する。先頭で `src/lib/chatGuard.ts` による IP 単位のレート制限（超過時 429 ＋ `Retry-After`）と入力検証（メッセージ数・文字数・context サイズ、`user` / `assistant` 以外のロール拒否。違反時 400）を行い、モデルには直近 `CHAT_MAX_HISTORY` 件だけを渡す。
-  - `src/app/api/parse-grade-pdf/route.ts`：Campusmate の成績照会 PDF を unpdf で解析し、`course_skill_vectors` と照合する（講義コード完全一致 → 下 6 桁一致 → ナンバリング一致 → 科目名部分一致）。エラー応答は `error`（日本語、従来互換）に加えて `code`（`no_file` / `no_text` / `no_courses` / `processing_failed`）を返し、`GradePdfImportModal` が `modal.gradePdf.apiErrors.<code>` で表示言語に変換する。
+  - `src/app/api/parse-grade-pdf/route.ts`：Campusmate の成績照会 PDF を unpdf で解析し、`course_skill_vectors` と照合する（講義コード完全一致 → 下 6 桁一致 → ナンバリング一致 → 科目名部分一致）。Supabase クライアントは `src/lib/supabase.ts` の共通のもの（URL 正規化あり）を使い、未設定時は解析前に 503 を返す。エラー応答は `error`（日本語、従来互換）に加えて `code`（`db_not_configured` / `no_file` / `no_text` / `no_courses` / `processing_failed`）を返し、`GradePdfImportModal` が `modal.gradePdf.apiErrors.<code>` で表示言語に変換する。
 - **レイアウト。** `analytics` / `macro` / `micro` / `universities` の各 `layout.tsx` が、共通ヘッダーと `react-resizable-panels` による左 67%（分析画面）：右 33%（`AgentPanel`）の分割を持つ。新しい画面でもこの構成を維持する。
 - **チャット履歴はルートで保持する。** `src/app/layout.tsx` の `ChatProvider`（`src/context/ChatContext.tsx`）が AI SDK の `Chat` インスタンスを 1 つだけ持ち、`AgentPanel` は `useChat({ chat })` で共有する。セクション layout が再マウントされても履歴は残る（メモリのみ。再読み込みで消える）。`Chat` には固定 `id` を渡すこと（省略すると構築時の `Math.random()` で Next.js 16 のプリレンダーが失敗する）。クライアントも `prepareSendMessagesRequest` で直近 20 件だけ送る。画面文脈（`AnalyticsProvider`）は従来どおり各セクション layout に置く。
+- **`.or()` に値を埋め込むときは `src/lib/postgrestFilter.ts`（`ilikeContains` など）を通す。** 値をそのまま連結すると `,` `( )` を含む入力でクエリが壊れる。
 - **DB エラー表示。** 各ページは文言を組み立てず、`DbErrorInfo`（`src/lib/dbError.ts` のキー＋引数）を `DatabaseErrorBanner` の `error` に渡す。文言は `dbError.<key>` で表示言語に変換される。
 
 ### ルーティング

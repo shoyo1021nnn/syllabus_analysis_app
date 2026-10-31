@@ -678,6 +678,7 @@ export const ja = {
         no_text: "PDFからテキストを抽出できませんでした",
         no_courses: "成績照会PDFから科目を検出できませんでした。Campusmateの「成績照会」画面のPDFかご確認ください。",
         processing_failed: "PDFの処理中にエラーが発生しました: {detail}",
+        db_not_configured: "データベース（Supabase）が設定されていないため、科目を照合できません。",
       },
     },
   },
