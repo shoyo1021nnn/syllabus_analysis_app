@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 /references
+
+# 改修依頼メモ（ローカル作業用）
+/progress.md
