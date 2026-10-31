@@ -145,7 +145,7 @@ export default function SimilarityRanking({
         },
       ],
     };
-  }, [displayItems, categories, scores, metric, title, t]);
+  }, [categories, scores, metric, title, t]);
 
   return (
     <div className="w-full h-full min-h-[420px] relative">

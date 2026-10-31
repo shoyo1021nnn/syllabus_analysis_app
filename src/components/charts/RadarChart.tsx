@@ -42,6 +42,18 @@ export default function RadarChart({
   const [zoom, setZoom] = useState<number>(1.0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
+  // ズーム倍率をインジケーターの max に適用（下の handleExport から参照するため先に宣言する）
+  const zoomedIndicators = useMemo(() => {
+    return indicators.map((ind) => {
+      const baseMax = ind.max !== undefined ? ind.max : 100;
+      const newMax = Math.max(5, Math.round(baseMax / zoom));
+      return {
+        ...ind,
+        max: newMax,
+      };
+    });
+  }, [indicators, zoom]);
+
   const handleExport = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isExporting) return;
@@ -77,18 +89,6 @@ export default function RadarChart({
     e.stopPropagation();
     setZoom(1.0);
   };
-
-  // ズーム倍率をインジケーターの max に適用
-  const zoomedIndicators = useMemo(() => {
-    return indicators.map((ind) => {
-      const baseMax = ind.max !== undefined ? ind.max : 100;
-      const newMax = Math.max(5, Math.round(baseMax / zoom));
-      return {
-        ...ind,
-        max: newMax,
-      };
-    });
-  }, [indicators, zoom]);
 
   const option = useMemo(() => {
     const isMultiSeries = seriesData.length >= 3;

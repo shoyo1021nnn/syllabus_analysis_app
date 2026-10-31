@@ -15,7 +15,6 @@ import {
 } from '@/types/database';
 import { 
   calculateSimilarityRanking, 
-  combineVectors,
   KNOWLEDGE_SKILLS,
   GENERAL_SKILLS,
   ALL_SKILLS
@@ -37,7 +36,7 @@ import {
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
-import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -296,17 +295,6 @@ function SimilarityPageContent() {
   };
 
   // ベクトル抽出ヘルパー (対象スキルに応じて 12D or 24D)
-  const extractVector = (rec?: SkillVectorRecord): number[] => {
-    if (!rec) return [];
-    if (vectorTarget === 'knowledge') {
-      return rec.knowledge_vector || [];
-    }
-    if (vectorTarget === 'general') {
-      return rec.general_vector || [];
-    }
-    return combineVectors(rec.knowledge_vector || [], rec.general_vector || []);
-  };
-
   // 候補リストの作成 & 大学フィルタリング
   const candidates: SimilarityCandidate[] = useMemo(() => {
     if (!targetRecord) return [];
@@ -325,7 +313,7 @@ function SimilarityPageContent() {
       university_name: item.university_name,
       faculty_name: getFacultyName(item),
       department_name: getDepartmentName(item),
-      vector: extractVector(item),
+      vector: extractRecordVector(item, vectorTarget),
       subject_count: item.subject_count,
       website_url: item.website_url,
     }));
@@ -335,7 +323,7 @@ function SimilarityPageContent() {
   const rankingResults: SimilarityScoreItem[] = useMemo(() => {
     if (!targetRecord || candidates.length === 0) return [];
 
-    const targetVec = extractVector(targetRecord);
+    const targetVec = extractRecordVector(targetRecord, vectorTarget);
 
     // ★ 必ず normalization: 'l1' を適用
     return calculateSimilarityRanking(targetVec, candidates, metric, {
@@ -388,13 +376,13 @@ function SimilarityPageContent() {
     };
 
     // 基準組織の主要スキル
-    const targetTopSkills = extractTopSkills(extractVector(targetRecord), 4);
+    const targetTopSkills = extractTopSkills(extractRecordVector(targetRecord, vectorTarget), 4);
 
     // 上位5学科の主要スキル
     const top5Rankings = rankingResults.slice(0, 5);
     const top5Detailed = top5Rankings.map((r) => {
       const orig = dataList.find((d) => d.id === r.id);
-      const vec = orig ? extractVector(orig) : [];
+      const vec = orig ? extractRecordVector(orig, vectorTarget) : [];
       const topSkills = extractTopSkills(vec, 3);
       return {
         rank: r.rank,

@@ -1,3 +1,6 @@
+import { SkillVectorRecord, VectorTarget } from "@/types/database";
+import { combineVectors } from "@/lib/vectorUtils";
+
 /**
  * 大学・学部・学科のどの階層かわからないレコード（SkillVectorRecord や、
  * それを元にした候補オブジェクト）から、階層に応じて存在しない列を安全に読むためのヘルパー。
@@ -20,4 +23,18 @@ export function getFacultyName(rec: unknown): string | undefined {
 /** 学科名（大学・学部レコードなど、列がない場合は undefined） */
 export function getDepartmentName(rec: unknown): string | undefined {
   return readStringField(rec, "department_name");
+}
+
+/**
+ * 対象スキル（知識 A 群／汎用 B 群／全 24 次元）に応じてレコードのベクトルを取り出す。
+ * 各ページのコンポーネント内にあった extractVector と同じ処理（依存配列の警告を避けるため外に出した）。
+ */
+export function extractRecordVector(
+  rec: SkillVectorRecord | undefined,
+  vectorTarget: VectorTarget
+): number[] {
+  if (!rec) return [];
+  if (vectorTarget === "knowledge") return rec.knowledge_vector || [];
+  if (vectorTarget === "general") return rec.general_vector || [];
+  return combineVectors(rec.knowledge_vector || [], rec.general_vector || []);
 }
