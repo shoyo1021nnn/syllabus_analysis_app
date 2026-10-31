@@ -20,6 +20,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [chat] = useState(
     () =>
       new Chat<UIMessage>({
+        // id を省略すると構築時に generateId()（Math.random）が呼ばれ、Next.js 16 のプリレンダーで
+        // blocking-prerender-random-client エラーになる。アプリ内で Chat は 1 つだけなので固定 ID でよい
+        id: "syllabus-agent",
         transport: new DefaultChatTransport({ api: "/api/chat" }),
       })
   );
