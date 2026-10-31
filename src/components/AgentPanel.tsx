@@ -1,14 +1,16 @@
 "use client";
 
 import { useChat } from '@ai-sdk/react';
-import { Send, User, Bot, Sparkles, Layers, RotateCcw } from 'lucide-react';
+import { Send, User, Bot, Sparkles, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
+import { useSharedChat } from '@/context/ChatContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { ja } from '@/locales/ja';
 import { en } from '@/locales/en';
 import MarkdownMessage from '@/components/MarkdownMessage';
+import type { TextUIPart } from 'ai';
 
 export function AgentPanel() {
     const [input, setInput] = useState('');
@@ -16,8 +18,9 @@ export function AgentPanel() {
     const { contextData } = useAnalyticsContext();
     const { language, t } = useLanguage();
 
-    // Vercel AI SDK仕様の useChat
-    const { messages, sendMessage, status, setMessages } = useChat();
+    // ルート（ChatProvider）で保持する Chat インスタンスを共有し、セクション移動後も履歴を残す
+    const chat = useSharedChat();
+    const { messages, sendMessage, status, setMessages } = useChat({ chat });
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isLoading = status === 'submitted' || status === 'streaming';
 
@@ -130,11 +133,11 @@ export function AgentPanel() {
                                 }`}>
                                 {m.role === 'user' ? (
                                     <div className="whitespace-pre-wrap leading-relaxed">
-                                        {m.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')}
+                                        {m.parts?.filter((p): p is TextUIPart => p.type === 'text').map((p) => p.text).join('\n')}
                                     </div>
                                 ) : (
                                     <MarkdownMessage
-                                        content={m.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n') || ''}
+                                        content={m.parts?.filter((p): p is TextUIPart => p.type === 'text').map((p) => p.text).join('\n') || ''}
                                     />
                                 )}
                             </div>
