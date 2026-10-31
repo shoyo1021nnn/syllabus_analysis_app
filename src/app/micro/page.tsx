@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { 
   GraduationCap, 
@@ -10,35 +10,16 @@ import {
   TrendingUp,
   AlertCircle
 } from "lucide-react";
-import { EnrolledCourse } from "@/types/database";
 import { calculatePersonalSkillProfile } from "@/lib/vectorUtils";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
 import { useLanguage } from "@/context/LanguageContext";
-
-const STORAGE_KEY = "syllabus_enrolled_courses";
+import { useEnrolledCourses } from "@/lib/enrolledCoursesStore";
 
 export default function MicroIndexPage() {
   const { t, language } = useLanguage();
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // 履修科目リスト（localStorage の共通ストア。src/lib/enrolledCoursesStore.ts）
+  const { enrolledCourses, isLoaded } = useEnrolledCourses();
   const { setAnalyticsContext } = useAnalyticsContext();
-
-  // LocalStorageから履修科目リストを取得
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setEnrolledCourses(parsed);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load enrolled courses from localStorage", e);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
 
   // プロファイルの算出（毎回新しい配列にならないようメモ化し、下の effect の依存に使う）
   const profile = useMemo(() => calculatePersonalSkillProfile(enrolledCourses), [enrolledCourses]);

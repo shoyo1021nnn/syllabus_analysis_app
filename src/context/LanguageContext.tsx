@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useSyncExternalStore, ReactNode } from "react";
 import { ja } from "@/locales/ja";
 import { en } from "@/locales/en";
 
@@ -17,27 +17,56 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const STORAGE_KEY = "syllabus_app_language";
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("ja");
+// ------------------------------------------------------------
+// 表示言語のストア（localStorage）
+// 以前はマウント後の useEffect で localStorage を読み setState していた（react-hooks/set-state-in-effect）。
+// useSyncExternalStore で外部ストアとして読む形に変更。
+// - サーバーレンダー・ハイドレーション中は "ja"、その後 localStorage の値（従来どおり）
+// - このタブで一度切り替えたら、その値を優先する（保存に失敗してもこのタブでは切り替わる：従来どおり）
+// ------------------------------------------------------------
+let selectedInThisTab: Language | null = null;
+const languageListeners = new Set<() => void>();
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
-      if (saved === "ja" || saved === "en") {
-        setLanguageState(saved);
-      }
-    } catch (e) {
-      console.warn("Failed to access localStorage for language:", e);
-    }
-  }, []);
+function readStoredLanguage(): Language | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved === "ja" || saved === "en" ? saved : null;
+  } catch (e) {
+    console.warn("Failed to access localStorage for language:", e);
+    return null;
+  }
+}
+
+function getLanguageSnapshot(): Language {
+  return selectedInThisTab ?? readStoredLanguage() ?? "ja";
+}
+
+function getLanguageServerSnapshot(): Language {
+  return "ja";
+}
+
+function subscribeLanguage(listener: () => void) {
+  languageListeners.add(listener);
+  return () => {
+    languageListeners.delete(listener);
+  };
+}
+
+function storeLanguage(lang: Language) {
+  selectedInThisTab = lang;
+  try {
+    localStorage.setItem(STORAGE_KEY, lang);
+  } catch (e) {
+    console.warn("Failed to save language to localStorage:", e);
+  }
+  languageListeners.forEach((l) => l());
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const language = useSyncExternalStore(subscribeLanguage, getLanguageSnapshot, getLanguageServerSnapshot);
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    try {
-      localStorage.setItem(STORAGE_KEY, lang);
-    } catch (e) {
-      console.warn("Failed to save language to localStorage:", e);
-    }
+    storeLanguage(lang);
   };
 
   const toggleLanguage = () => {

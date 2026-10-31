@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { 
   GraduationCap, 
@@ -31,8 +31,8 @@ import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
 import { useLanguage } from "@/context/LanguageContext";
 import GradePdfImportModal, { GradePdfImportItem } from "@/components/micro/GradePdfImportModal";
+import { useEnrolledCourses } from "@/lib/enrolledCoursesStore";
 
-const STORAGE_KEY = "syllabus_enrolled_courses";
 
 const FACULTIES_LIST = [
   "すべて",
@@ -52,8 +52,8 @@ const FACULTIES_LIST = [
 ];
 
 export default function MicroPortfolioPage() {
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // 履修科目リスト（localStorage の共通ストア。重複の自己修復もストア側で行う）
+  const { enrolledCourses, isLoaded, saveCourses } = useEnrolledCourses();
 
   // 検索ステート
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,45 +74,6 @@ export default function MicroPortfolioPage() {
   const { language, t } = useLanguage();
   const { setAnalyticsContext } = useAnalyticsContext();
 
-  // LocalStorageから読み込み（重複データ自動自己修復付き）
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          // 重複データの自己修復
-          const seen = new Set<string>();
-          const cleaned: EnrolledCourse[] = [];
-          for (const item of parsed) {
-            const courseId = item?.course?.id;
-            if (courseId && !seen.has(courseId)) {
-              seen.add(courseId);
-              cleaned.push(item);
-            }
-          }
-          setEnrolledCourses(cleaned);
-          if (cleaned.length !== parsed.length) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
-          }
-        }
-      }
-    } catch (e) {
-      console.error("Failed to load enrolled courses", e);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
-
-  // 履修科目の保存
-  const saveCourses = useCallback((courses: EnrolledCourse[]) => {
-    setEnrolledCourses(courses);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(courses));
-    } catch (e) {
-      console.error("Failed to save enrolled courses", e);
-    }
-  }, []);
 
   // 科目追加（単一）
   const handleAddCourse = (course: CourseSkillVector) => {

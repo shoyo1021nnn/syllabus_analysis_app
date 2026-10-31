@@ -18,7 +18,7 @@ npm run build   # 本番ビルド（変更後は必ず通ることを確認）
 npm run lint    # ESLint
 ```
 
-テストフレームワークは未導入。変更後は最低限 `npm run lint` と `npm run build` を実行する。
+テストフレームワークは未導入。変更後は最低限 `npm run lint`（0 errors / 0 warnings を維持）と `npm run build` を実行する。
 
 ## 環境変数（`.env.local`）
 
@@ -45,6 +45,10 @@ npm run lint    # ESLint
 - **レイアウト。** `analytics` / `macro` / `micro` / `universities` の各 `layout.tsx` が、共通ヘッダーと `react-resizable-panels` による左 67%（分析画面）：右 33%（`AgentPanel`）の分割を持つ。新しい画面でもこの構成を維持する。
 - **チャット履歴はルートで保持する。** `src/app/layout.tsx` の `ChatProvider`（`src/context/ChatContext.tsx`）が AI SDK の `Chat` インスタンスを 1 つだけ持ち、`AgentPanel` は `useChat({ chat })` で共有する。セクション layout が再マウントされても履歴は残る（メモリのみ。再読み込みで消える）。`Chat` には固定 `id` を渡すこと（省略すると構築時の `Math.random()` で Next.js 16 のプリレンダーが失敗する）。クライアントも `prepareSendMessagesRequest` で直近 20 件だけ送る。画面文脈（`AnalyticsProvider`）は従来どおり各セクション layout に置く。
 - **`.or()` に値を埋め込むときは `src/lib/postgrestFilter.ts`（`ilikeContains` など）を通す。** 値をそのまま連結すると `,` `( )` を含む入力でクエリが壊れる。
+- **React の state の書き方（`npm run lint` を 0 件に保つ）。** `useEffect` の中で同期的に `setState` しない。
+  - 大学フィルターの state は表示ラベルではなく `src/lib/univFilter.ts` の `ALL_UNIVERSITIES` か大学名で持ち、`SearchableSelect` には `univSelectProps()` で渡す。
+  - 操作に応じた state の連動（レベル変更でフィルターを戻す等）はイベントハンドラで行う。データや URL クエリから初期値を決める処理は、変化を検知してレンダー中に 1 度だけ調整する（各分析ページの `appliedInit` 参照）。
+  - localStorage など外部の値は `useSyncExternalStore` で読む（`enrolledCoursesStore.ts`、`LanguageContext.tsx`）。
 - **DB エラー表示。** 各ページは文言を組み立てず、`DbErrorInfo`（`src/lib/dbError.ts` のキー＋引数）を `DatabaseErrorBanner` の `error` に渡す。文言は `dbError.<key>` で表示言語に変換される。
 
 ### ルーティング
@@ -67,7 +71,9 @@ src/
   components/micro  GradePdfImportModal
   context/          AnalyticsContext（画面文脈）, ChatContext（チャット履歴の共有）, LanguageContext（ja/en）, AcademicUnitModalContext
   lib/              vectorUtils.ts（全計算ロジック）, supabase.ts, chartExportUtils.ts（PNG 出力）,
-                    courseCandidates.ts（推薦候補の全件取得）, chatGuard.ts（/api/chat の検証・レート制限）, dbError.ts
+                    courseCandidates.ts（推薦候補の全件取得）, chatGuard.ts（/api/chat の検証・レート制限）, dbError.ts,
+                    univFilter.ts（大学フィルター）, enrolledCoursesStore.ts（履修リストの共通ストア）,
+                    recordFields.ts（階層混在レコードの列アクセス）, postgrestFilter.ts（.or() のエスケープ）
   locales/          ja.ts, en.ts
   types/            database.ts（DB 型）, actions.ts（AI アクション型）
 docs/               nginx-rate-limit.md（学内 VM の Nginx limit_req 設定例）
@@ -85,7 +91,7 @@ docs/               nginx-rate-limit.md（学内 VM の Nginx limit_req 設定�
 - 類似度ランキングとレーダーチャートは **L1 正規化（構成比 %）で固定**。
 - マクロ支援の「理想ベクトル」は、全次元 3.0 の一様ベクトルを L1 正規化したもの（＝スキルの均等さを測る基準）。
 - スキル補完の `synergy` は (sim_A + 最大値結合の理想達成度) / 2。
-- ミクロ支援の個人プロファイルは、履修科目ベクトルの単純合計（案 B）。履修リストは localStorage（キーは各ページの `STORAGE_KEY`）に保存し、DB には書き込まない。
+- ミクロ支援の個人プロファイルは、履修科目ベクトルの単純合計（案 B）。履修リストは localStorage（キー `syllabus_enrolled_courses`）に保存し、DB には書き込まない。読み書きは必ず `src/lib/enrolledCoursesStore.ts` の `useEnrolledCourses()` を通す（各ページで localStorage を直接読まない）。
 - 弱みスキルは `calculatePersonalSkillProfile` の昇順ソートの下位 4 件（同点はスキル定義順で先頭が残る）。推薦画面はこの選び方を変えず、境界と同点で表示外のスキルがあれば注記と一覧を表示するだけにしている。履修 0 件のときは推薦を計算せず、ポートフォリオへの案内を出す。
 - 科目推薦の候補は `src/lib/courseCandidates.ts` が `.order('id').range()` の 1,000 件単位ページングで、フィルタ条件に合う全件（学部「すべて」で約 5,900 件）を取得し、条件ごとにモジュールスコープでキャッシュする。`.limit()` で件数を絞らないこと（評価対象が欠ける）。
 - 貪欲法チーム編成の目標閾値：画面の初期値は 0.90（選択肢 0.85 / 0.90 / 0.93 / 0.95）。`runGreedyTeamBuild` の既定値 0.95 は省略時のフォールバックで、変更しない。`topReinforcedSkills` はスキルコード（`{ code, delta }`）で持ち、表示時に `getSkillName(code, language)` で名前に変換する。
