@@ -23,6 +23,7 @@ import {
 import SimilarityRanking from '@/components/charts/SimilarityRanking';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
+import { DbErrorInfo, errorDetail } from '@/lib/dbError';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
@@ -148,7 +149,7 @@ function SimilarityPageContent() {
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 選択中の基準対象
   const [targetId, setTargetId] = useState<string>('');
@@ -166,7 +167,7 @@ function SimilarityPageContent() {
     async function fetchData() {
       setIsLoading(true);
       if (!isSupabaseConfigured) {
-        setDbError('Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。');
+        setDbError({ key: 'notConfigured' });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
         setIsLoading(false);
@@ -182,11 +183,11 @@ function SimilarityPageContent() {
 
         if (error) {
           console.error(`Failed to fetch from ${tableName}:`, error);
-          setDbError(`データベースからのデータ取得に失敗しました: ${error.message}`);
+          setDbError({ key: 'fetchFailed', params: { detail: error.message } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else if (!data || data.length === 0) {
-          setDbError(`テーブル「${tableName}」にデータが存在しません。`);
+          setDbError({ key: 'tableEmpty', params: { table: tableName } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else {
@@ -200,7 +201,7 @@ function SimilarityPageContent() {
         }
       } catch (err: any) {
         console.error('Error in fetching skill vectors:', err);
-        setDbError(`データベース通信エラーが発生しました: ${err?.message || err}`);
+        setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
       } finally {
@@ -354,7 +355,12 @@ function SimilarityPageContent() {
     const top1 = rankingResults[0];
     const top2 = rankingResults[1];
 
-    const metricNameMap: Record<string, string> = {
+    const metricNameMap: Record<string, string> = language === 'en' ? {
+      cosine: 'Cosine similarity',
+      dot: 'Dot product',
+      euclidean: 'Euclidean distance',
+      tanimoto: 'Tanimoto coefficient',
+    } : {
       cosine: 'コサイン類似度',
       dot: '内積',
       euclidean: 'ユークリッド距離',
@@ -375,7 +381,7 @@ function SimilarityPageContent() {
           const ratio = sum > 0 ? (val / sum) * 100 : 0;
           return {
             code: def?.code || '',
-            name: def?.nameJa || `スキル${idx + 1}`,
+            name: (language === 'en' ? (def?.nameEn || def?.nameJa) : def?.nameJa) || (language === 'en' ? `Skill ${idx + 1}` : `スキル${idx + 1}`),
             ratio: Number(ratio.toFixed(1)),
           };
         })
@@ -420,18 +426,26 @@ function SimilarityPageContent() {
         code,
         name: data.name,
         count: data.count,
-        appearanceRate: `${data.count}/${top5Detailed.length}学科`,
+        appearanceRate: language === 'en' ? `${data.count}/${top5Detailed.length} depts` : `${data.count}/${top5Detailed.length}学科`,
         avgRatio: Number((data.ratios.reduce((a, b) => a + b, 0) / data.ratios.length).toFixed(1)),
       }))
       .sort((a, b) => b.count - a.count);
 
     // 過半数（3学科以上）で共通するスキルがあれば「共通性あり」、なければ「バラバラ（注力分野が分散）」
     const hasClearCommonality = sharedSkills.some((s) => s.count >= 3);
-    const commonalityVerdict = hasClearCommonality
-      ? `上位5学科のうち過半数（${sharedSkills.filter((s) => s.count >= 3).map((s) => `「${s.name}」（${s.count}学科）`).join('・')}）が共通して主力カリキュラムとなっています。教育の骨格に強い共通基盤が見られます。`
-      : sharedSkills.length > 0
-      ? `上位5学科間で過半数が一致する決定的な主力スキルはなく、各学科の主力分野は部分的に重なる程度で比較的バラバラに分散しています（最も共通しているスキルでも最大${sharedSkills[0]?.count || 0}学科のみ）。`
-      : `上位5学科の主力スキルは完全にバラバラに分散しており、学科ごとに全く異なる専門領域を強みとしています。`;
+    // AI に送る画面文脈用の判定文（表示言語に合わせる。判定条件は変更なし）
+    const majoritySkills = sharedSkills.filter((s) => s.count >= 3);
+    const commonalityVerdict = language === 'en'
+      ? (hasClearCommonality
+        ? `A majority of the top 5 departments (${majoritySkills.map((s) => `"${s.name}" (${s.count} depts)`).join(', ')}) share these as core curriculum areas, indicating a strong common educational foundation.`
+        : sharedSkills.length > 0
+        ? `There is no decisive core skill shared by a majority of the top 5 departments; their main areas only partially overlap and are relatively dispersed (the most shared skill appears in at most ${sharedSkills[0]?.count || 0} departments).`
+        : `The core skills of the top 5 departments are completely dispersed; each department specializes in an entirely different area.`)
+      : (hasClearCommonality
+        ? `上位5学科のうち過半数（${majoritySkills.map((s) => `「${s.name}」（${s.count}学科）`).join('・')}）が共通して主力カリキュラムとなっています。教育の骨格に強い共通基盤が見られます。`
+        : sharedSkills.length > 0
+        ? `上位5学科間で過半数が一致する決定的な主力スキルはなく、各学科の主力分野は部分的に重なる程度で比較的バラバラに分散しています（最も共通しているスキルでも最大${sharedSkills[0]?.count || 0}学科のみ）。`
+        : `上位5学科の主力スキルは完全にバラバラに分散しており、学科ごとに全く異なる専門領域を強みとしています。`);
 
     const isEn = language === 'en';
     const presets: string[] = [];
@@ -510,7 +524,7 @@ function SimilarityPageContent() {
 
       {/* データベース接続エラー時の警告バナー */}
       {dbError && (
-        <DatabaseErrorBanner message={dbError} />
+        <DatabaseErrorBanner error={dbError} />
       )}
 
       {/* コントロールパネル */}
@@ -677,7 +691,7 @@ function SimilarityPageContent() {
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-slate-400">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mr-2" />
-            ランキングを算出中...
+            {t('analytics.similarity.calculating', 'ランキングを算出中...')}
           </div>
         ) : (
           <SimilarityRanking

@@ -37,6 +37,20 @@ export const ja = {
     viewAcademicInfo: "基本情報を表示",
     filterUniv: "大学で絞り込み:",
     backToMacro: "学習支援メニューに戻る",
+    copy: "コピー",
+    copied: "コピー完了",
+    noUniversityFound: "該当する大学が見つかりません",
+  },
+  dbError: {
+    title: "データベース（Supabase）接続エラー",
+    badge: "接続失敗",
+    retry: "再試行",
+    notConfigured: "Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。",
+    notConfiguredMock: "Supabaseの接続設定が未設定のため、モックデータで表示しています。",
+    fetchFailed: "データベースからのデータ取得に失敗しました: {detail}",
+    clusteringFetchFailed: "クラスタリング実行履歴の取得に失敗しました: {detail}",
+    tableEmpty: "テーブル「{table}」にデータが存在しません。",
+    networkError: "データベース通信エラーが発生しました: {detail}",
   },
   nav: {
     home: "ホーム",
@@ -48,6 +62,12 @@ export const ja = {
     microTitle: "ミクロな教育支援",
     analyticsTitle: "スキルベクトル分析",
     universitiesTitle: "大学・学部・学科の基本情報",
+    tooltips: {
+      toHome: "ポータルホームに戻る",
+      toAnalytics: "スキルベクトル分析画面へ移動",
+      toMacro: "マクロな学習支援へ移動",
+      toMicro: "ミクロな学習支援へ移動",
+    },
   },
   home: {
     heroTitle: "Syllabus Analysis App",
@@ -173,6 +193,7 @@ export const ja = {
         ideal_mean: "平均値結合 理想達成度",
         dissimilar_b: "汎用スキル相補 (非類似度重視)",
       },
+      hoverHint: "チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。",
     },
     bestPair: {
       title: "ベスト・ペア検索",
@@ -210,6 +231,7 @@ export const ja = {
       select: "選択",
       synergyScore: "相乗効果スコア",
       pairSelected: "選択中のペア:",
+      combinedLineHint: "結合方法「{method}」による合成結果が緑の線で表示されます。",
     },
     greedyTeam: {
       title: "チーム編成支援",
@@ -259,6 +281,7 @@ export const ja = {
       unitUniversity: "大学",
       teamOption: "{count}{unit}チーム",
       teamOptionWithAdd: "{count}{unit}チーム (+{add}{unit})",
+      hoverHint: "各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。",
     },
   },
   micro: {
@@ -348,6 +371,11 @@ export const ja = {
       weaknessesEmpty: "科目を追加すると不足スキルが判定されます",
       recommendLink: "あなたの不足スキルを補完できる科目を計算・推薦する",
       toSimulator: "推薦シミュレーターへ",
+      confirmClearAll: "登録したすべての履修科目をクリアしますか？",
+      creditsCount: "{count}単位",
+      noInstructor: "教員未記載",
+      addSingleTooltip: "1科目だけ即座に追加",
+      gradeLabel: "評価: {grade}",
     },
     recommendation: {
       badge: "ミクロな学習支援 > Step 2",
@@ -503,6 +531,7 @@ export const ja = {
       selectedDepartment: "選択された学科の情報",
       compareInRadar: "この学科をレーダーチャートで詳細比較",
       findSimilar: "類似学科を探す",
+      pcValues: "第1主成分 (PC1): {pc1} | 第2主成分 (PC2): {pc2}",
     },
     similarity: {
       pageTitle: "類似度計算ランキング",
@@ -535,6 +564,7 @@ export const ja = {
       tableTarget: "大学・学部・学科",
       tableScore: "類似度スコア",
       tableAction: "レーダー比較",
+      calculating: "ランキングを算出中...",
     },
   },
   universities: {
@@ -611,6 +641,7 @@ export const ja = {
       generalGroup: "汎用スキル (B群)",
       viewRadar: "レーダーチャートで見る",
       findSimilar: "類似学科を探す",
+      openTooltip: "「{name}」の基本情報・WEBサイトを表示",
     },
     gradePdf: {
       title: "Campusmate 成績照会PDFの一括取り込み",
@@ -642,6 +673,12 @@ export const ja = {
       anotherPdf: "← 別のPDFをアップロード",
       cancel: "キャンセル",
       confirmImport: "選択した {{count}} 件を履修登録する",
+      apiErrors: {
+        no_file: "PDFファイルがアップロードされていません",
+        no_text: "PDFからテキストを抽出できませんでした",
+        no_courses: "成績照会PDFから科目を検出できませんでした。Campusmateの「成績照会」画面のPDFかご確認ください。",
+        processing_failed: "PDFの処理中にエラーが発生しました: {detail}",
+      },
     },
   },
   agent: {

@@ -37,6 +37,20 @@ export const en = {
     viewAcademicInfo: "View Basic Info",
     filterUniv: "Filter University:",
     backToMacro: "Back to Macro Menu",
+    copy: "Copy",
+    copied: "Copied",
+    noUniversityFound: "No matching universities found",
+  },
+  dbError: {
+    title: "Database (Supabase) connection error",
+    badge: "Connection failed",
+    retry: "Retry",
+    notConfigured: "Supabase connection settings (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) are missing or invalid.",
+    notConfiguredMock: "Supabase connection settings are missing, so mock data is displayed.",
+    fetchFailed: "Failed to fetch data from the database: {detail}",
+    clusteringFetchFailed: "Failed to fetch clustering run history: {detail}",
+    tableEmpty: "The table \"{table}\" has no data.",
+    networkError: "A database communication error occurred: {detail}",
   },
   nav: {
     home: "Home",
@@ -48,6 +62,12 @@ export const en = {
     microTitle: "Micro Educational Support",
     analyticsTitle: "Skill Vector Analytics",
     universitiesTitle: "University & Faculty Info",
+    tooltips: {
+      toHome: "Back to portal home",
+      toAnalytics: "Go to skill vector analysis",
+      toMacro: "Go to macro learning support",
+      toMicro: "Go to micro learning support",
+    },
   },
   home: {
     heroTitle: "Syllabus Analysis App",
@@ -173,6 +193,7 @@ export const en = {
         ideal_mean: "Mean Pooling Ideal Attainment",
         dissimilar_b: "Generic Skills Complementary (Dissimilarity Focus)",
       },
+      hoverHint: "Hover over each point on the chart to see detailed skill ratios (%).",
     },
     bestPair: {
       title: "Best Pairs Search",
@@ -210,6 +231,7 @@ export const en = {
       select: "Select",
       synergyScore: "Synergy Score",
       pairSelected: "Selected Pair:",
+      combinedLineHint: "The combined result using \"{method}\" is shown as the green line.",
     },
     greedyTeam: {
       title: "Team Formation",
@@ -259,6 +281,7 @@ export const en = {
       unitUniversity: "Univ",
       teamOption: "{count}-{unit} Team",
       teamOptionWithAdd: "{count}-{unit} Team (+{add} {unit})",
+      hoverHint: "Hover over each chart to see detailed ratios for each skill.",
     },
   },
   micro: {
@@ -348,6 +371,11 @@ export const en = {
       weaknessesEmpty: "Add courses to identify your skill gaps.",
       recommendLink: "Compute & recommend courses that complement your skill gaps",
       toSimulator: "To Recommender",
+      confirmClearAll: "Clear all registered courses?",
+      creditsCount: "{count} credits",
+      noInstructor: "Instructor not listed",
+      addSingleTooltip: "Add just this course now",
+      gradeLabel: "Grade: {grade}",
     },
     recommendation: {
       badge: "Micro Learning Support > Step 2",
@@ -503,6 +531,7 @@ export const en = {
       selectedDepartment: "Selected Department Information",
       compareInRadar: "Compare this Department in Radar Chart",
       findSimilar: "Find Similar Departments",
+      pcValues: "1st principal component (PC1): {pc1} | 2nd principal component (PC2): {pc2}",
     },
     similarity: {
       pageTitle: "Similarity Ranking",
@@ -535,6 +564,7 @@ export const en = {
       tableTarget: "University / Faculty / Department",
       tableScore: "Similarity Score",
       tableAction: "Radar Compare",
+      calculating: "Calculating ranking...",
     },
   },
   universities: {
@@ -611,6 +641,7 @@ export const en = {
       generalGroup: "Generic Competencies (Group B)",
       viewRadar: "View in Radar Chart",
       findSimilar: "Find Similar Depts",
+      openTooltip: "Show basic info and website for \"{name}\"",
     },
     gradePdf: {
       title: "Bulk Import from Campusmate Grade Inquiry PDF",
@@ -642,6 +673,12 @@ export const en = {
       anotherPdf: "← Upload another PDF",
       cancel: "Cancel",
       confirmImport: "Enroll Selected ({{count}} courses)",
+      apiErrors: {
+        no_file: "No PDF file was uploaded.",
+        no_text: "Could not extract text from the PDF.",
+        no_courses: "No courses were detected in the grade report PDF. Please make sure it is a PDF of the Campusmate \"Grade Report\" page.",
+        processing_failed: "An error occurred while processing the PDF: {detail}",
+      },
     },
   },
   agent: {

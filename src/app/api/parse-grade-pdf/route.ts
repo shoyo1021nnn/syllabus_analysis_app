@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "PDFファイルがアップロードされていません" }, { status: 400 });
+      return NextResponse.json({ error: "PDFファイルがアップロードされていません", code: "no_file" }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       .replace(/[\u00A0\u3000\u2000-\u200B]/g, " ");
 
     if (!text.trim()) {
-      return NextResponse.json({ error: "PDFからテキストを抽出できませんでした" }, { status: 400 });
+      return NextResponse.json({ error: "PDFからテキストを抽出できませんでした", code: "no_text" }, { status: 400 });
     }
 
     // 2. 後ろに "GP" と "年度(20XX)" が控えている位置にある "単位数+評価" を安全に分離
@@ -269,6 +269,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: false,
         error: "成績照会PDFから科目を検出できませんでした。Campusmateの「成績照会」画面のPDFかご確認ください。",
+        // クライアントは code で表示言語の文言に変換する（error は従来互換の日本語メッセージ）
+        code: "no_courses",
       }, { status: 422 });
     }
 
@@ -461,7 +463,11 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("PDF parse error:", err);
     return NextResponse.json(
-      { error: "PDFの処理中にエラーが発生しました: " + (err?.message || "不明なエラー") },
+      {
+        error: "PDFの処理中にエラーが発生しました: " + (err?.message || "不明なエラー"),
+        code: "processing_failed",
+        detail: err?.message || "",
+      },
       { status: 500 }
     );
   }

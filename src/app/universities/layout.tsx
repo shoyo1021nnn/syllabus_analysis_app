@@ -29,7 +29,7 @@ export default function UniversitiesLayout({
               <Link 
                 href="/" 
                 className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 transition"
-                title="ポータルホームに戻る"
+                title={t('nav.tooltips.toHome', 'ポータルホームに戻る')}
               >
                 <Home className="w-4 h-4" />
                 <span>{t('nav.home', 'ホーム')}</span>
@@ -53,7 +53,7 @@ export default function UniversitiesLayout({
                 <Link
                   href="/analytics"
                   className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition shadow-2xs shrink-0"
-                  title="スキル分析へ移動"
+                  title={t('nav.tooltips.toAnalytics', 'スキルベクトル分析画面へ移動')}
                 >
                   <BarChart3 className="w-3.5 h-3.5 text-teal-600" />
                   <span>{t('nav.analytics', 'スキル分析')}</span>
@@ -61,7 +61,7 @@ export default function UniversitiesLayout({
                 <Link
                   href="/macro"
                   className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition shadow-2xs shrink-0"
-                  title="マクロな学習支援へ移動"
+                  title={t('nav.tooltips.toMacro', 'マクロな学習支援へ移動')}
                 >
                   <Compass className="w-3.5 h-3.5 text-orange-600" />
                   <span>{t('nav.macro', 'マクロ支援')}</span>
@@ -69,7 +69,7 @@ export default function UniversitiesLayout({
                 <Link
                   href="/micro"
                   className="inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition shadow-2xs shrink-0"
-                  title="ミクロな学習支援へ移動"
+                  title={t('nav.tooltips.toMicro', 'ミクロな学習支援へ移動')}
                 >
                   <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
                   <span>{t('nav.micro', 'ミクロ支援')}</span>

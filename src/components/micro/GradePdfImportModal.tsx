@@ -91,7 +91,13 @@ export default function GradePdfImportModal({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || t('modal.gradePdf.errorParse'));
+        // API が返す code を表示言語の文言に変換する（未知の code は従来の error 文言を使う）
+        const code = typeof data.code === 'string' ? data.code : '';
+        const localized = code
+          ? t(`modal.gradePdf.apiErrors.${code}`, data.error || t('modal.gradePdf.errorParse'))
+              .replace('{detail}', typeof data.detail === 'string' ? data.detail : '')
+          : '';
+        throw new Error(localized || data.error || t('modal.gradePdf.errorParse'));
       }
 
       const items: DetectedGradeItem[] = data.detectedItems || [];

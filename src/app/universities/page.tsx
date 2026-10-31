@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
+import { DbErrorInfo, errorDetail } from '@/lib/dbError';
 
 // フォールバック用のダミーデータ（万一Supabase接続不可時の安全策）
 const MOCK_UNIVERSITIES: SkillVectorUniversity[] = [
@@ -101,7 +102,7 @@ export default function UniversitiesPage() {
   const { openUnitInfo } = useAcademicUnitModal();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // DBデータ
   const [universities, setUniversities] = useState<SkillVectorUniversity[]>([]);
@@ -119,7 +120,7 @@ export default function UniversitiesPage() {
       setIsLoading(true);
 
       if (!isSupabaseConfigured) {
-        setDbError('Supabaseの接続設定が未設定のため、モックデータで表示しています。');
+        setDbError({ key: 'notConfiguredMock' });
         setUniversities(MOCK_UNIVERSITIES);
         setFaculties(MOCK_FACULTIES);
         setDepartments(MOCK_DEPARTMENTS);
@@ -140,7 +141,7 @@ export default function UniversitiesPage() {
         if (resUniv.error || resFac.error || resDept.error) {
           const errMsg = resUniv.error?.message || resFac.error?.message || resDept.error?.message;
           console.error('Error fetching university data:', errMsg);
-          setDbError(`データベース取得エラー: ${errMsg}`);
+          setDbError({ key: 'fetchFailed', params: { detail: errMsg ?? '' } });
           setUniversities(MOCK_UNIVERSITIES);
           setFaculties(MOCK_FACULTIES);
           setDepartments(MOCK_DEPARTMENTS);
@@ -182,7 +183,7 @@ export default function UniversitiesPage() {
         }
       } catch (err: any) {
         console.error('Fetch exception:', err);
-        setDbError(`通信エラー: ${err?.message || err}`);
+        setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setUniversities(MOCK_UNIVERSITIES);
         setFaculties(MOCK_FACULTIES);
         setDepartments(MOCK_DEPARTMENTS);
@@ -349,7 +350,7 @@ export default function UniversitiesPage() {
       </div>
 
       {/* データベースエラーバナー */}
-      {dbError && <DatabaseErrorBanner message={dbError} />}
+      {dbError && <DatabaseErrorBanner error={dbError} />}
 
       {/* ナビゲーション パンくずバー */}
       <div className="bg-white dark:bg-slate-900 rounded-xl p-3.5 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center space-x-2 text-xs overflow-x-auto">

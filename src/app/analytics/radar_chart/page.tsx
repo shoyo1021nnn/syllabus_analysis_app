@@ -23,6 +23,7 @@ import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
+import { DbErrorInfo, errorDetail } from '@/lib/dbError';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
@@ -117,7 +118,7 @@ function RadarChartContent() {
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 対象1 (基準) & 対象2 (比較) の選択ID
   const [primaryId, setPrimaryId] = useState<string>('');
@@ -139,7 +140,7 @@ function RadarChartContent() {
     async function fetchData() {
       setIsLoading(true);
       if (!isSupabaseConfigured) {
-        setDbError('Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。');
+        setDbError({ key: 'notConfigured' });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
         setIsLoading(false);
@@ -155,11 +156,11 @@ function RadarChartContent() {
 
         if (error) {
           console.error(`Failed to fetch from ${tableName}:`, error);
-          setDbError(`データベースからのデータ取得に失敗しました: ${error.message}`);
+          setDbError({ key: 'fetchFailed', params: { detail: error.message } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else if (!data || data.length === 0) {
-          setDbError(`テーブル「${tableName}」にデータが存在しません。`);
+          setDbError({ key: 'tableEmpty', params: { table: tableName } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else {
@@ -173,7 +174,7 @@ function RadarChartContent() {
         }
       } catch (err: any) {
         console.error('Error in fetching skill vector:', err);
-        setDbError(`データベース通信エラーが発生しました: ${err?.message || err}`);
+        setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
       } finally {
@@ -569,7 +570,7 @@ function RadarChartContent() {
 
       {/* データベース接続エラー時の警告バナー */}
       {dbError && (
-        <DatabaseErrorBanner message={dbError} />
+        <DatabaseErrorBanner error={dbError} />
       )}
 
       {/* コントロールパネル */}
@@ -784,7 +785,7 @@ function RadarChartContent() {
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-slate-400">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mr-2" />
-            データを読み込み中...
+            {t('common.loading', 'データを読み込み中...')}
           </div>
         ) : (
           <>

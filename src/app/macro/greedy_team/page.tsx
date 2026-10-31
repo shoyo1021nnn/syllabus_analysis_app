@@ -28,6 +28,7 @@ import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
+import { DbErrorInfo, errorDetail } from '@/lib/dbError';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
@@ -156,7 +157,7 @@ function GreedyTeamContent() {
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 初期メンバー
   const [initialId, setInitialId] = useState<string>('');
@@ -180,7 +181,7 @@ function GreedyTeamContent() {
     async function fetchData() {
       setIsLoading(true);
       if (!isSupabaseConfigured) {
-        setDbError('Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。');
+        setDbError({ key: 'notConfigured' });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
         setIsLoading(false);
@@ -196,11 +197,11 @@ function GreedyTeamContent() {
 
         if (error) {
           console.error(`Failed to fetch from ${tableName}:`, error);
-          setDbError(`データベースからのデータ取得に失敗しました: ${error.message}`);
+          setDbError({ key: 'fetchFailed', params: { detail: error.message } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else if (!data || data.length === 0) {
-          setDbError(`テーブル「${tableName}」にデータが存在しません。`);
+          setDbError({ key: 'tableEmpty', params: { table: tableName } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else {
@@ -214,7 +215,7 @@ function GreedyTeamContent() {
         }
       } catch (err: any) {
         console.error('Error fetching data:', err);
-        setDbError(`データベース通信エラーが発生しました: ${err?.message || err}`);
+        setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
       } finally {
@@ -570,7 +571,7 @@ function GreedyTeamContent() {
 
       {/* データベース接続エラー時の警告バナー */}
       {dbError && (
-        <DatabaseErrorBanner message={dbError} />
+        <DatabaseErrorBanner error={dbError} />
       )}
 
       {/* コントロールパネル */}
@@ -884,7 +885,7 @@ function GreedyTeamContent() {
         </div>
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
-          <span>💡 各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。</span>
+          <span>💡 {t('macro.greedyTeam.hoverHint', '各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。')}</span>
           <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? 'Max' : 'Mean'}</strong></span>
         </div>
       </div>
