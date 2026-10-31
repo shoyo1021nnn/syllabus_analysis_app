@@ -9,9 +9,7 @@ import {
   Compass, 
   Sparkles, 
   Users, 
-  ArrowRight, 
   Check, 
-  ExternalLink,
   ChevronRight
 } from 'lucide-react';
 import { AnalysisAction, ActionIconType } from '@/types/actions';
@@ -113,7 +111,7 @@ export default function ActionCards({ actions }: ActionCardsProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-semibold text-xs text-slate-800 dark:text-slate-200 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">
-                      {action.title || (action as any).label}
+                      {action.title || action.label}
                     </span>
                     {action.badge && (
                       <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800">

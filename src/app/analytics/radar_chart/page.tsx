@@ -6,15 +6,12 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { 
   HierarchyLevel, 
   SkillVectorDepartment, 
-  SkillVectorFaculty, 
-  SkillVectorUniversity,
   SkillVectorRecord
 } from '@/types/database';
 import { 
   getRadarIndicators, 
   KNOWLEDGE_SKILLS, 
   GENERAL_SKILLS, 
-  ALL_SKILLS,
   normalizeL1,
   combineVectors
 } from '@/lib/vectorUtils';
@@ -28,17 +25,13 @@ import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
   Radar as RadarIcon, 
-  Layers, 
-  Database, 
-  AlertCircle, 
   CheckSquare, 
-  Square, 
   TrendingUp, 
   BookOpen,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
+import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -117,7 +110,7 @@ function RadarChartContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 対象1 (基準) & 対象2 (比較) の選択ID
@@ -172,7 +165,7 @@ function RadarChartContent() {
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error in fetching skill vector:', err);
         setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
@@ -197,8 +190,8 @@ function RadarChartContent() {
       const pDept = queryPrimaryDept || queryDept;
       const pUniv = queryPrimaryUniv || queryUniv;
       if (pDept) {
-        const found = dataList.find((item: any) => {
-          const matchDept = item.department_name === pDept || item.faculty_name === pDept || item.university_name === pDept;
+        const found = dataList.find((item) => {
+          const matchDept = getDepartmentName(item) === pDept || getFacultyName(item) === pDept || item.university_name === pDept;
           if (pUniv) return matchDept && item.university_name === pUniv;
           return matchDept;
         });
@@ -220,8 +213,8 @@ function RadarChartContent() {
       targetCompareId = queryCompareId;
       setIsCompareEnabled(true);
     } else if (queryCompareDept) {
-      const found = dataList.find((item: any) => {
-        const matchDept = item.department_name === queryCompareDept || item.faculty_name === queryCompareDept || item.university_name === queryCompareDept;
+      const found = dataList.find((item) => {
+        const matchDept = getDepartmentName(item) === queryCompareDept || getFacultyName(item) === queryCompareDept || item.university_name === queryCompareDept;
         if (queryCompareUniv) return matchDept && item.university_name === queryCompareUniv;
         return matchDept;
       });
@@ -308,8 +301,8 @@ function RadarChartContent() {
   // レコード表示名フォーマッタ
   const formatLabel = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
-    const dept = (rec as any).department_name;
-    const fac = (rec as any).faculty_name;
+    const dept = getDepartmentName(rec);
+    const fac = getFacultyName(rec);
     if (dept) return `【${rec.university_name}】 ${dept}`;
     if (fac) return `【${rec.university_name}】 ${fac}`;
     return `【${rec.university_name}】`;
@@ -612,7 +605,7 @@ function RadarChartContent() {
               <span className="text-xs font-semibold text-slate-600">{t('analytics.radar.scaleLabel', 'スケール:')}</span>
               <select
                 value={scaleMode}
-                onChange={(e) => setScaleMode(e.target.value as any)}
+                onChange={(e) => setScaleMode(e.target.value as typeof scaleMode)}
                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
               >
                 <option value="auto">{t('analytics.radar.scaleAuto', '自動最適化 (フィット)')}</option>
@@ -658,8 +651,8 @@ function RadarChartContent() {
                       target={{
                         id: primaryRecord.id,
                         universityName: primaryRecord.university_name,
-                        facultyName: (primaryRecord as any).faculty_name,
-                        departmentName: (primaryRecord as any).department_name,
+                        facultyName: getFacultyName(primaryRecord),
+                        departmentName: getDepartmentName(primaryRecord),
                         subjectCount: primaryRecord.subject_count,
                         websiteUrl: primaryRecord.website_url,
                         level,
@@ -716,8 +709,8 @@ function RadarChartContent() {
                     target={{
                       id: compareRecord.id,
                       universityName: compareRecord.university_name,
-                      facultyName: (compareRecord as any).faculty_name,
-                      departmentName: (compareRecord as any).department_name,
+                      facultyName: getFacultyName(compareRecord),
+                      departmentName: getDepartmentName(compareRecord),
                       subjectCount: compareRecord.subject_count,
                       websiteUrl: compareRecord.website_url,
                       level,
@@ -890,8 +883,8 @@ function RadarChartContent() {
                 target={{
                   id: primaryRecord.id,
                   universityName: primaryRecord.university_name,
-                  facultyName: (primaryRecord as any).faculty_name,
-                  departmentName: (primaryRecord as any).department_name,
+                  facultyName: getFacultyName(primaryRecord),
+                  departmentName: getDepartmentName(primaryRecord),
                   subjectCount: primaryRecord.subject_count,
                   websiteUrl: primaryRecord.website_url,
                   level,
@@ -942,8 +935,8 @@ function RadarChartContent() {
                 target={{
                   id: compareRecord.id,
                   universityName: compareRecord.university_name,
-                  facultyName: (compareRecord as any).faculty_name,
-                  departmentName: (compareRecord as any).department_name,
+                  facultyName: getFacultyName(compareRecord),
+                  departmentName: getDepartmentName(compareRecord),
                   subjectCount: compareRecord.subject_count,
                   websiteUrl: compareRecord.website_url,
                   level,

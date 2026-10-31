@@ -8,7 +8,7 @@ export interface AnalyticsContextData {
   primaryTarget?: string;
   compareTarget?: string;
   summaryText?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   presetQuestions?: string[];
 }
 

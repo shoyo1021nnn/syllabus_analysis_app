@@ -6,12 +6,7 @@ import {
   GraduationCap, 
   Sparkles, 
   ArrowRight, 
-  BookOpen, 
   Award, 
-  Layers, 
-  CheckCircle2, 
-  Search, 
-  Compass, 
   TrendingUp,
   AlertCircle
 } from "lucide-react";

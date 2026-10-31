@@ -9,13 +9,10 @@ import {
   X,
   Loader2,
   Sparkles,
-  Check,
   CheckSquare,
   Square,
   User,
   Info,
-  Calendar,
-  Award
 } from "lucide-react";
 import { CourseSkillVector, EnrolledCourse } from "@/types/database";
 import { useLanguage } from "@/context/LanguageContext";
@@ -116,9 +113,9 @@ export default function GradePdfImportModal({
       setSelectedIds(initialSelected);
 
       setStep("confirm");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setErrorMessage(err.message || t('modal.gradePdf.errorParse'));
+      setErrorMessage((err instanceof Error && err.message) || t('modal.gradePdf.errorParse'));
     } finally {
       setIsUploading(false);
     }

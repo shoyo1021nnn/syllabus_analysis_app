@@ -9,10 +9,8 @@ import {
   ArrowRight, 
   BookOpen, 
   Layers, 
-  CheckCircle2,
   Users,
   Target,
-  Workflow
 } from 'lucide-react';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';

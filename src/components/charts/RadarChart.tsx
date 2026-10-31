@@ -103,7 +103,7 @@ export default function RadarChart({
         borderWidth: 1,
         textStyle: { color: '#1e293b' },
         extraCssText: 'box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 8px; max-width: 320px;',
-        formatter: (params: any) => {
+        formatter: (params: { value?: number[]; name?: string }) => {
           const values: number[] = params.value || [];
           const name: string = params.name || '';
           let rows = `<div style="font-weight: 700; color: #0f172a; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px;">${name}</div>`;

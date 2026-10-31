@@ -34,8 +34,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { 
   UserPlus, 
   CheckCircle2, 
-  Database, 
-  AlertCircle, 
   BarChart2, 
   Filter, 
   GraduationCap, 
@@ -45,11 +43,10 @@ import {
   Sliders,
   Users,
   Target,
-  ArrowRight,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
+import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -156,7 +153,7 @@ function GreedyTeamContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 初期メンバー
@@ -173,9 +170,9 @@ function GreedyTeamContent() {
   // 結合・計算パラメータ
   const [combineMethod, setCombineMethod] = useState<'max' | 'mean'>('max');
   const [vectorTarget, setVectorTarget] = useState<VectorTarget>('all');
-  const [metric, setMetric] = useState<MetricType>('cosine');
-  const [normalization, setNormalization] = useState<NormalizationType>('l1');
-  const [filterUniversity, setFilterUniversity] = useState<TargetFilter>('all');
+  const [metric] = useState<MetricType>('cosine');
+  const [normalization] = useState<NormalizationType>('l1');
+  const [filterUniversity] = useState<TargetFilter>('all');
 
   useEffect(() => {
     async function fetchData() {
@@ -213,7 +210,7 @@ function GreedyTeamContent() {
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching data:', err);
         setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
@@ -225,12 +222,17 @@ function GreedyTeamContent() {
     fetchData();
   }, [level]);
 
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
+
+  // 大学フィルター (学部・学科レベル時)。下の URL クエリ同期の effect から参照するため先に宣言する
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+
   useEffect(() => {
     if (dataList.length === 0) return;
     let matchedId = '';
     if (queryDept) {
-      const found = dataList.find((item: any) => {
-        const mDept = item.department_name === queryDept || item.faculty_name === queryDept || item.university_name === queryDept;
+      const found = dataList.find((item) => {
+        const mDept = getDepartmentName(item) === queryDept || getFacultyName(item) === queryDept || item.university_name === queryDept;
         if (queryUniv) return mDept && item.university_name === queryUniv;
         return mDept;
       });
@@ -245,11 +247,6 @@ function GreedyTeamContent() {
       setSelectedUnivFilter(allUnivLabel);
     }
   }, [dataList, queryDept, queryUniv]);
-
-  const allUnivLabel = t('common.allUniversities', '全ての大学');
-
-  // 大学フィルター (学部・学科レベル時)
-  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
 
   // 言語切替時に「全ての大学」ラベルを追従
   useEffect(() => {
@@ -291,8 +288,8 @@ function GreedyTeamContent() {
 
   const formatLabel = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
-    const dept = (rec as any).department_name;
-    const fac = (rec as any).faculty_name;
+    const dept = getDepartmentName(rec);
+    const fac = getFacultyName(rec);
     if (dept) return `【${rec.university_name}】 ${dept}`;
     if (fac) return `【${rec.university_name}】 ${fac}`;
     return `【${rec.university_name}】`;
@@ -323,8 +320,8 @@ function GreedyTeamContent() {
       id: d.id,
       label: formatLabel(d),
       university_name: d.university_name,
-      faculty_name: (d as any).faculty_name,
-      department_name: (d as any).department_name,
+      faculty_name: getFacultyName(d),
+      department_name: getDepartmentName(d),
       vector: extractVector(d),
       subject_count: d.subject_count,
       website_url: d.website_url,
@@ -607,8 +604,8 @@ function GreedyTeamContent() {
                     target={{
                       id: initialRecord.id,
                       universityName: initialRecord.university_name,
-                      facultyName: (initialRecord as any).faculty_name,
-                      departmentName: (initialRecord as any).department_name,
+                      facultyName: getFacultyName(initialRecord),
+                      departmentName: getDepartmentName(initialRecord),
                       subjectCount: initialRecord.subject_count,
                       websiteUrl: initialRecord.website_url,
                       level,
@@ -807,8 +804,8 @@ function GreedyTeamContent() {
                       target={{
                         id: member.id,
                         universityName: cand?.university_name || member.label,
-                        facultyName: (cand as any)?.faculty_name,
-                        departmentName: (cand as any)?.department_name,
+                        facultyName: getFacultyName(cand),
+                        departmentName: getDepartmentName(cand),
                         subjectCount: cand?.subject_count,
                         websiteUrl: cand?.website_url,
                         level,
@@ -928,8 +925,8 @@ function GreedyTeamContent() {
                         target={{
                           id: initialRecord.id,
                           universityName: initialRecord.university_name,
-                          facultyName: (initialRecord as any).faculty_name,
-                          departmentName: (initialRecord as any).department_name,
+                          facultyName: getFacultyName(initialRecord),
+                          departmentName: getDepartmentName(initialRecord),
                           subjectCount: initialRecord.subject_count,
                           websiteUrl: initialRecord.website_url,
                           level,

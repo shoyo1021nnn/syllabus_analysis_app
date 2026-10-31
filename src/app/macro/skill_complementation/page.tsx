@@ -29,20 +29,16 @@ import { useLanguage } from '@/context/LanguageContext';
 import { 
   Compass, 
   CheckCircle2, 
-  Database, 
-  AlertCircle, 
   BarChart2, 
   Filter, 
   GraduationCap, 
-  BookOpen, 
   Sparkles, 
   Layers,
-  ArrowRight,
   Radar,
-  Building2
 } from 'lucide-react';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
+import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -150,7 +146,7 @@ function SkillComplementationContent() {
   const [level, setLevel] = useState<HierarchyLevel>('department');
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
+  const [, setIsUsingMock] = useState<boolean>(false);
   const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 基準対象
@@ -162,7 +158,7 @@ function SkillComplementationContent() {
   // 探索パラメータ
   const [approach, setApproach] = useState<ComplementationApproach>('synergy');
   const [metric, setMetric] = useState<MetricType>('cosine');
-  const [normalization, setNormalization] = useState<NormalizationType>('l1');
+  const [normalization] = useState<NormalizationType>('l1');
   const [filterUniversity, setFilterUniversity] = useState<TargetFilter>('all');
 
   // データ取得
@@ -202,7 +198,7 @@ function SkillComplementationContent() {
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching data:', err);
         setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
@@ -215,14 +211,19 @@ function SkillComplementationContent() {
   }, [level]);
 
   // 初期ターゲット設定
+  const allUnivLabel = t('common.allUniversities', '全ての大学');
+
+  // 大学フィルター (学部・学科レベル時)。下の URL クエリ同期の effect から参照するため先に宣言する
+  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
+
   useEffect(() => {
     if (dataList.length === 0) return;
     let matchedId = '';
     if (queryId && dataList.some((d) => d.id === queryId)) {
       matchedId = queryId;
     } else if (queryDept) {
-      const found = dataList.find((item: any) => {
-        const mDept = item.department_name === queryDept || item.faculty_name === queryDept || item.university_name === queryDept;
+      const found = dataList.find((item) => {
+        const mDept = getDepartmentName(item) === queryDept || getFacultyName(item) === queryDept || item.university_name === queryDept;
         if (queryUniv) return mDept && item.university_name === queryUniv;
         return mDept;
       });
@@ -237,11 +238,6 @@ function SkillComplementationContent() {
       setSelectedUnivFilter(allUnivLabel);
     }
   }, [dataList, queryId, queryDept, queryUniv]);
-
-  const allUnivLabel = t('common.allUniversities', '全ての大学');
-
-  // 大学フィルター (学部・学科レベル時)
-  const [selectedUnivFilter, setSelectedUnivFilter] = useState<string>('全ての大学');
 
   // 言語切替時に「全ての大学」ラベルを追従
   useEffect(() => {
@@ -283,8 +279,8 @@ function SkillComplementationContent() {
 
   const formatLabel = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
-    const dept = (rec as any).department_name;
-    const fac = (rec as any).faculty_name;
+    const dept = getDepartmentName(rec);
+    const fac = getFacultyName(rec);
     if (dept) return `【${rec.university_name}】 ${dept}`;
     if (fac) return `【${rec.university_name}】 ${fac}`;
     return `【${rec.university_name}】`;
@@ -303,8 +299,8 @@ function SkillComplementationContent() {
       id: d.id,
       label: formatLabel(d),
       university_name: d.university_name,
-      faculty_name: (d as any).faculty_name,
-      department_name: (d as any).department_name,
+      faculty_name: getFacultyName(d),
+      department_name: getDepartmentName(d),
       vector_A: d.knowledge_vector || [],
       vector_B: d.general_vector || [],
       subject_count: d.subject_count,
@@ -539,8 +535,8 @@ function SkillComplementationContent() {
                     target={{
                       id: targetRecord.id,
                       universityName: targetRecord.university_name,
-                      facultyName: (targetRecord as any).faculty_name,
-                      departmentName: (targetRecord as any).department_name,
+                      facultyName: getFacultyName(targetRecord),
+                      departmentName: getDepartmentName(targetRecord),
                       subjectCount: targetRecord.subject_count,
                       websiteUrl: targetRecord.website_url,
                       level,
@@ -652,8 +648,8 @@ function SkillComplementationContent() {
                   target={{
                     id: targetRecord.id,
                     universityName: targetRecord.university_name,
-                    facultyName: (targetRecord as any).faculty_name,
-                    departmentName: (targetRecord as any).department_name,
+                    facultyName: getFacultyName(targetRecord),
+                    departmentName: getDepartmentName(targetRecord),
                     subjectCount: targetRecord.subject_count,
                     websiteUrl: targetRecord.website_url,
                     level,
@@ -672,8 +668,8 @@ function SkillComplementationContent() {
                     target={{
                       id: partnerRecord.id,
                       universityName: partnerRecord.university_name,
-                      facultyName: (partnerRecord as any).faculty_name,
-                      departmentName: (partnerRecord as any).department_name,
+                      facultyName: getFacultyName(partnerRecord),
+                      departmentName: getDepartmentName(partnerRecord),
                       subjectCount: partnerRecord.subject_count,
                       websiteUrl: partnerRecord.website_url,
                       level,

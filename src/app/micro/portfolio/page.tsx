@@ -9,15 +9,12 @@ import {
   Trash2, 
   Sparkles, 
   Award, 
-  AlertTriangle, 
   Layers, 
   BookOpen, 
   ChevronRight, 
   RotateCcw,
   Check,
   TrendingUp,
-  Filter,
-  Info,
   CheckSquare,
   Square,
   User,
@@ -29,8 +26,6 @@ import { CourseSkillVector, EnrolledCourse } from "@/types/database";
 import { 
   calculatePersonalSkillProfile, 
   getRadarIndicators,
-  KNOWLEDGE_SKILLS,
-  GENERAL_SKILLS
 } from "@/lib/vectorUtils";
 import RadarChart, { RadarSeriesItem } from "@/components/charts/RadarChart";
 import { useAnalyticsContext } from "@/context/AnalyticsContext";
@@ -875,7 +870,7 @@ export default function MicroPortfolioPage() {
                   <div className="text-2xs text-slate-400 py-3 text-center">{t('micro.portfolio.weaknessesEmpty', '科目を追加すると不足スキルが判定されます')}</div>
                 ) : (
                   <div className="space-y-2">
-                    {profile.weaknesses.map((s, idx) => (
+                    {profile.weaknesses.map((s) => (
                       <div key={s.code} className="flex items-center justify-between text-xs bg-white dark:bg-slate-800 p-2 rounded-lg border border-rose-100 dark:border-rose-900/40">
                         <div className="flex items-center space-x-2">
                           <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-800 font-bold text-2xs flex items-center justify-center">

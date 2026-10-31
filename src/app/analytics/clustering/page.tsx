@@ -15,8 +15,6 @@ import {
   Layers, 
   Award, 
   Activity, 
-  Database, 
-  AlertCircle, 
   Compass, 
   Radar, 
   Users 
@@ -115,7 +113,7 @@ export default function ClusteringPage() {
           setSelectedRunId(data[0].id);
           setIsUsingMock(false);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('Failed to connect to Supabase:', err);
         setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setRuns(MOCK_RUNS);
