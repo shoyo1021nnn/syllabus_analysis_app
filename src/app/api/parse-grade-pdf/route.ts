@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractText } from "unpdf";
-import { createClient } from "@supabase/supabase-js";
+// URL 正規化（末尾の /rest/v1 除去）と未設定時のフォールバックを持つ共通クライアントを使う
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { ilikeEndsWith } from "@/lib/postgrestFilter";
 import { CourseSkillVector } from "@/types/database";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface DetectedGradeItem {
   id: string; // 一時ユニークID
@@ -64,6 +61,17 @@ function checkIsPassed(grade: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  // Supabase が未設定だと科目照合ができないため、PDF を解析する前に 503 を返す
+  if (!isSupabaseConfigured) {
+    return NextResponse.json(
+      {
+        error: "データベース（Supabase）が設定されていないため、科目を照合できません。",
+        code: "db_not_configured",
+      },
+      { status: 503 }
+    );
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;

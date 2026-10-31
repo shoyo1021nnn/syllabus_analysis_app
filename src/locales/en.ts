@@ -678,6 +678,7 @@ export const en = {
         no_text: "Could not extract text from the PDF.",
         no_courses: "No courses were detected in the grade report PDF. Please make sure it is a PDF of the Campusmate \"Grade Report\" page.",
         processing_failed: "An error occurred while processing the PDF: {detail}",
+        db_not_configured: "The database (Supabase) is not configured, so courses cannot be matched.",
       },
     },
   },
