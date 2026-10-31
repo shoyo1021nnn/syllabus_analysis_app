@@ -31,6 +31,7 @@ export default function AcademicUnitInfoButton({
   };
 
   const displayName = target.departmentName || target.facultyName || target.universityName;
+  const tooltip = t('modal.unitInfo.openTooltip', '「{name}」の基本情報・WEBサイトを表示').replace('{name}', displayName || '');
 
   if (variant === 'badge') {
     return (
@@ -71,8 +72,8 @@ export default function AcademicUnitInfoButton({
       type="button"
       onClick={handleClick}
       className={`inline-flex items-center justify-center rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/60 dark:hover:text-teal-400 transition cursor-pointer ${buttonPadding} ${className}`}
-      title={`「${displayName}」の基本情報・WEBサイトを表示`}
-      aria-label={`「${displayName}」の基本情報・WEBサイトを表示`}
+      title={tooltip}
+      aria-label={tooltip}
     >
       <Info className={`${iconSize} shrink-0`} />
     </button>

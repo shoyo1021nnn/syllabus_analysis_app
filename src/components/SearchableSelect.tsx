@@ -250,7 +250,7 @@ export function SearchableSelect({
           <div className="max-h-56 overflow-y-auto p-1 divide-y divide-slate-50">
             {filteredOptions.length === 0 ? (
               <div className="px-3 py-4 text-center text-xs text-slate-400">
-                該当する大学が見つかりません
+                {t('common.noUniversityFound', '該当する大学が見つかりません')}
               </div>
             ) : (
               filteredOptions.map((opt) => {

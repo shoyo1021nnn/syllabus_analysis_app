@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { AnalysisAction, ActionIconType } from '@/types/actions';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ActionCardsProps {
   actions: AnalysisAction[];
@@ -42,6 +43,7 @@ function getActionIcon(icon?: ActionIconType) {
 export default function ActionCards({ actions }: ActionCardsProps) {
   const router = useRouter();
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   if (!actions || actions.length === 0) {
     return null;
@@ -76,7 +78,7 @@ export default function ActionCards({ actions }: ActionCardsProps) {
     <div className="my-3.5 space-y-2 pt-1 border-t border-slate-200/80 dark:border-slate-800">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
         <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-        <span>おすすめの分析アクション</span>
+        <span>{t('agent.actions.title', 'おすすめの分析アクション')}</span>
       </div>
 
       <div className="grid grid-cols-1 gap-2">
@@ -130,7 +132,7 @@ export default function ActionCards({ actions }: ActionCardsProps) {
               <div className="shrink-0 flex items-center text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                 {isCurrentActive ? (
                   <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400">
-                    反映中...
+                    {t('agent.actions.applying', '反映中...')}
                   </span>
                 ) : (
                   <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />

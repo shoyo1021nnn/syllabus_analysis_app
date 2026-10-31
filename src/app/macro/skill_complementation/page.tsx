@@ -23,6 +23,7 @@ import DualChartExportButton from '@/components/charts/DualChartExportButton';
 import RadarLegend, { RadarLegendItem } from '@/components/charts/RadarLegend';
 import BackButton from '@/components/BackButton';
 import DatabaseErrorBanner from '@/components/DatabaseErrorBanner';
+import { DbErrorInfo, errorDetail } from '@/lib/dbError';
 import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { 
@@ -150,7 +151,7 @@ function SkillComplementationContent() {
   const [dataList, setDataList] = useState<SkillVectorRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isUsingMock, setIsUsingMock] = useState<boolean>(false);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<DbErrorInfo | null>(null);
 
   // 基準対象
   const [targetId, setTargetId] = useState<string>('');
@@ -169,7 +170,7 @@ function SkillComplementationContent() {
     async function fetchData() {
       setIsLoading(true);
       if (!isSupabaseConfigured) {
-        setDbError('Supabaseの接続設定（NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY）が未設定または無効です。');
+        setDbError({ key: 'notConfigured' });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
         setIsLoading(false);
@@ -185,11 +186,11 @@ function SkillComplementationContent() {
 
         if (error) {
           console.error(`Failed to fetch from ${tableName}:`, error);
-          setDbError(`データベースからのデータ取得に失敗しました: ${error.message}`);
+          setDbError({ key: 'fetchFailed', params: { detail: error.message } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else if (!data || data.length === 0) {
-          setDbError(`テーブル「${tableName}」にデータが存在しません。`);
+          setDbError({ key: 'tableEmpty', params: { table: tableName } });
           setDataList(MOCK_DEPARTMENTS);
           setIsUsingMock(true);
         } else {
@@ -203,7 +204,7 @@ function SkillComplementationContent() {
         }
       } catch (err: any) {
         console.error('Error fetching data:', err);
-        setDbError(`データベース通信エラーが発生しました: ${err?.message || err}`);
+        setDbError({ key: 'networkError', params: { detail: errorDetail(err) } });
         setDataList(MOCK_DEPARTMENTS);
         setIsUsingMock(true);
       } finally {
@@ -502,7 +503,7 @@ function SkillComplementationContent() {
 
       {/* データベース接続エラー時の警告バナー */}
       {dbError && (
-        <DatabaseErrorBanner message={dbError} />
+        <DatabaseErrorBanner error={dbError} />
       )}
 
       {/* コントロールパネル */}
@@ -739,7 +740,7 @@ function SkillComplementationContent() {
         </div>
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
-          <span>💡 チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。</span>
+          <span>💡 {t('macro.complementation.hoverHint', 'チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。')}</span>
           <span>{t('macro.complementation.approach', '補完アプローチ:')} <strong className="text-slate-600 font-semibold">{approach === 'synergy' ? t('macro.complementation.approachSynergy', '専門一致・汎用相補') : t('macro.complementation.approachGap', '相補最適化')}</strong></span>
         </div>
       </div>

@@ -48,6 +48,16 @@ export const GENERAL_SKILLS: SkillDefinition[] = [
 
 export const ALL_SKILLS: SkillDefinition[] = [...KNOWLEDGE_SKILLS, ...GENERAL_SKILLS];
 
+/**
+ * スキルコード（例: 'A-1'）を表示言語に応じたスキル名に変換する（表示専用）。
+ * 定義にないコードはそのまま返す。
+ */
+export function getSkillName(code: string, language: 'ja' | 'en' | string = 'ja'): string {
+  const def = ALL_SKILLS.find((s) => s.code === code);
+  if (!def) return code;
+  return language === 'en' ? (def.nameEn || def.nameJa) : def.nameJa;
+}
+
 // ==========================================
 // 2. 基本ベクトル演算
 // ==========================================
@@ -576,7 +586,8 @@ export interface GreedyTeamStep {
   teamScore: number;
   improvement: number;
   teamVector: number[];
-  topReinforcedSkills: Array<{ name: string; delta: number }>;
+  /** 伸び幅上位 3 スキル。表示名は言語に応じて getSkillName(code, language) で変換する */
+  topReinforcedSkills: Array<{ code: string; delta: number }>;
 }
 
 export interface GreedyTeamResult {
@@ -618,6 +629,9 @@ export function runGreedyTeamBuild(
   const {
     searchMode = 'team_size',
     targetTeamSize = 4,
+    // 既定値 0.95 は options.targetThreshold が省略されたときのみ使うフォールバック。
+    // /macro/greedy_team は常に値を渡す（画面の初期値は 0.90、選択肢は 0.85 / 0.90 / 0.93 / 0.95）。
+    // 卒業論文の分析条件に関わるため、この既定値は変更しない。
     targetThreshold = 0.95,
     combineMethod = 'max',
     metric = 'cosine',
@@ -679,7 +693,8 @@ export function runGreedyTeamBuild(
 
     // スキルの伸び代が大きい上位3項目を計算
     const deltas = currentCombinedVector.map((v, idx) => ({
-      name: skillDefinitions[idx]?.nameJa || `Skill ${idx + 1}`,
+      // 表示言語に依存しないよう、名前ではなくスキルコードを保持する（スコア計算・並び順には影響しない）
+      code: skillDefinitions[idx]?.code || `Skill ${idx + 1}`,
       delta: v - (prevVector[idx] ?? 0),
     }));
     deltas.sort((a, b) => b.delta - a.delta);

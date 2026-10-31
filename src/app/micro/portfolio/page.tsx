@@ -216,7 +216,7 @@ export default function MicroPortfolioPage() {
 
   // 全件クリア
   const handleClearAll = () => {
-    if (confirm("登録したすべての履修科目をクリアしますか？")) {
+    if (confirm(t('micro.portfolio.confirmClearAll', '登録したすべての履修科目をクリアしますか？'))) {
       saveCourses([]);
       setSelectedCourseIds(new Set());
     }
@@ -572,7 +572,7 @@ export default function MicroPortfolioPage() {
                               <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-2xs font-medium">
                                 {course.faculty_name}
                               </span>
-                              <span className="text-2xs text-slate-500 font-medium">{course.credits ?? 2}単位</span>
+                              <span className="text-2xs text-slate-500 font-medium">{t('micro.portfolio.creditsCount', '{count}単位').replace('{count}', String(course.credits ?? 2))}</span>
                             </div>
 
                             {/* 科目名 */}
@@ -590,7 +590,7 @@ export default function MicroPortfolioPage() {
                                   </span>
                                 </span>
                               ) : (
-                                <span className="text-slate-400">教員未記載</span>
+                                <span className="text-slate-400">{t('micro.portfolio.noInstructor', '教員未記載')}</span>
                               )}
                               {(course.term_time || course.semester) && (
                                 <>
@@ -618,7 +618,7 @@ export default function MicroPortfolioPage() {
                               handleAddCourse(course);
                             }}
                             className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-2xs transition shadow-xs shrink-0"
-                            title="1科目だけ即座に追加"
+                            title={t('micro.portfolio.addSingleTooltip', '1科目だけ即座に追加')}
                           >
                             <Plus className="w-3 h-3" />
                             <span>{t('micro.portfolio.addBtn', '追加')}</span>
@@ -670,12 +670,12 @@ export default function MicroPortfolioPage() {
                         )}
                         {item.grade && (
                           <span className="text-2xs px-1.5 py-0.5 rounded font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                            評価: {item.grade}
+                            {t('micro.portfolio.gradeLabel', '評価: {grade}').replace('{grade}', String(item.grade))}
                           </span>
                         )}
                         <span className="text-indigo-600 dark:text-indigo-400 font-medium text-2xs">{item.course.faculty_name}</span>
                         <span className="text-2xs text-slate-400">•</span>
-                        <span className="text-2xs text-slate-500">{item.course.credits ?? 2}{t('micro.portfolio.credits', '単位')}</span>
+                        <span className="text-2xs text-slate-500">{t('micro.portfolio.creditsCount', '{count}単位').replace('{count}', String(item.course.credits ?? 2))}</span>
                       </div>
                       <div className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs" title={item.course.course_name}>
                         {item.course.course_name}

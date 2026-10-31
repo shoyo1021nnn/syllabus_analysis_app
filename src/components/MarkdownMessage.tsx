@@ -8,6 +8,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import ActionCards from '@/components/ActionCards';
 import { AnalysisAction } from '@/types/actions';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface CodeBlockProps {
   language: string;
@@ -16,6 +17,7 @@ interface CodeBlockProps {
 
 function CodeBlock({ language, value }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const { t } = useLanguage();
 
   const handleCopy = async () => {
     try {
@@ -41,12 +43,12 @@ function CodeBlock({ language, value }: CodeBlockProps) {
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-emerald-400 font-medium">コピー完了</span>
+              <span className="text-emerald-400 font-medium">{t('common.copied', 'コピー完了')}</span>
             </>
           ) : (
             <>
               <Copy className="w-3.5 h-3.5" />
-              <span>コピー</span>
+              <span>{t('common.copy', 'コピー')}</span>
             </>
           )}
         </button>
