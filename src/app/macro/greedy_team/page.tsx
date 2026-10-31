@@ -20,7 +20,8 @@ import {
   KNOWLEDGE_SKILLS, 
   normalizeL1, 
   runGreedyTeamBuild,
-  combineMultipleVectors
+  combineMultipleVectors,
+  getSkillName,
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
 import DualChartExportButton from '@/components/charts/DualChartExportButton';
@@ -531,7 +532,7 @@ function GreedyTeamContent() {
           step: s.step,
           added: s.addedMember.label,
           score: Number(s.teamScore.toFixed(4)),
-          topReinforced: s.topReinforcedSkills.map((sk) => sk.name).join(', '),
+          topReinforced: s.topReinforcedSkills.map((sk) => getSkillName(sk.code, language)).join(', '),
         })),
       },
       presetQuestions: presets,
@@ -992,7 +993,7 @@ function GreedyTeamContent() {
                             key={i}
                             className="inline-flex items-center px-2 py-0.5 rounded-md text-2xs bg-emerald-50 text-emerald-700 border border-emerald-200"
                           >
-                            {sk.name} (+{(sk.delta * 100).toFixed(1)}%)
+                            {getSkillName(sk.code, language)} (+{(sk.delta * 100).toFixed(1)}%)
                           </span>
                         ))}
                       </div>
