@@ -111,13 +111,16 @@ export default function MicroRecommendationPage() {
     return calculatePersonalSkillProfile(enrolledCourses);
   }, [enrolledCourses]);
 
+  // 履修 0 件のときは全スキルが 0 で弱みが一意に決まらないため、推薦を計算せず案内を表示する
+  const hasEnrollment = enrolledCourses.length > 0;
+
   const enrolledCourseIds = useMemo(() => {
     return new Set(enrolledCourses.map((c) => c.course.id));
   }, [enrolledCourses]);
 
   // 推薦用候補科目のフェッチ（不足スキルやフィルタに合致する科目をロード）
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !hasEnrollment) return;
     // フィルタ切替が連続したとき、古い条件の結果で上書きしないためのフラグ
     let cancelled = false;
     const fetchCandidates = async () => {
@@ -140,11 +143,11 @@ export default function MicroRecommendationPage() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, facultyFilter, semesterFilter]);
+  }, [isLoaded, hasEnrollment, facultyFilter, semesterFilter]);
 
   // 推薦科目の計算
   const recommendations = useMemo(() => {
-    if (candidateCourses.length === 0) return [];
+    if (!hasEnrollment || candidateCourses.length === 0) return [];
     return recommendCoursesForPersonalGaps(
       profile,
       candidateCourses,
@@ -156,7 +159,7 @@ export default function MicroRecommendationPage() {
         topN: 15,
       }
     );
-  }, [profile, candidateCourses, enrolledCourseIds, facultyFilter, semesterFilter, targetCategory]);
+  }, [hasEnrollment, profile, candidateCourses, enrolledCourseIds, facultyFilter, semesterFilter, targetCategory]);
 
   // シミュレーション計算
   const simulationResult = useMemo(() => {
@@ -245,12 +248,16 @@ export default function MicroRecommendationPage() {
     setAnalyticsContext({
       pageTitle: t('micro.recommendation.title'),
       pagePath: "/micro/recommendation",
-      summaryText: isEn
+      summaryText: !hasEnrollment
+        ? (isEn
+          ? "Course recommendation page. No courses are enrolled yet, so skill gaps and recommendations have not been calculated. The student should first register courses in the portfolio (/micro/portfolio)."
+          : "科目推薦画面。履修科目が未登録のため、不足スキルと推薦科目はまだ計算されていません。まず履修ポートフォリオ（/micro/portfolio）で履修科目を登録する必要があります。")
+        : isEn
         ? `Course recommendation page based on student skill gaps. Current gaps: ${profile.weaknesses.map((w) => w.nameEn || w.nameJa).join(', ')}. Computing ${recommendations.length} recommendations.`
         : `学生個人の不足スキルを補填するための推奨科目一覧画面。現在の不足スキル: ${profile.weaknesses.map((w) => w.nameJa).join(', ')}。現在${recommendations.length}件の推奨科目を算出中。`,
       details: {
         enrolledCount: enrolledCourses.length,
-        weaknesses: profile.weaknesses.map((w) => `${isEn ? (w.nameEn || w.nameJa) : w.nameJa} (${t('micro.recommendation.currentScore')} ${w.score}pt)`),
+        weaknesses: !hasEnrollment ? [] : profile.weaknesses.map((w) => `${isEn ? (w.nameEn || w.nameJa) : w.nameJa} (${t('micro.recommendation.currentScore')} ${w.score}pt)`),
         simulatedCourse: simulatedCourse ? {
           name: simulatedCourse.course_name,
           faculty: simulatedCourse.faculty_name,
@@ -279,7 +286,7 @@ export default function MicroRecommendationPage() {
         "専門知識と汎用スキルのどちらを優先して補うべき？",
       ],
     });
-  }, [isLoaded, enrolledCourses.length, profile.weaknesses, simulatedCourse, simulationResult, recommendations, setAnalyticsContext, language, t]);
+  }, [isLoaded, hasEnrollment, enrolledCourses.length, profile.weaknesses, simulatedCourse, simulationResult, recommendations, setAnalyticsContext, language, t]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-16">
@@ -340,7 +347,7 @@ export default function MicroRecommendationPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 pt-3">
-          {profile.weaknesses.length === 0 ? (
+          {!hasEnrollment || profile.weaknesses.length === 0 ? (
             <span className="text-xs text-slate-400">{t('micro.recommendation.gapEmpty')}</span>
           ) : (
             profile.weaknesses.map((w) => (
@@ -403,7 +410,24 @@ export default function MicroRecommendationPage() {
 
           {/* 推薦科目カード一覧 */}
           <div className="space-y-3">
-            {isLoadingCourses ? (
+            {!hasEnrollment ? (
+              <div className="p-10 flex flex-col items-center text-center gap-3 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-900/60">
+                <GraduationCap className="w-8 h-8 text-indigo-500" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                  {t('micro.recommendation.noEnrollmentTitle', 'まず履修科目を登録してください')}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+                  {t('micro.recommendation.noEnrollmentDesc', '不足スキルの判定と科目推薦は、履修済み科目のスキル合計をもとに計算します。履修・スキルポートフォリオで受講した科目を追加すると、ここに推薦結果が表示されます。')}
+                </p>
+                <Link
+                  href="/micro/portfolio"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-xs"
+                >
+                  <span>{t('micro.recommendation.goToPortfolio', '履修ポートフォリオで科目を登録する')}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            ) : isLoadingCourses ? (
               <div className="p-12 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
                 {t('micro.recommendation.loadingDesc')}
               </div>
