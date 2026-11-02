@@ -118,7 +118,7 @@ docs/               nginx-rate-limit.md（学内 VM の Nginx limit_req 設定�
 
 ## デプロイ
 
-- Vercel と、学内 VM（Ubuntu 24.04、Node.js 22、PM2、Nginx）の両方で動かしている。VM の更新手順は「GitHub に push → VM 上の `deploy.sh`（git pull → build → pm2 restart）」。
+- Vercel と、学内 VM（Ubuntu 24.04、Node.js 22、PM2、Nginx）の両方で動かしている。VM の更新手順は「GitHub に push → VM 上の `deploy.sh`（git pull → npm ci → build → pm2 restart）」。
 - VM の Nginx では、PDF アップロードのための `client_max_body_size 20M` と、AI ストリーミングのための `proxy_buffering off` が必須。これらを前提とする変更（アップロードサイズ、ストリーミング形式）には注意する。
 
 ## コミット

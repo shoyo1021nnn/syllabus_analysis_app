@@ -86,7 +86,7 @@ Supabase が未設定またはエラーの場合、各ページはモックデ�
 
 ## デプロイ
 
-Vercel と学内 VM（Ubuntu 24.04 / Node.js 22 / PM2 / Nginx）で動かしています。VM の Nginx では、PDF アップロード用の `client_max_body_size 20M` と、AI ストリーミング用の `proxy_buffering off` が必須です。`/api/chat` のレート制限の設定例は [docs/nginx-rate-limit.md](docs/nginx-rate-limit.md) を参照してください。
+Vercel と学内 VM（Ubuntu 24.04 / Node.js 22 / PM2 / Nginx）で動かしています。VM を更新するときは、アプリのディレクトリで [deploy.sh](deploy.sh) を実行します。VM の Nginx では、PDF アップロード用の `client_max_body_size 20M` と、AI ストリーミング用の `proxy_buffering off` が必須です。`/api/chat` のレート制限の設定例は [docs/nginx-rate-limit.md](docs/nginx-rate-limit.md) を参照してください。
 
 ## 開発者向け
 
