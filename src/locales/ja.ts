@@ -144,7 +144,9 @@ export const ja = {
       subtitle: "自組織の不足スキルを補う連携パートナー探索や、相乗効果を最大化するベストペア・最適チーム編成を支援します。",
       badge: "組織連携・カリキュラム最適化",
       approachLabel: "支援アプローチ",
-      targetLevelLabel: "目標水準",
+      targetLevelLabel: "目標 (理想ベクトル)",
+      idealVectorValue: "各軸 1/12（均等）",
+      idealVectorDesc: "L1正規化後の理想ベクトル。スキルの均等さを測る基準",
       cards: {
         complementation: {
           step: "Step 1: 弱点相補",
@@ -200,6 +202,7 @@ export const ja = {
       approachDissimilar: "汎用スキル相補 (非類似度重視)",
       approachCoverage: "カバー率 (不足をどれだけ埋めたか)",
       chartTitle: "スキル相補シミュレーション（基準 vs 選択パートナー vs 補完後）",
+      radarTitle: "スキル補完 レーダーチャート比較",
       tableRank: "順位",
       tableOrg: "大学・学部・学科名",
       tableScore: "総合スコア",

@@ -712,7 +712,7 @@ function SkillComplementationContent() {
                 indicators: generalIndicators,
                 seriesData: generalSeries,
               }}
-              mainTitle={`${targetRecord ? formatLabel(targetRecord) : ''} × ${partnerRecord ? formatLabel(partnerRecord) : ''} ${t('macro.complementation.radarTitle')}`}
+              mainTitle={`${targetRecord ? formatLabel(targetRecord) : ''} × ${partnerRecord ? formatLabel(partnerRecord) : ''} ${t('macro.complementation.radarTitle', 'スキル補完 レーダーチャート比較')}`}
               filename={`skill_complementation_${targetRecord ? formatLabel(targetRecord) : ''}_${partnerRecord ? formatLabel(partnerRecord) : ''}.png`}
             />
             <div className="hidden sm:inline-flex text-2xs text-slate-400 bg-slate-50 px-2.5 py-1.5 rounded-md border border-slate-100">
