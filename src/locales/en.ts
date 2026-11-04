@@ -103,7 +103,7 @@ export const en = {
     },
     theory: {
       l1Title: "Objective Evaluation via L1 Normalization",
-      l1Desc: "To eliminate volume bias caused by course count differences between large universities and small institutions, L1 normalization is applied so all skill proportions sum to 100%, enabling fair comparison.",
+      l1Desc: "To eliminate volume bias caused by course count differences between large universities and small institutions, L1 normalization is applied so that Knowledge and Generic skill proportions each sum to 100%, enabling fair comparison.",
       taxonomyTitle: "24-Skill Framework (Knowledge 12 & Generic 12)",
       taxonomyDesc: "Comprehensively captures 12 specialized academic disciplines (Group A: ICT, Natural Sciences, Humanities, etc.) and 12 universal generic competencies (Group B: Logical Thinking, Problem Solving, Teamwork, etc.).",
     },
@@ -435,6 +435,7 @@ export const en = {
       dimensionLabel: "Skill Dimensions",
       dimensionDesc: "24 Dimensions (12 x 2 Groups)",
       normalizationLabel: "Normalization Method",
+      normalizationValue: "L1 Normalization (Knowledge / Generic 100% each)",
       normalizationDesc: "L1 Normalized to remove course volume bias",
       workflowTitle: "Recommended Curriculum Analysis Workflow",
       step1Title: "Step 1: Overall Overview (Clustering)",
@@ -466,7 +467,7 @@ export const en = {
       theory: {
         title: "Objective Evaluation via L1 Normalization & Significance of 24-Skill Taxonomy",
         l1Title: "① Elimination of Course Volume Bias (L1 Normalization):",
-        l1Desc: "Direct comparisons between large universities offering hundreds of courses and specialized colleges with fewer courses introduce volume bias. This system applies L1 normalization so all skill proportions sum to 100%, enabling fair comparison of curriculum emphasis.",
+        l1Desc: "Direct comparisons between large universities offering hundreds of courses and specialized colleges with fewer courses introduce volume bias. This system applies L1 normalization so that Knowledge and Generic skill proportions each sum to 100%, enabling fair comparison of curriculum emphasis.",
         taxonomyTitle: "② Coverage of Specialized Knowledge (Group A) & Generic Competencies (Group B):",
         taxonomyDesc: "Allows separated and integrated evaluation of academic disciplines (Group A, 12 categories: Engineering, ICT, Humanities, etc.) and universally demanded transferable skills (Group B, 12 categories: Critical Thinking, Problem Solving, Teamwork, Ethics, etc.).",
       },

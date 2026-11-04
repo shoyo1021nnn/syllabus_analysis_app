@@ -493,7 +493,7 @@ function RadarChartContent() {
         : `${primaryName} のシラバススキル分析（${compareName ? `vs ${compareName}` : '単体表示'}）`,
       details: {
         viewMode,
-        normalization: isEn ? 'L1 Normalization (Total = 100% composition)' : 'L1正規化（全軸合計=100%の構成比率）',
+        normalization: isEn ? 'L1 Normalization (Knowledge and Generic each total 100%)' : 'L1正規化（知識・汎用それぞれ合計100%の構成比率）',
         primary: {
           name: primaryName,
           subjectCount: primaryRecord.subject_count,

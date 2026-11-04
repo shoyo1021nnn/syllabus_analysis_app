@@ -131,7 +131,7 @@ export default function AnalyticsIndexPage() {
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
             <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{t('analytics.hub.normalizationLabel', '正規化手法')}</div>
             <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
-              L1 Normalization (100%)
+              {t('analytics.hub.normalizationValue', 'L1正規化（知識・汎用 各100%）')}
             </div>
             <p className="text-2xs text-slate-500 mt-0.5">{t('analytics.hub.normalizationDesc', '科目数の偏りを排除した客観比較')}</p>
           </div>
@@ -260,7 +260,7 @@ export default function AnalyticsIndexPage() {
               {t('analytics.hub.theory.l1Title', '① 科目数バイアスの完全排除 (L1正規化):')}
             </span>
             <p className="leading-relaxed">
-              {t('analytics.hub.theory.l1Desc', '開講科目数が多い大規模大学と、少数精鋭の単科大学・小規模学科をそのまま比較すると科目数による偏りが生じます。本システムでは全スキル値の総和が100%となるようL1正規化を適用し、カリキュラムの「重み付け配分比率」として公平に比較します。')}
+              {t('analytics.hub.theory.l1Desc', '開講科目数が多い大規模大学と、少数精鋭の単科大学・小規模学科をそのまま比較すると科目数による偏りが生じます。本システムでは知識スキルと汎用スキルの値がそれぞれ総和100%となるようL1正規化を適用し、カリキュラムの「重み付け配分比率」として公平に比較します。')}
             </p>
           </div>
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
