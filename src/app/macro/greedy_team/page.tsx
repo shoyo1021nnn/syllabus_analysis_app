@@ -3,22 +3,19 @@
 import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { 
-  HierarchyLevel, 
-  MetricType, 
-  NormalizationType, 
-  SkillVectorDepartment, 
-  SkillVectorRecord, 
-  VectorTarget 
+import {
+  HierarchyLevel,
+  SkillVectorDepartment,
+  SkillVectorRecord
 } from '@/types/database';
-import { 
-  ALL_SKILLS, 
-  GENERAL_SKILLS, 
-  getRadarIndicators, 
-  GreedyTeamResult, 
-  KNOWLEDGE_SKILLS, 
-  normalizeL1, 
-  runGreedyTeamBuild,
+import {
+  getRadarIndicators,
+  GreedyStopReason,
+  MacroGreedyResult,
+  MacroScoreMetric,
+  normalizeL1,
+  resolveCombineMethod,
+  runMacroGreedyTeamBuild,
   combineMultipleVectors,
   getSkillName,
 } from '@/lib/vectorUtils';
@@ -46,7 +43,8 @@ import {
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
-import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { dropExcludedFaculties } from '@/lib/excludedUnits';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -143,6 +141,25 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 
 type TargetFilter = 'all' | 'same' | 'diff';
 
+const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
+
+// 緑の線。カバー率のときは計算と同じく正規化し直さない値、バランス度のときは正規化し直した値を描く
+const toFinalTeamLine = (vectors: number[][], metric: MacroScoreMetric, combine: 'max' | 'mean') => {
+  if (vectors.length === 0) return [];
+  const combined = combineMultipleVectors(vectors, combine);
+  return metric === 'coverage' ? combined : toPercent(combined);
+};
+
+// 終了の理由の t() フォールバック
+const STOP_REASON_FALLBACK: Record<GreedyStopReason, string> = {
+  complete: 'カバー率が 99.9% 以上になったため終了',
+  target: '目標に到達したため終了',
+  fixed: '指定の数まで追加して終了',
+  max_steps: '追加の上限に達したため終了',
+  no_improvement: '最良の候補でも改善がないため終了',
+  no_candidate: '追加できる候補がないため終了',
+};
+
 function GreedyTeamContent() {
   const { language, t } = useLanguage();
   const searchParams = useSearchParams();
@@ -160,19 +177,20 @@ function GreedyTeamContent() {
   const [initialId, setInitialId] = useState<string>('');
 
   // 探索モード
-  const [searchMode, setSearchMode] = useState<'team_size' | 'threshold'>('team_size');
+  const [searchMode, setSearchMode] = useState<'team_size' | 'threshold'>('threshold');
   const [targetTeamSize, setTargetTeamSize] = useState<number>(4);
-  // 目標スコア閾値の初期値。セレクトの選択肢（0.85 / 0.90 / 0.93 / 0.95）のいずれかに揃える。
+  // 目標の初期値。セレクトの選択肢（0.85 / 0.90 / 0.93 / 0.95）のいずれかに揃える。
   // runGreedyTeamBuild の既定値（0.95）は呼び出し側が閾値を渡さないときのフォールバックで、
   // この画面は常に targetThreshold を渡すため、画面上の初期値はこちら（0.90）が優先される。
   const [targetThreshold, setTargetThreshold] = useState<number>(0.90);
 
   // 結合・計算パラメータ
+  const [scoreMetric, setScoreMetric] = useState<MacroScoreMetric>('coverage');
   const [combineMethod, setCombineMethod] = useState<'max' | 'mean'>('max');
-  const [vectorTarget, setVectorTarget] = useState<VectorTarget>('all');
-  const [metric] = useState<MetricType>('cosine');
-  const [normalization] = useState<NormalizationType>('l1');
   const [filterUniversity] = useState<TargetFilter>('all');
+
+  // カバー率のときは最大値結合に固定する（バランス度に戻すと選んでいた結合方法に戻る）
+  const resolvedCombine = resolveCombineMethod(scoreMetric, combineMethod);
 
   useEffect(() => {
     async function fetchData() {
@@ -203,9 +221,10 @@ function GreedyTeamContent() {
           setIsUsingMock(true);
         } else {
           setDbError(null);
-          // 実験用レコード（gpt-5.6-terra等）を除外
-          const validData = (data as SkillVectorRecord[]).filter(
-            (d) => !d.university_name.includes('gpt-')
+          // 実験用レコード（gpt-5.6-terra等）と、学部の単位で比べない科目群を除外
+          const validData = dropExcludedFaculties(
+            (data as SkillVectorRecord[]).filter((d) => !d.university_name.includes('gpt-')),
+            level
           );
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
@@ -310,56 +329,46 @@ function GreedyTeamContent() {
       university_name: d.university_name,
       faculty_name: getFacultyName(d),
       department_name: getDepartmentName(d),
-      vector: extractRecordVector(d, vectorTarget),
+      vector_A: d.knowledge_vector || [],
+      vector_B: d.general_vector || [],
       subject_count: d.subject_count,
       website_url: d.website_url,
     }));
-  }, [dataList, initialRecord, filterUniversity, vectorTarget]);
+  }, [dataList, initialRecord, filterUniversity]);
 
-  const skillDefinitions = useMemo(() => {
-    if (vectorTarget === 'knowledge') return KNOWLEDGE_SKILLS;
-    if (vectorTarget === 'general') return GENERAL_SKILLS;
-    return ALL_SKILLS;
-  }, [vectorTarget]);
-
-  // Greedyチーム編成の実行
-  const teamResult: GreedyTeamResult | null = useMemo(() => {
+  // Greedyチーム編成の実行（スコアは汎用12軸で計算する）
+  const teamResult: MacroGreedyResult | null = useMemo(() => {
     if (!initialRecord || candidates.length === 0) return null;
-    return runGreedyTeamBuild(
+    return runMacroGreedyTeamBuild(
       {
         id: initialRecord.id,
         label: formatLabel(initialRecord),
         university_name: initialRecord.university_name,
-        vector: extractRecordVector(initialRecord, vectorTarget),
+        vector_A: initialRecord.knowledge_vector || [],
+        vector_B: initialRecord.general_vector || [],
       },
       candidates,
       {
+        scoreMetric,
         searchMode,
         targetTeamSize,
         targetThreshold,
-        combineMethod,
-        metric,
-        normalization,
-        skillDefinitions,
+        combineMethod: resolvedCombine,
       }
     );
   }, [
     initialRecord,
     candidates,
+    scoreMetric,
     searchMode,
     targetTeamSize,
     targetThreshold,
-    combineMethod,
-    metric,
-    normalization,
-    skillDefinitions,
-    vectorTarget,
+    resolvedCombine,
   ]);
 
   // レーダーチャート用（知識12項目 ＆ 汎用12項目の2分割）
   const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
   const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
-  const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
 
   // チームメンバー全員の知識・汎用ベクトル
   const teamKnowledgeVectors = useMemo(() => {
@@ -379,17 +388,20 @@ function GreedyTeamContent() {
   }, [teamResult, dataList]);
 
   // チーム全体の合成（知識・汎用それぞれ）
-  const finalTeamKVec = useMemo(() => {
-    if (teamKnowledgeVectors.length === 0) return [];
-    const combined = combineMultipleVectors(teamKnowledgeVectors, combineMethod);
-    return toPercent(combined);
-  }, [teamKnowledgeVectors, combineMethod]);
+  const finalTeamKVec = useMemo(() => toFinalTeamLine(teamKnowledgeVectors, scoreMetric, resolvedCombine), [teamKnowledgeVectors, scoreMetric, resolvedCombine]);
+  const finalTeamGVec = useMemo(() => toFinalTeamLine(teamGeneralVectors, scoreMetric, resolvedCombine), [teamGeneralVectors, scoreMetric, resolvedCombine]);
 
-  const finalTeamGVec = useMemo(() => {
-    if (teamGeneralVectors.length === 0) return [];
-    const combined = combineMultipleVectors(teamGeneralVectors, combineMethod);
-    return toPercent(combined);
-  }, [teamGeneralVectors, combineMethod]);
+  // 評価指標の名前と説明、終了の理由
+  const metricName = scoreMetric === 'coverage' ? t('macro.metric.coverage', 'カバー率') : t('macro.metric.balance', 'バランス度');
+  const unitName = t(`macro.metric.units.${level}`, level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科');
+  const coverageDesc = t('macro.metric.coverageDesc', '理想までの不足のうち、追加した{unit}が埋めた割合').replace('{unit}', unitName);
+  const balanceDesc = t('macro.metric.balanceDesc', '結合後の汎用スキルと理想ベクトル（均等）のコサイン類似度');
+  const combineName = resolvedCombine === 'max' ? t('macro.metric.combineMax', '最大値結合') : t('macro.metric.combineMean', '平均値結合');
+  const stopReasonText = teamResult
+    ? t(`macro.greedyTeam.stopReasons.${teamResult.stopReason}`, STOP_REASON_FALLBACK[teamResult.stopReason])
+    : '';
+  // 目標モードで目標に届かなかった場合（大学の単位など）を区別して表示する
+  const missedTarget = !!teamResult && searchMode === 'threshold' && !teamResult.reachedThreshold;
 
   const getShortLabel = (label: string) => {
     const match = label.match(/【.*?】\s*(.+)/);
@@ -475,11 +487,11 @@ function GreedyTeamContent() {
     list.push({
       name: `${t('charts.radar.teamCombined')} (${teamResult.teamMembers.length}${levelUnit})`,
       color: '#059669',
-      subLabel: `${(teamResult.finalScore * 100).toFixed(1)}%`,
+      subLabel: `${metricName} ${(teamResult.finalScore * 100).toFixed(1)}%`,
     });
 
     return list;
-  }, [teamResult, levelUnit, t]);
+  }, [teamResult, levelUnit, metricName, t]);
 
   // AIコンテキスト共有
   useEffect(() => {
@@ -491,40 +503,63 @@ function GreedyTeamContent() {
     if (isEn) {
       presets.push(`Why was the first partner chosen by the greedy algorithm for "${initialLabel}"?`);
       presets.push(`How does role division function across the organizations within this ${teamResult.teamMembers.length}-member team?`);
-      presets.push(`How does the optimal team strategy shift between Max Pooling and Mean Pooling?`);
-      presets.push(`What is the evaluation regarding diminishing marginal skill returns with additional members?`);
+      presets.push(scoreMetric === 'coverage'
+        ? `How does the team change between coverage and balance?`
+        : `How does the optimal team strategy shift between Max Pooling and Mean Pooling?`);
+      presets.push(`Why did the search stop here, and what would adding more members bring?`);
     } else {
       presets.push(`貪欲法で「${initialLabel}」に最初に選ばれたパートナーの選定理由は？`);
       presets.push(`チーム人数（${teamResult.teamMembers.length}名）で各組織の役割分担はどう機能しますか？`);
-      presets.push(`最大値結合(Max)と平均値結合(Mean)でチーム編成の最適戦略はどう変わる？`);
-      presets.push(`これ以上のメンバー追加で得られるスキルの限界収穫逓減についての評価は？`);
+      presets.push(scoreMetric === 'coverage'
+        ? `カバー率とバランス度でチーム編成はどう変わる？`
+        : `最大値結合(Max)と平均値結合(Mean)でチーム編成の最適戦略はどう変わる？`);
+      presets.push(`ここで探索が終了した理由と、これ以上メンバーを加えた場合の効果は？`);
     }
+
+    const combineLabel = resolvedCombine === 'max'
+      ? (isEn ? 'Max Pooling' : '最大値結合')
+      : (isEn ? 'Mean Pooling' : '平均値結合');
+    const targetSkillsLabel = isEn ? 'Generic skills (12 axes)' : '汎用スキル（12軸）';
+    const round4 = (v: number) => Number(v.toFixed(4));
 
     setAnalyticsContext({
       pageTitle: t('macro.greedyTeam.title', 'チーム編成支援'),
       pagePath: '/macro/greedy_team',
       primaryTarget: initialLabel,
       summaryText: isEn
-        ? `Origin: ${initialLabel} Greedy Team Simulation (${teamResult.teamMembers.length} orgs, Score: ${(teamResult.finalScore * 100).toFixed(1)}%)`
-        : `起点: ${initialLabel} のGreedyチーム編成シミュレーション（${teamResult.teamMembers.length}組織、スコア: ${(teamResult.finalScore * 100).toFixed(1)}%）`,
+        ? `Origin: ${initialLabel} Greedy Team Simulation (${teamResult.teamMembers.length} orgs including origin, ${metricName}: ${(teamResult.finalScore * 100).toFixed(1)}%)`
+        : `起点: ${initialLabel} のGreedyチーム編成シミュレーション（起点を含め${teamResult.teamMembers.length}組織、${metricName}: ${(teamResult.finalScore * 100).toFixed(1)}%）`,
       details: {
         initial: initialLabel,
         teamSize: teamResult.teamMembers.length,
+        addedCount: teamResult.steps.length,
+        evaluationMetric: metricName,
         searchMode,
-        combineMethod,
-        baselineScore: Number(teamResult.baselineScore.toFixed(4)),
-        finalScore: Number(teamResult.finalScore.toFixed(4)),
+        targetThreshold: searchMode === 'threshold' ? targetThreshold : undefined,
+        combineMethod: combineLabel,
+        coverageCombine: isEn ? 'Coverage is always computed with Max Pooling' : 'カバー率は常に最大値結合で計算',
+        targetSkills: targetSkillsLabel,
+        baselineCoverage: round4(teamResult.baselineCoverage),
+        finalCoverage: round4(teamResult.finalCoverage),
+        baselineBalance: round4(teamResult.baselineBalance),
+        finalBalance: round4(teamResult.finalBalance),
+        finalDomainProximity: round4(teamResult.finalSimA),
+        stopReason: teamResult.stopReason,
+        stopReasonText,
+        reachedTarget: searchMode === 'threshold' ? teamResult.reachedThreshold : undefined,
         teamMembers: teamResult.teamMembers.map((m) => m.label),
         steps: teamResult.steps.map((s) => ({
           step: s.step,
           added: s.addedMember.label,
-          score: Number(s.teamScore.toFixed(4)),
+          coverage: round4(s.coverage),
+          balance: round4(s.balance),
+          domainProximity: round4(s.sim_a),
           topReinforced: s.topReinforcedSkills.map((sk) => getSkillName(sk.code, language)).join(', '),
         })),
       },
       presetQuestions: presets,
     });
-  }, [teamResult, searchMode, combineMethod, setAnalyticsContext, language, t]);
+  }, [teamResult, scoreMetric, metricName, searchMode, targetThreshold, resolvedCombine, stopReasonText, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -549,7 +584,7 @@ function GreedyTeamContent() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {t('macro.greedyTeam.subtitle', '指定人数またはスキル閾値を達成するまで、不足を最も補えるパートナーを1組織ずつ貪欲に追加シミュレーション')}
+              {t('macro.greedyTeam.subtitle', '目標または指定の数に達するまで、評価指標を最も高める相手を1組織ずつ追加するシミュレーション（スコアは汎用スキル12項目）')}
             </p>
           </div>
         </div>
@@ -621,6 +656,21 @@ function GreedyTeamContent() {
 
         {/* 探索モードとパラメータ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+          {/* 評価指標 */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-orange-500" /> {t('macro.metric.label', '評価指標:')}
+            </label>
+            <select
+              value={scoreMetric}
+              onChange={(e) => setScoreMetric(e.target.value as MacroScoreMetric)}
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
+            >
+              <option value="coverage">{t('macro.metric.optionCoverage', 'カバー率 (不足をどれだけ埋めたか)')}</option>
+              <option value="balance">{t('macro.metric.optionBalance', 'バランス度 (理想ベクトルへの近さ)')}</option>
+            </select>
+          </div>
+
           {/* 探索モード */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
@@ -631,8 +681,8 @@ function GreedyTeamContent() {
               onChange={(e) => setSearchMode(e.target.value as 'team_size' | 'threshold')}
               className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
             >
+              <option value="threshold">{t('macro.greedyTeam.modeThreshold', '目標モード (目標到達まで)')}</option>
               <option value="team_size">{t('macro.greedyTeam.modeTeamSize', '人数指定モード (固定人数)')}</option>
-              <option value="threshold">{t('macro.greedyTeam.modeThreshold', '閾値達成モード (目標到達まで)')}</option>
             </select>
           </div>
 
@@ -657,7 +707,7 @@ function GreedyTeamContent() {
           ) : (
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-                <Target className="w-3.5 h-3.5 text-orange-500" /> {t('macro.greedyTeam.targetThreshold', '目標スコア閾値:')}
+                <Target className="w-3.5 h-3.5 text-orange-500" /> {t('macro.greedyTeam.targetThreshold', '目標 (評価指標の値):')}
               </label>
               <select
                 value={targetThreshold}
@@ -678,28 +728,14 @@ function GreedyTeamContent() {
               <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> {t('macro.greedyTeam.combineMethod', '結合方法:')}
             </label>
             <select
-              value={combineMethod}
+              value={resolvedCombine}
               onChange={(e) => setCombineMethod(e.target.value as 'max' | 'mean')}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
+              disabled={scoreMetric === 'coverage'}
+              title={scoreMetric === 'coverage' ? t('macro.metric.maxFixed', 'カバー率では最大値結合に固定') : undefined}
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="max">{t('macro.greedyTeam.methodMax', '最大値結合 (強み集約)')}</option>
               <option value="mean">{t('macro.greedyTeam.methodMean', '平均値結合 (総合底上げ)')}</option>
-            </select>
-          </div>
-
-          {/* 対象スキル */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <Layers className="w-3.5 h-3.5 text-slate-500" /> {t('macro.greedyTeam.targetSkills', '対象スキル:')}
-            </label>
-            <select
-              value={vectorTarget}
-              onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
-            >
-              <option value="all">{t('macro.greedyTeam.skillsAll', '全24スキル統合')}</option>
-              <option value="knowledge">{t('macro.greedyTeam.skillsKnowledge', '知識関連 (12項目)')}</option>
-              <option value="general">{t('macro.greedyTeam.skillsGeneral', '汎用スキル (12項目)')}</option>
             </select>
           </div>
 
@@ -719,44 +755,63 @@ function GreedyTeamContent() {
             </select>
           </div>
         </div>
+
+        <p className="text-2xs text-slate-500">
+          {t('macro.metric.targetGeneral', 'スコアの対象は汎用スキル12項目です（レーダーチャートは知識・汎用の両方を表示します）。')}
+        </p>
       </div>
 
       {/* サマリーカード */}
       {teamResult && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-medium">{t('macro.greedyTeam.initialSoloScore', '初期単独スコア')}</span>
-            <div className="text-xl font-bold text-slate-800 mt-1">
-              {(teamResult.baselineScore * 100).toFixed(1)}%
-            </div>
-            <span className="text-2xs text-slate-400 mt-0.5 block">{t('macro.greedyTeam.initialOrigin', '起点組織')}</span>
-          </div>
-
-          <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-2xs bg-orange-50/20">
-            <span className="text-xs text-orange-700 font-bold">{t('macro.greedyTeam.finalTeamScore', '最終チームスコア')}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl border border-orange-200 shadow-2xs bg-orange-50/20">
+            <span className="text-xs text-orange-700 font-bold">{t('macro.greedyTeam.finalScoreLabel', '最終 {metric}').replace('{metric}', metricName)}</span>
             <div className="text-xl font-bold text-orange-600 mt-1">
               {(teamResult.finalScore * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-orange-600/80 mt-0.5 block">{teamResult.teamMembers.length}{levelUnit}</span>
+            <span className="text-2xs text-orange-600/80 mt-0.5 block">
+              {t('macro.greedyTeam.baselineToFinal', '起点のみ {base}% から +{diff} pt')
+                .replace('{base}', (teamResult.baselineScore * 100).toFixed(1))
+                .replace('{diff}', ((teamResult.finalScore - teamResult.baselineScore) * 100).toFixed(1))}
+            </span>
+            <span className="text-2xs text-slate-500 mt-0.5 block">{scoreMetric === 'coverage' ? coverageDesc : balanceDesc}</span>
           </div>
 
-          <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs bg-emerald-50/20">
-            <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> {t('macro.greedyTeam.totalImprovement', '総合向上幅')}
+          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-xs text-slate-500 font-bold flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5" /> {scoreMetric === 'coverage' ? t('macro.metric.balance', 'バランス度') : t('macro.metric.coverage', 'カバー率')}
             </span>
-            <div className="text-xl font-bold text-emerald-600 mt-1">
-              +{((teamResult.finalScore - teamResult.baselineScore) * 100).toFixed(1)} pt
+            <div className="text-xl font-bold text-slate-800 mt-1">
+              {((scoreMetric === 'coverage' ? teamResult.finalBalance : teamResult.finalCoverage) * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-emerald-600/80 mt-0.5 block">{t('macro.greedyTeam.balanceScore', 'チーム効果')}</span>
+            <span className="text-2xs text-slate-500 mt-0.5 block">{scoreMetric === 'coverage' ? balanceDesc : coverageDesc}</span>
+            {scoreMetric === 'balance' && resolvedCombine === 'mean' && (
+              <span className="text-2xs text-slate-400 mt-0.5 block">{t('macro.metric.coverageAlwaysMax', 'カバー率は常に最大値結合で計算します')}</span>
+            )}
+          </div>
+
+          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-xs text-slate-500 font-bold">{t('macro.metric.simA', '専門の近さ')}</span>
+            <div className="text-xl font-bold text-slate-800 mt-1">
+              {teamResult.finalSimA.toFixed(3)}
+            </div>
+            <span className="text-2xs text-slate-500 mt-0.5 block">{t('macro.metric.simADesc', '基準の知識スキルと、結合後（最大値）の知識スキルのコサイン類似度。順位には使いません')}</span>
           </div>
 
           <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <span className="text-xs text-slate-500 font-medium">{t('macro.greedyTeam.status', '編成ステータス')}</span>
             <div className="text-sm font-bold text-slate-800 mt-2 flex items-center gap-1.5">
-              <span className={`w-2.5 h-2.5 rounded-full ${teamResult.reachedThreshold ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
-              <span>{teamResult.reachedThreshold ? t('macro.greedyTeam.statusReached', '目標閾値達成') : `${teamResult.teamMembers.length}${levelUnit} ${t('macro.greedyTeam.statusCompleted', '編成完了')}`}</span>
+              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${missedTarget ? 'bg-orange-500' : 'bg-emerald-500'}`}></span>
+              <span>{stopReasonText}</span>
             </div>
-            <span className="text-2xs text-slate-400 mt-0.5 block">{combineMethod === 'max' ? t('macro.greedyTeam.methodMax', '最大値結合') : t('macro.greedyTeam.methodMean', '平均値結合')}</span>
+            {missedTarget && (
+              <span className="text-2xs text-orange-600 mt-0.5 block">
+                {t('macro.greedyTeam.targetMissed', '目標 {target}% には届きませんでした').replace('{target}', (targetThreshold * 100).toFixed(0))}
+              </span>
+            )}
+            <span className="text-2xs text-slate-400 mt-0.5 block">
+              {t('macro.greedyTeam.teamSizeNote', '起点＋追加 {added}{unit}').replace('{added}', String(teamResult.steps.length)).replace('{unit}', levelUnit)} / {combineName}
+            </span>
           </div>
         </div>
       )}
@@ -814,7 +869,7 @@ function GreedyTeamContent() {
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <RadarIcon className="w-5 h-5 text-orange-600" />
-              {t('macro.greedyTeam.chartTitle', 'チームスキルバランス推移 レーダーチャート')}
+              {t('macro.greedyTeam.chartTitle', 'チームスキル推移 レーダーチャート')} ({metricName})
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {t('macro.greedyTeam.chartSubtitle', '起点単体 vs 各ステップ追加メンバー vs 最終チーム合成ベクトル')}
@@ -823,12 +878,12 @@ function GreedyTeamContent() {
           <div className="flex items-center gap-2">
             <DualChartExportButton
               chart1={{
-                title: `${t('charts.radar.knowledgeTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                title: `${t('charts.radar.knowledgeTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${resolvedCombine === 'max' ? 'Max' : 'Mean'})`,
                 indicators: knowledgeIndicators,
                 seriesData: knowledgeSeries,
               }}
               chart2={{
-                title: `${t('charts.radar.generalTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                title: `${t('charts.radar.generalTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${resolvedCombine === 'max' ? 'Max' : 'Mean'})`,
                 indicators: generalIndicators,
                 seriesData: generalSeries,
               }}
@@ -843,7 +898,7 @@ function GreedyTeamContent() {
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`${t('charts.radar.knowledgeTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`}
+              title={`${t('charts.radar.knowledgeTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${resolvedCombine === 'max' ? 'Max' : 'Mean'})`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
               height={440}
@@ -854,7 +909,7 @@ function GreedyTeamContent() {
           {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`${t('charts.radar.generalTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${combineMethod === 'max' ? 'Max' : 'Mean'})`}
+              title={`${t('charts.radar.generalTitle')} (${teamResult ? teamResult.teamMembers.length : 0}${levelUnit} ${resolvedCombine === 'max' ? 'Max' : 'Mean'})`}
               indicators={generalIndicators}
               seriesData={generalSeries}
               height={440}
@@ -869,8 +924,10 @@ function GreedyTeamContent() {
         </div>
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
-          <span>💡 {t('macro.greedyTeam.hoverHint', '各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。')}</span>
-          <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? 'Max' : 'Mean'}</strong></span>
+          <span>💡 {t('macro.greedyTeam.hoverHint', '各グラフにマウスを重ねるとスキル別の詳細比率を確認できます。')} {scoreMetric === 'coverage'
+            ? t('macro.bestPair.combinedLineHintCoverage', '緑の線は、カバー率の計算と同じく最大値結合のまま（正規化し直さない値）です。')
+            : t('macro.greedyTeam.combinedLineHintBalance', '緑の線は結合後に正規化し直した値です。')}</span>
+          <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{resolvedCombine === 'max' ? 'Max' : 'Mean'}</strong></span>
         </div>
       </div>
 
@@ -883,7 +940,7 @@ function GreedyTeamContent() {
                 {t('macro.greedyTeam.stepTableTitle', 'ステップごとの追加ログ ＆ スキル補強詳細')}
               </h3>
               <p className="text-xs text-slate-500">
-                {t('macro.greedyTeam.stepTableDesc', '貪欲法により、各ステップで最もチームスコアを向上させた組織が選定されています')}
+                {t('macro.greedyTeam.stepTableDesc', '貪欲法により、各ステップで評価指標（{metric}）を最も高くする組織が選定されています').replace('{metric}', metricName)}
               </p>
             </div>
           </div>
@@ -894,9 +951,13 @@ function GreedyTeamContent() {
                 <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 text-xs font-semibold">
                   <th className="py-2.5 px-3 w-16 text-center">{t('macro.greedyTeam.tableRank', 'ステップ')}</th>
                   <th className="py-2.5 px-3">{t('macro.greedyTeam.tableOrg', '追加された組織')}</th>
-                  <th className="py-2.5 px-3 w-28 text-right">{t('macro.greedyTeam.tableScore', 'チームスコア')}</th>
-                  <th className="py-2.5 px-3 w-28 text-right">{t('macro.greedyTeam.tableDiff', '向上幅 (Δ)')}</th>
-                  <th className="py-2.5 px-3">{t('macro.greedyTeam.tableTopSkills', '特に大きく強化されたスキル Top 3')}</th>
+                  <th className="py-2.5 px-3 w-24 text-right">{t('macro.metric.coverage', 'カバー率')}</th>
+                  <th className="py-2.5 px-3 w-24 text-right">{t('macro.metric.balance', 'バランス度')}</th>
+                  <th className="py-2.5 px-3 w-24 text-right">{t('macro.greedyTeam.tableDiff', '向上幅 (Δ)')}</th>
+                  <th className="py-2.5 px-3 w-24 text-right">{t('macro.metric.simA', '専門の近さ')}</th>
+                  <th className="py-2.5 px-3">{scoreMetric === 'coverage'
+                    ? t('macro.greedyTeam.tableTopSkillsCoverage', '特に不足を埋めたスキル Top 3')
+                    : t('macro.greedyTeam.tableTopSkills', '特に大きく強化されたスキル Top 3')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
@@ -926,7 +987,13 @@ function GreedyTeamContent() {
                     </div>
                   </td>
                   <td className="py-2.5 px-3 text-right font-medium text-slate-600">
-                    {(teamResult.baselineScore * 100).toFixed(2)}%
+                    {(teamResult.baselineCoverage * 100).toFixed(2)}%
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-medium text-slate-600">
+                    {(teamResult.baselineBalance * 100).toFixed(2)}%
+                  </td>
+                  <td className="py-2.5 px-3 text-right text-slate-400">
+                    -
                   </td>
                   <td className="py-2.5 px-3 text-right text-slate-400">
                     -
@@ -965,11 +1032,17 @@ function GreedyTeamContent() {
                         })()}
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-orange-700">
-                      {(step.teamScore * 100).toFixed(2)}%
+                    <td className={`py-2.5 px-3 text-right ${scoreMetric === 'coverage' ? 'font-bold text-orange-700' : 'text-slate-600'}`}>
+                      {(step.coverage * 100).toFixed(2)}%
+                    </td>
+                    <td className={`py-2.5 px-3 text-right ${scoreMetric === 'balance' ? 'font-bold text-orange-700' : 'text-slate-600'}`}>
+                      {(step.balance * 100).toFixed(2)}%
                     </td>
                     <td className="py-2.5 px-3 text-right font-semibold text-emerald-600">
                       +{(step.improvement * 100).toFixed(2)} pt
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-slate-600">
+                      {step.sim_a.toFixed(3)}
                     </td>
                     <td className="py-2.5 px-3">
                       <div className="flex flex-wrap gap-1.5">
