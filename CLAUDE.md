@@ -73,7 +73,8 @@ src/
   lib/              vectorUtils.ts（全計算ロジック）, supabase.ts, chartExportUtils.ts（PNG 出力）,
                     courseCandidates.ts（推薦候補の全件取得）, chatGuard.ts（/api/chat の検証・レート制限）, dbError.ts,
                     univFilter.ts（大学フィルター）, enrolledCoursesStore.ts（履修リストの共通ストア）,
-                    recordFields.ts（階層混在レコードの列アクセス）, postgrestFilter.ts（.or() のエスケープ）
+                    recordFields.ts（階層混在レコードの列アクセス）, postgrestFilter.ts（.or() のエスケープ）,
+                    excludedUnits.ts（学部の単位で除く科目群）
   locales/          ja.ts, en.ts
   types/            database.ts（DB 型）, actions.ts（AI アクション型）
 docs/               nginx-rate-limit.md（学内 VM の Nginx limit_req 設定例）
@@ -91,11 +92,16 @@ docs/               nginx-rate-limit.md（学内 VM の Nginx limit_req 設定�
 - 類似度ランキングとレーダーチャートは **L1 正規化（構成比 %）で固定**。
 - 正規化は `applyNormalization`（`normalizeByGroup`）を通す。全 24 スキルのときは知識 12 軸と汎用 12 軸を**別々に**正規化して連結する（知識・汎用それぞれ合計 100%、24 軸の合計は 200%）。分析用リポジトリの `normalize_by_group` および事前計算済みのクラスタリングと同じ方式。12 軸のときはそのまま正規化する。
 - マクロ支援の「理想ベクトル」は、全次元 3.0 の一様ベクトルを上記の方法で L1 正規化したもの（24 次元でも 12 次元でも各軸 1/12。スキルの均等さを測る基準）。
-- スキル補完の `synergy` は (sim_A + 最大値結合の理想達成度) / 2。
+- スキル補完の `synergy` は (sim_A + 最大値結合の理想達成度) / 2。既定のアプローチは `synergy` のまま。
+- **カバー率**（`calculateCoverage`。分析用リポジトリ `program_n/eval_program/coverage.py` の新しい定義と同じ。旧定義は入れない）：汎用 12 軸だけで計算する。`gap[i] = max(0, 理想[i] − 基準[i])`、`added[i] = max(0, comb[i] − 基準[i])`、カバー率 = `Σ min(gap, added) / Σ gap`（Σ gap = 0 のときは 1、誰も追加していない時点では 0）。`comb` は基準を含むチームの要素ごとの最大値で、結合した後に正規化し直さない。
+- **ベスト・ペアと貪欲法の評価指標**：カバー率（既定。最大値結合に固定）とバランス度（汎用 12 軸で、今までのコサイン類似度による理想との近さ。最大値・平均値を選べる）。対象スキルの選択はなく、スコアは汎用 12 軸で計算する。バランス度のときも、表示するカバー率は常に最大値結合で計算する。専門の近さ（`sim_a` = cos(基準の A, 結合後の A)、結合後の A は常に最大値）は表示だけで順位には使わない。スキル補完にはアプローチ `coverage` と表のカバー率の列がある。
+- **貪欲法**（`runMacroGreedyTeamBuild`）：既定は目標モード（目標 90%、選択肢 85 / 90 / 93 / 95%）で、人数指定モード（2〜6）もある。カバー率のときの終了条件は `coverage.py` の `greedy` と同じで、0.999 以上、目標に到達、追加が 10、改善がない（最良の候補でもカバー率が上がらない）。同点は先に見つけた候補を選ぶ。バランス度のときは `runGreedyTeamBuild` をそのまま使う（目標モードの追加の上限は従来どおり 8）。終了の理由（`stopReason`）を画面に表示する。大学の単位では全大学が 90% に届かず「改善がない」で止まる。
+- **行の順序と同点**：カバー率は不足を埋めきると頭打ちになり同点が多く出るので、同点でどの候補を選ぶかは候補の順序で決まる。分析用（SQLite の行順）と画面（Supabase の `university_name` 順）で行順が違うため、カバー率の値と追加数は一致するが、同点の候補の選び方は異なることがある。
+- **学部の除外**：学部の単位では、`src/lib/excludedUnits.ts` の `EXCLUDED_FACULTIES`（分析用 `config.EXCLUDED_FACULTIES` と同じ。青山学院大学 青山スタンダード科目）を、マクロ支援の 3 ページの基準・候補から除く。類似度ランキングとレーダー比較には適用していない。
 - ミクロ支援の個人プロファイルは、履修科目ベクトルの単純合計（案 B）。履修リストは localStorage（キー `syllabus_enrolled_courses`）に保存し、DB には書き込まない。読み書きは必ず `src/lib/enrolledCoursesStore.ts` の `useEnrolledCourses()` を通す（各ページで localStorage を直接読まない）。
 - 弱みスキルは `calculatePersonalSkillProfile` の昇順ソートの下位 4 件（同点はスキル定義順で先頭が残る）。推薦画面はこの選び方を変えず、境界と同点で表示外のスキルがあれば注記と一覧を表示するだけにしている。履修 0 件のときは推薦を計算せず、ポートフォリオへの案内を出す。
 - 科目推薦の候補は `src/lib/courseCandidates.ts` が `.order('id').range()` の 1,000 件単位ページングで、フィルタ条件に合う全件（学部「すべて」で約 5,900 件）を取得し、条件ごとにモジュールスコープでキャッシュする。`.limit()` で件数を絞らないこと（評価対象が欠ける）。
-- 貪欲法チーム編成の目標閾値：画面の初期値は 0.90（選択肢 0.85 / 0.90 / 0.93 / 0.95）。`runGreedyTeamBuild` の既定値 0.95 は省略時のフォールバックで、変更しない。`topReinforcedSkills` はスキルコード（`{ code, delta }`）で持ち、表示時に `getSkillName(code, language)` で名前に変換する。
+- 貪欲法チーム編成の目標：画面の初期値は 0.90。`runGreedyTeamBuild` の既定値 0.95 は省略時のフォールバックで、変更しない。`topReinforcedSkills` はスキルコード（`{ code, delta }`）で持ち、表示時に `getSkillName(code, language)` で名前に変換する（カバー率のときの `delta` は埋めた不足の増分）。
 
 ## AI アシスタントの規約
 
