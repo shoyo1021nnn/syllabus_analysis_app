@@ -359,6 +359,34 @@ export function computeMetric(a: number[], b: number[], metric: MetricType = 'co
 }
 
 // ------------------------------------------
+// カバー率 (Coverage)
+// 分析用リポジトリ program_n/eval_program/coverage.py の新しい定義と同じ計算。
+// 汎用12軸（L1 正規化済み）で計算し、結合は最大値のみ。結合した後に正規化し直さない。
+// ------------------------------------------
+
+/** カバー率のときの貪欲法：これ以上は実質100%として探索を終える */
+export const COVERAGE_COMPLETE = 0.999;
+/** カバー率のときの貪欲法：追加する数の上限 */
+export const MAX_COVERAGE_GREEDY_STEPS = 10;
+
+/**
+ * カバー率 = Σ min(gap[i], added[i]) / Σ gap[i]（理想までの不足のうち、追加した相手が埋めた割合）。
+ * gap[i] = max(0, ideal[i] - base[i])、added[i] = max(0, comb[i] - base[i])。
+ * comb は基準を含むチームの要素ごとの最大値。誰も追加していなければ 0、Σ gap = 0 のときは 1。
+ */
+export function calculateCoverage(base: number[], comb: number[], ideal: number[]): number {
+  let gapSum = 0;
+  let filledSum = 0;
+  for (let i = 0; i < ideal.length; i++) {
+    const gap = Math.max(0, ideal[i] - (base[i] ?? 0));
+    const added = Math.max(0, (comb[i] ?? 0) - (base[i] ?? 0));
+    gapSum += gap;
+    filledSum += Math.min(gap, added);
+  }
+  return gapSum === 0 ? 1 : filledSum / gapSum;
+}
+
+// ------------------------------------------
 // 5-1. スキル補完検索 (Skill Complementation)
 // ------------------------------------------
 
@@ -374,6 +402,8 @@ export interface SkillComplementationItem {
   gap_score: number;
   ideal_attainment_max: number;
   ideal_attainment_mean: number;
+  /** 基準＋この候補のカバー率（最大値結合。アプローチによらず計算する） */
+  coverage: number;
   sort_score: number;
   rank: number;
   candidate_vector_A: number[];
@@ -385,7 +415,8 @@ export type ComplementationApproach =
   | 'gap'           // ギャップ補填特化
   | 'ideal_max'     // 最大値結合での理想達成度
   | 'ideal_mean'    // 平均値結合での理想達成度
-  | 'dissimilar_b'; // 汎用スキル相補（汎用類似度が低く相補的）
+  | 'dissimilar_b'  // 汎用スキル相補（汎用類似度が低く相補的）
+  | 'coverage';     // カバー率（基準＋相手1つ）
 
 export function calculateSkillComplementation(
   target: { id: string; vector_A: number[]; vector_B: number[] },
@@ -446,6 +477,9 @@ export function calculateSkillComplementation(
     const ideal_attainment_max = computeMetric(maxCombinedB, idealB, metric);
     const ideal_attainment_mean = computeMetric(meanCombinedB, idealB, metric);
 
+    // カバー率は正規化し直さない最大値結合で計算する（metric の選択にはよらない）
+    const coverage = calculateCoverage(tVecB, elementwiseMax(tVecB, cVecB), idealB);
+
     let sort_score = 0;
     switch (approach) {
       case 'synergy':
@@ -465,6 +499,9 @@ export function calculateSkillComplementation(
         // 汎用スキル類似度が低い（非類似）ほど相補的
         sort_score = 1 - sim_B;
         break;
+      case 'coverage':
+        sort_score = coverage;
+        break;
     }
 
     scored.push({
@@ -479,6 +516,7 @@ export function calculateSkillComplementation(
       gap_score,
       ideal_attainment_max,
       ideal_attainment_mean,
+      coverage,
       sort_score,
       candidate_vector_A: cVecA,
       candidate_vector_B: cVecB,
@@ -584,6 +622,15 @@ export function calculateBestPairs(
 // 5-3. チーム編成支援 (Greedy Team Build)
 // ------------------------------------------
 
+/** 貪欲法の終了の理由（coverage.py の STOP_* に対応する） */
+export type GreedyStopReason =
+  | 'complete'        // カバー率が 0.999 以上
+  | 'target'          // 目標モードで目標に到達
+  | 'fixed'           // 人数指定モードで指定の数を追加した
+  | 'max_steps'       // 追加が上限に達した
+  | 'no_improvement'  // 最良の候補でもスコアが上がらない
+  | 'no_candidate';   // 追加できる候補がない
+
 export interface GreedyTeamStep {
   step: number;
   addedMember: {
@@ -609,6 +656,7 @@ export interface GreedyTeamResult {
   reachedThreshold: boolean;
   baselineScore: number;
   finalScore: number;
+  stopReason: GreedyStopReason;
 }
 
 export function runGreedyTeamBuild(
@@ -665,10 +713,18 @@ export function runGreedyTeamBuild(
   let reachedThreshold = currentScore >= targetThreshold;
 
   const maxSteps = searchMode === 'team_size' ? targetTeamSize - 1 : 8;
+  // 上限まで追加して終わったときの理由。途中で止まるときは下で上書きする（スコアと選択には影響しない）
+  let stopReason: GreedyStopReason = searchMode === 'team_size' ? 'fixed' : 'max_steps';
 
   for (let s = 1; s <= maxSteps; s++) {
-    if (searchMode === 'threshold' && reachedThreshold) break;
-    if (remaining.length === 0) break;
+    if (searchMode === 'threshold' && reachedThreshold) {
+      stopReason = 'target';
+      break;
+    }
+    if (remaining.length === 0) {
+      stopReason = 'no_candidate';
+      break;
+    }
 
     let bestCandIndex = -1;
     let bestScore = -Infinity;
@@ -690,6 +746,7 @@ export function runGreedyTeamBuild(
 
     if (bestCandIndex === -1 || bestScore <= currentScore) {
       // これ以上向上しない場合
+      stopReason = 'no_improvement';
       break;
     }
 
@@ -728,7 +785,10 @@ export function runGreedyTeamBuild(
 
     if (currentScore >= targetThreshold) {
       reachedThreshold = true;
-      if (searchMode === 'threshold') break;
+      if (searchMode === 'threshold') {
+        stopReason = 'target';
+        break;
+      }
     }
   }
 
@@ -749,6 +809,327 @@ export function runGreedyTeamBuild(
     reachedThreshold,
     baselineScore,
     finalScore: currentScore,
+    stopReason,
+  };
+}
+
+// ------------------------------------------
+// 5-4. カバー率／バランス度で評価するベスト・ペアと貪欲法
+// 汎用12軸でスコアを計算する。バランス度は calculateBestPairs / runGreedyTeamBuild を
+// 汎用12軸で呼んだ値そのもの（コサイン類似度による理想ベクトルとの近さ）。
+// ------------------------------------------
+
+/** マクロ支援の評価指標。カバー率のときは最大値結合に固定する */
+export type MacroScoreMetric = 'coverage' | 'balance';
+
+interface MacroCandidate {
+  id: string;
+  label: string;
+  university_name: string;
+  faculty_name?: string;
+  department_name?: string;
+  vector_A: number[];
+  vector_B: number[];
+}
+
+/** 評価指標に応じた結合方法。カバー率は最大値結合に固定する */
+export function resolveCombineMethod(scoreMetric: MacroScoreMetric, combineMethod: 'max' | 'mean'): 'max' | 'mean' {
+  return scoreMetric === 'coverage' ? 'max' : combineMethod;
+}
+
+export interface MacroPairItem {
+  id: string;
+  label: string;
+  university_name: string;
+  faculty_name?: string;
+  department_name?: string;
+  /** 基準＋相手のカバー率（常に最大値結合） */
+  coverage: number;
+  /** 基準＋相手のバランス度（選択中の結合方法） */
+  balance: number;
+  /** 基準単独のバランス度 */
+  baseline_balance: number;
+  /** balance - baseline_balance（カバー率で並べたときは負になることもある） */
+  balance_improvement: number;
+  /** 専門の近さ cos(基準のA, 結合後のA)。結合後のAは常に最大値。順位には使わない */
+  sim_a: number;
+  rank: number;
+}
+
+/** ベスト・ペア（基準＋相手1つ）のランキング。同点は候補の順序を保つ（先に見つけた候補が上） */
+export function calculateMacroPairs(
+  target: { id: string; vector_A: number[]; vector_B: number[] },
+  candidates: MacroCandidate[],
+  options: {
+    scoreMetric?: MacroScoreMetric;
+    combineMethod?: 'max' | 'mean';
+    topN?: number;
+  } = {}
+): MacroPairItem[] {
+  const { scoreMetric = 'coverage', combineMethod = 'max', topN = 20 } = options;
+  const normalization: NormalizationType = 'l1';
+
+  const baseA = applyNormalization(target.vector_A, normalization);
+  const baseB = applyNormalization(target.vector_B, normalization);
+  const idealB = createIdealVector(baseB.length, 3.0, normalization);
+
+  const balanceById = new Map(
+    calculateBestPairs(
+      { id: target.id, vector: target.vector_B },
+      candidates.map((c) => ({ ...c, vector: c.vector_B })),
+      { combineMethod: resolveCombineMethod(scoreMetric, combineMethod), metric: 'cosine', normalization, topN: 0 }
+    ).map((p) => [p.id, p])
+  );
+
+  const items: Array<Omit<MacroPairItem, 'rank'>> = [];
+  for (const cand of candidates) {
+    const pair = balanceById.get(cand.id);
+    if (!pair) continue; // 基準自身
+
+    const candB = applyNormalization(cand.vector_B, normalization);
+    const candA = applyNormalization(cand.vector_A, normalization);
+    items.push({
+      id: cand.id,
+      label: cand.label,
+      university_name: cand.university_name,
+      faculty_name: cand.faculty_name,
+      department_name: cand.department_name,
+      coverage: calculateCoverage(baseB, elementwiseMax(baseB, candB), idealB),
+      balance: pair.pair_score,
+      baseline_balance: pair.baseline_score,
+      balance_improvement: pair.improvement,
+      sim_a: cosineSimilarity(baseA, elementwiseMax(baseA, candA)),
+    });
+  }
+
+  items.sort((a, b) => (scoreMetric === 'coverage' ? b.coverage - a.coverage : b.balance - a.balance));
+
+  const limited = topN ? items.slice(0, topN) : items;
+  return limited.map((item, idx) => ({ ...item, rank: idx + 1 }));
+}
+
+export interface MacroGreedyStep {
+  step: number;
+  addedMember: {
+    id: string;
+    label: string;
+    university_name: string;
+    faculty_name?: string;
+    department_name?: string;
+  };
+  coverage: number;
+  balance: number;
+  sim_a: number;
+  /** 選択中の評価指標の向上幅 */
+  improvement: number;
+  /**
+   * 伸びたスキル上位3つ。カバー率のときは埋めた不足の増分（増えていないスキルは含めない）、
+   * バランス度のときは runGreedyTeamBuild と同じ結合後ベクトルの増分。
+   */
+  topReinforcedSkills: Array<{ code: string; delta: number }>;
+}
+
+export interface MacroGreedyResult {
+  scoreMetric: MacroScoreMetric;
+  combineMethod: 'max' | 'mean';
+  initialMember: { id: string; label: string };
+  teamMembers: Array<{ id: string; label: string; university_name: string }>;
+  steps: MacroGreedyStep[];
+  baselineCoverage: number;
+  finalCoverage: number;
+  baselineBalance: number;
+  finalBalance: number;
+  /** 最終チームの専門の近さ（結合後のAは常に最大値） */
+  finalSimA: number;
+  /** 選択中の評価指標の、起点と最終の値 */
+  baselineScore: number;
+  finalScore: number;
+  reachedThreshold: boolean;
+  stopReason: GreedyStopReason;
+}
+
+/**
+ * 貪欲法チーム編成（汎用12軸）。
+ * - カバー率：coverage.py の greedy と同じ。カバー率が最も高い候補を1つずつ追加する（同点は先に見つけた候補）。
+ *   終了条件は 0.999 以上、目標に到達（目標モード）、指定の数（人数指定モード）、追加が10、改善がない。
+ * - バランス度：runGreedyTeamBuild をそのまま使う（目標モードの追加の上限は従来どおり8）。
+ */
+export function runMacroGreedyTeamBuild(
+  initialTarget: { id: string; label: string; university_name: string; vector_A: number[]; vector_B: number[] },
+  candidates: MacroCandidate[],
+  options: {
+    scoreMetric?: MacroScoreMetric;
+    searchMode?: 'team_size' | 'threshold';
+    targetTeamSize?: number;
+    targetThreshold?: number;
+    combineMethod?: 'max' | 'mean';
+  } = {}
+): MacroGreedyResult {
+  const {
+    scoreMetric = 'coverage',
+    searchMode = 'threshold',
+    targetTeamSize = 4,
+    targetThreshold = 0.9,
+    combineMethod = 'max',
+  } = options;
+  const normalization: NormalizationType = 'l1';
+  const resolvedCombine = resolveCombineMethod(scoreMetric, combineMethod);
+
+  const baseA = applyNormalization(initialTarget.vector_A, normalization);
+  const baseB = applyNormalization(initialTarget.vector_B, normalization);
+  const idealB = createIdealVector(baseB.length, 3.0, normalization);
+  const balanceOf = (combB: number[]) => computeMetric(applyNormalization(combB, normalization), idealB, 'cosine');
+  const baselineCoverage = calculateCoverage(baseB, baseB, idealB);
+  // baseB は正規化済みなので正規化し直さない（calculateBestPairs の baseline_score と同じ値にする）
+  const baselineBalance = computeMetric(baseB, idealB, 'cosine');
+
+  const normalizedA = new Map(candidates.map((c) => [c.id, applyNormalization(c.vector_A, normalization)]));
+  const normalizedB = new Map(candidates.map((c) => [c.id, applyNormalization(c.vector_B, normalization)]));
+
+  const steps: MacroGreedyStep[] = [];
+  const addedMembers: MacroCandidate[] = [];
+  let combB = [...baseB];
+  let combA = [...baseA];
+  let finalBalance = baselineBalance;
+  let reachedThreshold: boolean;
+  let stopReason: GreedyStopReason;
+
+  if (scoreMetric === 'coverage') {
+    const pool = candidates.filter((c) => c.id !== initialTarget.id);
+    const limit = searchMode === 'team_size' ? targetTeamSize - 1 : MAX_COVERAGE_GREEDY_STEPS;
+    let current = baselineCoverage;
+
+    for (let s = 1; ; s++) {
+      if (current >= COVERAGE_COMPLETE) {
+        stopReason = 'complete';
+        break;
+      }
+      if (searchMode === 'threshold' && current >= targetThreshold) {
+        stopReason = 'target';
+        break;
+      }
+      if (s > limit) {
+        stopReason = searchMode === 'team_size' ? 'fixed' : 'max_steps';
+        break;
+      }
+      if (pool.length === 0) {
+        stopReason = 'no_candidate';
+        break;
+      }
+
+      let bestIndex = -1;
+      let bestCoverage = -Infinity;
+      let bestComb: number[] = [];
+      for (let i = 0; i < pool.length; i++) {
+        const testComb = elementwiseMax(combB, normalizedB.get(pool[i].id) ?? []);
+        const score = calculateCoverage(baseB, testComb, idealB);
+        if (score > bestCoverage) {
+          bestCoverage = score;
+          bestIndex = i;
+          bestComb = testComb;
+        }
+      }
+
+      if (bestCoverage <= current) {
+        stopReason = 'no_improvement';
+        break;
+      }
+
+      const selected = pool.splice(bestIndex, 1)[0];
+      const prevComb = combB;
+      const nextComb = bestComb;
+      combB = nextComb;
+      combA = elementwiseMax(combA, normalizedA.get(selected.id) ?? []);
+      addedMembers.push(selected);
+
+      // 埋めた不足の増分が大きいスキル上位3つ
+      const filled = (comb: number[], i: number) =>
+        Math.min(Math.max(0, idealB[i] - baseB[i]), Math.max(0, comb[i] - baseB[i]));
+      const topReinforcedSkills = idealB
+        .map((_, i) => ({
+          code: GENERAL_SKILLS[i]?.code || `Skill ${i + 1}`,
+          delta: filled(nextComb, i) - filled(prevComb, i),
+        }))
+        .filter((d) => d.delta > 0)
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 3);
+
+      steps.push({
+        step: s,
+        addedMember: selected,
+        coverage: bestCoverage,
+        balance: balanceOf(combB),
+        sim_a: cosineSimilarity(baseA, combA),
+        improvement: bestCoverage - current,
+        topReinforcedSkills,
+      });
+      current = bestCoverage;
+    }
+    finalBalance = balanceOf(combB);
+    reachedThreshold = current >= targetThreshold;
+  } else {
+    const result = runGreedyTeamBuild(
+      {
+        id: initialTarget.id,
+        label: initialTarget.label,
+        university_name: initialTarget.university_name,
+        vector: initialTarget.vector_B,
+      },
+      candidates.map((c) => ({ ...c, vector: c.vector_B })),
+      {
+        searchMode,
+        targetTeamSize,
+        targetThreshold,
+        combineMethod: resolvedCombine,
+        metric: 'cosine',
+        normalization,
+        skillDefinitions: GENERAL_SKILLS,
+      }
+    );
+    const byId = new Map(candidates.map((c) => [c.id, c]));
+    for (const step of result.steps) {
+      const member = byId.get(step.addedMember.id);
+      if (!member) continue;
+      // カバー率と専門の近さは、結合方法の選択によらず最大値で計算する
+      combB = elementwiseMax(combB, normalizedB.get(member.id) ?? []);
+      combA = elementwiseMax(combA, normalizedA.get(member.id) ?? []);
+      addedMembers.push(member);
+      steps.push({
+        step: step.step,
+        addedMember: member,
+        coverage: calculateCoverage(baseB, combB, idealB),
+        balance: step.teamScore,
+        sim_a: cosineSimilarity(baseA, combA),
+        improvement: step.improvement,
+        topReinforcedSkills: step.topReinforcedSkills,
+      });
+    }
+    finalBalance = result.finalScore;
+    reachedThreshold = result.reachedThreshold;
+    stopReason = result.stopReason;
+  }
+
+  const finalCoverage = calculateCoverage(baseB, combB, idealB);
+
+  return {
+    scoreMetric,
+    combineMethod: resolvedCombine,
+    initialMember: { id: initialTarget.id, label: initialTarget.label },
+    teamMembers: [initialTarget, ...addedMembers].map((m) => ({
+      id: m.id,
+      label: m.label,
+      university_name: m.university_name,
+    })),
+    steps,
+    baselineCoverage,
+    finalCoverage,
+    baselineBalance,
+    finalBalance,
+    finalSimA: cosineSimilarity(baseA, combA),
+    baselineScore: scoreMetric === 'coverage' ? baselineCoverage : baselineBalance,
+    finalScore: scoreMetric === 'coverage' ? finalCoverage : finalBalance,
+    reachedThreshold,
+    stopReason,
   };
 }
 
