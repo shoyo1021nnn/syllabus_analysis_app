@@ -133,12 +133,12 @@ export default function MacroMenuPage() {
 
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
             <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {t('macro.hub.targetLevelLabel', '目標水準')}
+              {t('macro.hub.targetLevelLabel', '目標 (理想ベクトル)')}
             </div>
             <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
-              Ideal Vector (3.0)
+              {t('macro.hub.idealVectorValue', '各軸 1/12（均等）')}
             </div>
-            <p className="text-2xs text-slate-500 mt-0.5">Balanced & Multi-Disciplinary</p>
+            <p className="text-2xs text-slate-500 mt-0.5">{t('macro.hub.idealVectorDesc', 'L1正規化後の理想ベクトル。スキルの均等さを測る基準')}</p>
           </div>
         </div>
 

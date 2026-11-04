@@ -144,7 +144,9 @@ export const en = {
       subtitle: "Explore collaboration partners to supplement skill gaps, discover high-synergy pairs, and build multi-disciplinary teams with optimal skill balances.",
       badge: "Curriculum Synergy & Collaboration",
       approachLabel: "Support Approaches",
-      targetLevelLabel: "Target Benchmark",
+      targetLevelLabel: "Target (Ideal Vector)",
+      idealVectorValue: "1/12 per axis (uniform)",
+      idealVectorDesc: "Ideal vector after L1 normalization: a benchmark for how even the skills are",
       cards: {
         complementation: {
           step: "Step 1: Gap Complementation",
@@ -200,6 +202,7 @@ export const en = {
       approachDissimilar: "General Skill Complement (Dissimilarity)",
       approachCoverage: "Coverage (How much shortfall is filled)",
       chartTitle: "Skill Complementation Simulation (Base vs Partner vs Combined)",
+      radarTitle: "Skill Complementation Radar Comparison",
       tableRank: "Rank",
       tableOrg: "University / Faculty / Dept",
       tableScore: "Total Score",

@@ -386,6 +386,44 @@ export function calculateCoverage(base: number[], comb: number[], ideal: number[
   return gapSum === 0 ? 1 : filledSum / gapSum;
 }
 
+/** カバー率のときの同点の許容誤差（coverage.py の TIE_TOLERANCE） */
+export const COVERAGE_TIE_TOLERANCE = 1e-12;
+
+/** 高い順に並べた order を、隣との差が許容誤差以下の組に分ける（coverage.py の _split_ties） */
+function splitTies(order: number[], values: number[]): number[][] {
+  const groups: number[][] = [];
+  order.forEach((index, position) => {
+    if (position > 0 && values[order[position - 1]] - values[index] <= COVERAGE_TIE_TOLERANCE) {
+      groups[groups.length - 1].push(index);
+    } else {
+      groups.push([index]);
+    }
+  });
+  return groups;
+}
+
+/**
+ * カバー率のときの並び順を番号の配列で返す（coverage.py の tie_rule_order と同じ）。
+ * スコアの高い順で、差が許容誤差以下なら同点とし、結合後のバランス度 cos(comb_B, I_B) の高い順、
+ * それでも同じなら表示名の文字コード順（localeCompare は使わない）。差が許容誤差以下の値が隣り合って
+ * 連なるときは、まとめて1つの同点の組にする。入力の順序によらず同じ結果になる。
+ */
+export function coverageTieOrder(scores: number[], balance: number[], names: string[]): number[] {
+  const byScore = scores.map((_, i) => i).sort((a, b) => scores[b] - scores[a]);
+  const result: number[] = [];
+  for (const tied of splitTies(byScore, scores)) {
+    if (tied.length === 1) {
+      result.push(tied[0]);
+      continue;
+    }
+    const byBalance = [...tied].sort((a, b) => balance[b] - balance[a]);
+    for (const same of splitTies(byBalance, balance)) {
+      result.push(...[...same].sort((a, b) => (names[a] < names[b] ? -1 : names[a] > names[b] ? 1 : 0)));
+    }
+  }
+  return result;
+}
+
 // ------------------------------------------
 // 5-1. スキル補完検索 (Skill Complementation)
 // ------------------------------------------
@@ -523,9 +561,16 @@ export function calculateSkillComplementation(
     });
   }
 
-  scored.sort((a, b) => b.sort_score - a.sort_score);
+  // カバー率のアプローチだけ同点の規則で並べる。ほかのアプローチは従来どおり
+  const ordered = approach === 'coverage'
+    ? coverageTieOrder(
+        scored.map((item) => item.sort_score),
+        scored.map((item) => cosineSimilarity(elementwiseMax(tVecB, item.candidate_vector_B), idealB)),
+        scored.map((item) => item.label)
+      ).map((i) => scored[i])
+    : scored.sort((a, b) => b.sort_score - a.sort_score);
 
-  const limited = topN ? scored.slice(0, topN) : scored;
+  const limited = topN ? ordered.slice(0, topN) : ordered;
   return limited.map((item, idx) => ({
     ...item,
     rank: idx + 1,
@@ -856,7 +901,10 @@ export interface MacroPairItem {
   rank: number;
 }
 
-/** ベスト・ペア（基準＋相手1つ）のランキング。同点は候補の順序を保つ（先に見つけた候補が上） */
+/**
+ * ベスト・ペア（基準＋相手1つ）のランキング。
+ * カバー率のときは coverageTieOrder の順。バランス度のときは候補の順序を保つ（同点は先に見つけた候補が上）。
+ */
 export function calculateMacroPairs(
   target: { id: string; vector_A: number[]; vector_B: number[] },
   candidates: MacroCandidate[],
@@ -882,19 +930,22 @@ export function calculateMacroPairs(
   );
 
   const items: Array<Omit<MacroPairItem, 'rank'>> = [];
+  const tieBalance: number[] = [];
   for (const cand of candidates) {
     const pair = balanceById.get(cand.id);
     if (!pair) continue; // 基準自身
 
     const candB = applyNormalization(cand.vector_B, normalization);
     const candA = applyNormalization(cand.vector_A, normalization);
+    const combB = elementwiseMax(baseB, candB);
+    tieBalance.push(cosineSimilarity(combB, idealB));
     items.push({
       id: cand.id,
       label: cand.label,
       university_name: cand.university_name,
       faculty_name: cand.faculty_name,
       department_name: cand.department_name,
-      coverage: calculateCoverage(baseB, elementwiseMax(baseB, candB), idealB),
+      coverage: calculateCoverage(baseB, combB, idealB),
       balance: pair.pair_score,
       baseline_balance: pair.baseline_score,
       balance_improvement: pair.improvement,
@@ -902,9 +953,11 @@ export function calculateMacroPairs(
     });
   }
 
-  items.sort((a, b) => (scoreMetric === 'coverage' ? b.coverage - a.coverage : b.balance - a.balance));
+  const ordered = scoreMetric === 'coverage'
+    ? coverageTieOrder(items.map((item) => item.coverage), tieBalance, items.map((item) => item.label)).map((i) => items[i])
+    : items.sort((a, b) => b.balance - a.balance);
 
-  const limited = topN ? items.slice(0, topN) : items;
+  const limited = topN ? ordered.slice(0, topN) : ordered;
   return limited.map((item, idx) => ({ ...item, rank: idx + 1 }));
 }
 
@@ -950,7 +1003,7 @@ export interface MacroGreedyResult {
 
 /**
  * 貪欲法チーム編成（汎用12軸）。
- * - カバー率：coverage.py の greedy と同じ。カバー率が最も高い候補を1つずつ追加する（同点は先に見つけた候補）。
+ * - カバー率：coverage.py の greedy と同じ。カバー率が最も高い候補を1つずつ追加する（同点は coverageTieOrder の規則）。
  *   終了条件は 0.999 以上、目標に到達（目標モード）、指定の数（人数指定モード）、追加が10、改善がない。
  * - バランス度：runGreedyTeamBuild をそのまま使う（目標モードの追加の上限は従来どおり8）。
  */
@@ -1017,18 +1070,15 @@ export function runMacroGreedyTeamBuild(
         break;
       }
 
-      let bestIndex = -1;
-      let bestCoverage = -Infinity;
-      let bestComb: number[] = [];
-      for (let i = 0; i < pool.length; i++) {
-        const testComb = elementwiseMax(combB, normalizedB.get(pool[i].id) ?? []);
-        const score = calculateCoverage(baseB, testComb, idealB);
-        if (score > bestCoverage) {
-          bestCoverage = score;
-          bestIndex = i;
-          bestComb = testComb;
-        }
-      }
+      const testCombs = pool.map((c) => elementwiseMax(combB, normalizedB.get(c.id) ?? []));
+      const scores = testCombs.map((comb) => calculateCoverage(baseB, comb, idealB));
+      const bestIndex = coverageTieOrder(
+        scores,
+        testCombs.map((comb) => cosineSimilarity(comb, idealB)),
+        pool.map((c) => c.label)
+      )[0];
+      const bestCoverage = scores[bestIndex];
+      const bestComb = testCombs[bestIndex];
 
       if (bestCoverage <= current) {
         stopReason = 'no_improvement';

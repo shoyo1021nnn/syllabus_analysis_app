@@ -39,6 +39,7 @@ import { SearchableSelect } from '@/components/SearchableSelect';
 import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { dropExcludedFaculties } from '@/lib/excludedUnits';
 
 // Supabaseデータ未投入時のリアルなフォールバックサンプルデータ
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
@@ -191,9 +192,10 @@ function SimilarityPageContent() {
           setIsUsingMock(true);
         } else {
           setDbError(null);
-          // 実験用レコード（gpt-5.6-terra等）を除外
-          const validData = (data as SkillVectorRecord[]).filter(
-            (d) => !d.university_name.includes('gpt-')
+          // 実験用レコード（gpt-5.6-terra等）と、学部の単位で比べない科目群を除外
+          const validData = dropExcludedFaculties(
+            (data as SkillVectorRecord[]).filter((d) => !d.university_name.includes('gpt-')),
+            level
           );
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
