@@ -396,7 +396,7 @@ function GreedyTeamContent() {
   const unitName = t(`macro.metric.units.${level}`, level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科');
   const coverageDesc = t('macro.metric.coverageDesc', '理想までの不足のうち、追加した{unit}が埋めた割合').replace('{unit}', unitName);
   const balanceDesc = t('macro.metric.balanceDesc', '結合後の汎用スキルと理想ベクトル（均等）のコサイン類似度');
-  const combineName = resolvedCombine === 'max' ? t('macro.greedyTeam.methodMax', '最大値結合') : t('macro.greedyTeam.methodMean', '平均値結合');
+  const combineName = resolvedCombine === 'max' ? t('macro.metric.combineMax', '最大値結合') : t('macro.metric.combineMean', '平均値結合');
   const stopReasonText = teamResult
     ? t(`macro.greedyTeam.stopReasons.${teamResult.stopReason}`, STOP_REASON_FALLBACK[teamResult.stopReason])
     : '';

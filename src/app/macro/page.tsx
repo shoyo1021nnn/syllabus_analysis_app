@@ -40,25 +40,29 @@ export default function MacroMenuPage() {
             name: isEn ? 'Best Pairs Search' : 'ベスト・ペア検索',
             path: '/macro/best_pair',
             purpose: isEn
-              ? 'Explores 1-on-1 pairs achieving highest overall skill uplift via Max or Mean pooling'
-              : '2組織（1対1）で結合した際、最大値(Max)または平均値(Mean)で最高の総合スキル向上を達成するペアを探索'
+              ? 'Ranks partners when one is added to the base organization, by Coverage (default) or Balance, on the 12 Generic skills'
+              : '基準組織に相手を1つ加えたときの相手を、カバー率（既定）またはバランス度で汎用12軸についてランキング'
           },
           {
             name: isEn ? 'Team Formation Support' : 'チーム編成支援',
             path: '/macro/greedy_team',
             purpose: isEn
-              ? 'Simulates multi-member teams stepwise via greedy algorithm to satisfy member counts or skill thresholds'
-              : '貪欲法(Greedy)により、指定人数または目標スキル閾値を達成する最適な多人数チームを段階的シミュレーション'
+              ? 'Adds partners one at a time via greedy algorithm until the target (90% by default) or the specified number is reached'
+              : '貪欲法(Greedy)により、目標（既定90%）または指定の数に達するまで相手を1つずつ加えるチームを段階的シミュレーション'
           }
         ],
         theoreticalFramework: isEn ? [
           'Max Pooling: Collaborative model where individual strengths and standout skills drive overall team outcomes',
           'Mean Pooling: Baseline model where all member skills average out to evaluate overall uplift',
-          'Ideal Vector: Evaluated against an ideal state where all 24 skills are uniformly high (3.0)'
+          'Ideal Vector: A uniform vector (all 3.0, then L1-normalized), which measures how even the skills are',
+          'Coverage: Share of the shortfall from the ideal filled by the added partners (Generic 12 axes, Max Pooling only, 0% before anyone is added)',
+          'Balance: Cosine similarity between the combined Generic skills and the ideal vector'
         ] : [
           '最大値結合(Max Pooling): 各組織の得意分野・突出した強みがチーム全体の成果に活かされる協働モデル',
           '平均値結合(Mean Pooling): 参加者全員のスキルが平均化され、チーム全体の総合的ベースラインを想定するモデル',
-          '理想ベクトル(Ideal Vector): 全スキルが均等に高い水準(3.0)を満たす理想状態を目標として評価'
+          '理想ベクトル(Ideal Vector): 全次元3.0の一様ベクトルをL1正規化したもの。スキルの均等さを測る基準',
+          'カバー率: 理想までの不足のうち、追加した相手が埋めた割合（汎用12軸、最大値結合のみ、誰も追加していない時点では0%）',
+          'バランス度: 結合後の汎用スキルと理想ベクトルのコサイン類似度'
         ]
       },
       presetQuestions: isEn ? [
@@ -204,7 +208,7 @@ export default function MacroMenuPage() {
                 {t('macro.hub.cards.bestPair.title', 'ベスト・ペア検索')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                {t('macro.hub.cards.bestPair.desc', '2組織が合わさった際に全スキルのバランスが最大化される、相乗効果（シナジー）の高い組み合わせを発見します。')}
+                {t('macro.hub.cards.bestPair.desc', '基準組織に相手を1つ加えたとき、汎用スキルの不足を最も埋める相手や、スキルの均等さに最も近づく相手を発見します。')}
               </p>
             </div>
           </div>
@@ -234,7 +238,7 @@ export default function MacroMenuPage() {
                 {t('macro.hub.cards.greedyTeam.title', 'チーム編成支援')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                {t('macro.hub.cards.greedyTeam.desc', '貪欲法アルゴリズムにより、指定人数で理想的な全方位スキルバランスを達成する学際的チームを自動編成します。')}
+                {t('macro.hub.cards.greedyTeam.desc', '貪欲法により、目標または指定の数に達するまで、評価指標を最も高める相手を順に加えてチームを自動編成します。')}
               </p>
             </div>
           </div>
@@ -268,7 +272,13 @@ export default function MacroMenuPage() {
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
             <span className="font-bold text-slate-800 dark:text-slate-100">{t('macro.hub.theory.idealTitle', '② 目標としての「理想ベクトル」:')}</span>
             <p className="leading-relaxed">
-              {t('macro.hub.theory.idealDesc', '全24スキルがバランスよく習得できる状態（各次元が均等に高水準な3.0を満たすベクトル）を「理想ベクトル」と定義し、連携によってどれだけ理想ベクトルに近づけるかを定量的に評価します。')}
+              {t('macro.hub.theory.idealDesc', '汎用スキル12項目が均等な状態（全項目を3.0としてL1正規化したベクトル）を「理想ベクトル」と定義します。L1正規化後は全体の量ではなく、スキルの均等さを測る基準になります。')}
+            </p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5 md:col-span-2">
+            <span className="font-bold text-slate-800 dark:text-slate-100">{t('macro.hub.theory.coverageTitle', '③ カバー率とバランス度:')}</span>
+            <p className="leading-relaxed">
+              {t('macro.hub.theory.coverageDesc', 'カバー率は、理想までの不足のうち、追加した相手が埋めた割合です（最大値結合のみ。誰も追加していない時点では0%）。バランス度は、結合後のスキルと理想ベクトルのコサイン類似度で、スキルの均等さを測ります。')}
             </p>
           </div>
         </div>

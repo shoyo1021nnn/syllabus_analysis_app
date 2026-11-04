@@ -424,7 +424,7 @@ function BestPairContent() {
   const metricName = scoreMetric === 'coverage' ? t('macro.metric.coverage', 'カバー率') : t('macro.metric.balance', 'バランス度');
   const unitName = t(`macro.metric.units.${level}`, level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科');
   const coverageDesc = t('macro.metric.coverageDesc', '理想までの不足のうち、追加した{unit}が埋めた割合').replace('{unit}', unitName);
-  const combineName = resolvedCombine === 'max' ? t('macro.bestPair.methodMax', '最大値結合') : t('macro.bestPair.methodMean', '平均値結合');
+  const combineName = resolvedCombine === 'max' ? t('macro.metric.combineMax', '最大値結合') : t('macro.metric.combineMean', '平均値結合');
   const signedPt = (v: number, digits: number) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(digits)} pt`;
 
   // AIコンテキスト共有
