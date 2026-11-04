@@ -13,8 +13,9 @@ import {
   SkillVectorRecord, 
   VectorTarget 
 } from '@/types/database';
-import { 
-  calculateSimilarityRanking, 
+import {
+  applyNormalization,
+  calculateSimilarityRanking,
   KNOWLEDGE_SKILLS,
   GENERAL_SKILLS,
   ALL_SKILLS
@@ -350,11 +351,11 @@ function SimilarityPageContent() {
       vectorTarget === 'general' ? GENERAL_SKILLS : ALL_SKILLS;
 
     const extractTopSkills = (vec: number[], topN = 3) => {
-      const sum = vec.reduce((acc, v) => acc + v, 0);
-      return vec
+      // 全24スキルのときは知識・汎用それぞれ100%の割合になる
+      return applyNormalization(vec, 'l1')
         .map((val, idx) => {
           const def = skillDefs[idx];
-          const ratio = sum > 0 ? (val / sum) * 100 : 0;
+          const ratio = val * 100;
           return {
             code: def?.code || '',
             name: (language === 'en' ? (def?.nameEn || def?.nameJa) : def?.nameJa) || (language === 'en' ? `Skill ${idx + 1}` : `スキル${idx + 1}`),
