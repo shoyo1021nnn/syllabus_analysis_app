@@ -3,21 +3,20 @@
 import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { 
-  HierarchyLevel, 
-  MetricType, 
-  NormalizationType, 
-  SkillVectorDepartment, 
-  SkillVectorRecord, 
-  VectorTarget 
+import {
+  HierarchyLevel,
+  SkillVectorDepartment,
+  SkillVectorRecord
 } from '@/types/database';
-import { 
-  BestPairItem, 
-  calculateBestPairs, 
-  elementwiseMax, 
-  elementwiseMean, 
-  getRadarIndicators, 
-  normalizeL1 
+import {
+  calculateMacroPairs,
+  elementwiseMax,
+  elementwiseMean,
+  getRadarIndicators,
+  MacroPairItem,
+  MacroScoreMetric,
+  normalizeL1,
+  resolveCombineMethod
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
 import DualChartExportButton from '@/components/charts/DualChartExportButton';
@@ -41,7 +40,8 @@ import {
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
-import { extractRecordVector, getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { dropExcludedFaculties } from '@/lib/excludedUnits';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -138,6 +138,15 @@ const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
 
 type TargetFilter = 'all' | 'same' | 'diff';
 
+const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
+
+// 緑の線。カバー率のときは計算と同じく正規化し直さない値、バランス度のときは正規化し直した値を描く
+const toCombinedLine = (a: number[], b: number[], metric: MacroScoreMetric, combine: 'max' | 'mean') => {
+  if (!a.length || !b.length) return [];
+  if (metric === 'coverage') return elementwiseMax(a, b);
+  return toPercent(combine === 'max' ? elementwiseMax(a, b) : elementwiseMean(a, b));
+};
+
 function BestPairContent() {
   const { language, t } = useLanguage();
   const searchParams = useSearchParams();
@@ -159,11 +168,12 @@ function BestPairContent() {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>('');
 
   // パラメータ
+  const [scoreMetric, setScoreMetric] = useState<MacroScoreMetric>('coverage');
   const [combineMethod, setCombineMethod] = useState<'max' | 'mean'>('max');
-  const [vectorTarget, setVectorTarget] = useState<VectorTarget>('all');
-  const [metric] = useState<MetricType>('cosine');
-  const [normalization] = useState<NormalizationType>('l1');
   const [filterUniversity, setFilterUniversity] = useState<TargetFilter>('all');
+
+  // カバー率のときは最大値結合に固定する（バランス度に戻すと選んでいた結合方法に戻る）
+  const resolvedCombine = resolveCombineMethod(scoreMetric, combineMethod);
 
   useEffect(() => {
     async function fetchData() {
@@ -194,9 +204,10 @@ function BestPairContent() {
           setIsUsingMock(true);
         } else {
           setDbError(null);
-          // 実験用レコード（gpt-5.6-terra等）を除外
-          const validData = (data as SkillVectorRecord[]).filter(
-            (d) => !d.university_name.includes('gpt-')
+          // 実験用レコード（gpt-5.6-terra等）と、学部の単位で比べない科目群を除外
+          const validData = dropExcludedFaculties(
+            (data as SkillVectorRecord[]).filter((d) => !d.university_name.includes('gpt-')),
+            level
           );
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
@@ -297,28 +308,30 @@ function BestPairContent() {
       university_name: d.university_name,
       faculty_name: getFacultyName(d),
       department_name: getDepartmentName(d),
-      vector: extractRecordVector(d, vectorTarget),
+      vector_A: d.knowledge_vector || [],
+      vector_B: d.general_vector || [],
       subject_count: d.subject_count,
       website_url: d.website_url,
     }));
-  }, [dataList, targetRecord, filterUniversity, vectorTarget]);
+  }, [dataList, targetRecord, filterUniversity]);
 
-  const rankingResults: BestPairItem[] = useMemo(() => {
+  // スコアは汎用12軸で計算する（専門の近さだけ知識12軸を使う）
+  const rankingResults: MacroPairItem[] = useMemo(() => {
     if (!targetRecord || candidates.length === 0) return [];
-    return calculateBestPairs(
+    return calculateMacroPairs(
       {
         id: targetRecord.id,
-        vector: extractRecordVector(targetRecord, vectorTarget),
+        vector_A: targetRecord.knowledge_vector || [],
+        vector_B: targetRecord.general_vector || [],
       },
       candidates,
       {
-        combineMethod,
-        metric,
-        normalization,
+        scoreMetric,
+        combineMethod: resolvedCombine,
         topN: 20,
       }
     );
-  }, [targetRecord, candidates, combineMethod, metric, normalization, vectorTarget]);
+  }, [targetRecord, candidates, scoreMetric, resolvedCombine]);
 
   // ランキングが変わり選択中のパートナーが含まれなくなったら 1 位を選ぶ（レンダー中に調整。以前は effect で行っていた）
   if (rankingResults.length > 0 && !rankingResults.some((r) => r.id === selectedPartnerId)) {
@@ -337,28 +350,13 @@ function BestPairContent() {
   const knowledgeIndicators = useMemo(() => getRadarIndicators('knowledge', { max: 100, language }), [language]);
   const generalIndicators = useMemo(() => getRadarIndicators('general', { max: 100, language }), [language]);
 
-  const toPercent = (vec: number[] = []) => normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
-
   const targetKVec = useMemo(() => toPercent(targetRecord?.knowledge_vector), [targetRecord]);
   const targetGVec = useMemo(() => toPercent(targetRecord?.general_vector), [targetRecord]);
   const partnerKVec = useMemo(() => toPercent(partnerRecord?.knowledge_vector), [partnerRecord]);
   const partnerGVec = useMemo(() => toPercent(partnerRecord?.general_vector), [partnerRecord]);
 
-  const combinedKVec = useMemo(() => {
-    if (!targetKVec.length || !partnerKVec.length) return [];
-    const combined = combineMethod === 'max'
-      ? elementwiseMax(targetKVec, partnerKVec)
-      : elementwiseMean(targetKVec, partnerKVec);
-    return toPercent(combined);
-  }, [targetKVec, partnerKVec, combineMethod]);
-
-  const combinedGVec = useMemo(() => {
-    if (!targetGVec.length || !partnerGVec.length) return [];
-    const combined = combineMethod === 'max'
-      ? elementwiseMax(targetGVec, partnerGVec)
-      : elementwiseMean(targetGVec, partnerGVec);
-    return toPercent(combined);
-  }, [targetGVec, partnerGVec, combineMethod]);
+  const combinedKVec = useMemo(() => toCombinedLine(targetKVec, partnerKVec, scoreMetric, resolvedCombine), [targetKVec, partnerKVec, scoreMetric, resolvedCombine]);
+  const combinedGVec = useMemo(() => toCombinedLine(targetGVec, partnerGVec, scoreMetric, resolvedCombine), [targetGVec, partnerGVec, scoreMetric, resolvedCombine]);
 
   const getShortName = (rec?: SkillVectorRecord) => {
     if (!rec) return '';
@@ -373,13 +371,13 @@ function BestPairContent() {
     if (partnerRecord) {
       list.push({ name: `${t('charts.radar.partnerTarget')}: ${getShortName(partnerRecord)}`, value: partnerKVec, color: '#e0532b' }); // orange
       list.push({ 
-        name: `${t('charts.radar.teamCombined')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
+        name: `${t('charts.radar.teamCombined')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`, 
         value: combinedKVec, 
         color: '#059669' 
       });
     }
     return list;
-  }, [targetRecord, partnerRecord, targetKVec, partnerKVec, combinedKVec, combineMethod, t]);
+  }, [targetRecord, partnerRecord, targetKVec, partnerKVec, combinedKVec, resolvedCombine, t]);
 
   const generalSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
@@ -389,13 +387,13 @@ function BestPairContent() {
     if (partnerRecord) {
       list.push({ name: `${t('charts.radar.partnerTarget')}: ${getShortName(partnerRecord)}`, value: partnerGVec, color: '#e0532b' });
       list.push({ 
-        name: `${t('charts.radar.teamCombined')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`, 
+        name: `${t('charts.radar.teamCombined')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`, 
         value: combinedGVec, 
         color: '#059669' 
       });
     }
     return list;
-  }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec, combineMethod, t]);
+  }, [targetRecord, partnerRecord, targetGVec, partnerGVec, combinedGVec, resolvedCombine, t]);
 
   // 2つのチャート共通の凡例アイテム
   const legendItems: RadarLegendItem[] = useMemo(() => {
@@ -414,13 +412,20 @@ function BestPairContent() {
         subLabel: t('charts.radar.basePartner'),
       });
       list.push({
-        name: `${t('charts.radar.teamCombined')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+        name: `${t('charts.radar.teamCombined')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`,
         color: '#059669',
         subLabel: t('charts.radar.synergy'),
       });
     }
     return list;
-  }, [targetRecord, partnerRecord, combineMethod, t]);
+  }, [targetRecord, partnerRecord, resolvedCombine, t]);
+
+  // 評価指標の名前と説明
+  const metricName = scoreMetric === 'coverage' ? t('macro.metric.coverage', 'カバー率') : t('macro.metric.balance', 'バランス度');
+  const unitName = t(`macro.metric.units.${level}`, level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科');
+  const coverageDesc = t('macro.metric.coverageDesc', '理想までの不足のうち、追加した{unit}が埋めた割合').replace('{unit}', unitName);
+  const combineName = resolvedCombine === 'max' ? t('macro.bestPair.methodMax', '最大値結合') : t('macro.bestPair.methodMean', '平均値結合');
+  const signedPt = (v: number, digits: number) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(digits)} pt`;
 
   // AIコンテキスト共有
   useEffect(() => {
@@ -432,16 +437,20 @@ function BestPairContent() {
     const presets: string[] = [];
     if (top1) {
       if (isEn) {
-        presets.push(`Why does the best pair combination with #1 "${top1.label}" achieve the highest score improvement for "${targetLabel}"?`);
-        presets.push(`How do ranking results differ between Max Pooling (strengths) and Mean Pooling (overall uplift)?`);
+        presets.push(`Why does #1 "${top1.label}" achieve the highest ${metricName} for "${targetLabel}"?`);
+        presets.push(scoreMetric === 'coverage'
+          ? `How do the rankings differ between coverage and balance?`
+          : `How do ranking results differ between Max Pooling (strengths) and Mean Pooling (overall uplift)?`);
         if (partnerRecord) {
-          presets.push(`Which specific skill domains show the greatest synergy between "${targetLabel}" and "${formatLabel(partnerRecord)}"?`);
+          presets.push(`Which specific skill domains does "${formatLabel(partnerRecord)}" fill for "${targetLabel}"?`);
         }
       } else {
-        presets.push(`「${targetLabel}」と第1位「${top1.label}」のベストペアで、向上率が最大になる理由は？`);
-        presets.push(`最大値結合(Max)と平均値結合(Mean)でペア相手のランキングはどう変化しますか？`);
+        presets.push(`「${targetLabel}」にとって第1位「${top1.label}」の${metricName}が最も高くなる理由は？`);
+        presets.push(scoreMetric === 'coverage'
+          ? `カバー率とバランス度でペア相手のランキングはどう変わりますか？`
+          : `最大値結合(Max)と平均値結合(Mean)でペア相手のランキングはどう変化しますか？`);
         if (partnerRecord) {
-          presets.push(`「${targetLabel}」と「${formatLabel(partnerRecord)}」の連携において、特に伸びるスキル分野を教えて`);
+          presets.push(`「${targetLabel}」の不足を「${formatLabel(partnerRecord)}」が特に埋めるスキル分野を教えて`);
         }
       }
     }
@@ -451,32 +460,47 @@ function BestPairContent() {
       presets.push(`カリキュラム連携で「1対1のベストペア」を組む際の教育ガバナンス上のアドバイスは？`);
     }
 
+    const combineLabel = resolvedCombine === 'max'
+      ? (isEn ? 'Max Pooling (Leverage strengths)' : '最大値結合 (各々の強み重視)')
+      : (isEn ? 'Mean Pooling (Overall uplift)' : '平均値結合 (総合底上げ)');
+    const targetSkillsLabel = isEn ? 'Generic skills (12 axes)' : '汎用スキル（12軸）';
+    const round4 = (v: number) => Number(v.toFixed(4));
+
     setAnalyticsContext({
       pageTitle: t('macro.bestPair.title', 'ベスト・ペア検索'),
       pagePath: '/macro/best_pair',
       primaryTarget: targetLabel,
       compareTarget: partnerRecord ? formatLabel(partnerRecord) : undefined,
       summaryText: isEn
-        ? `Base: ${targetLabel} best pair search (Method: ${combineMethod === 'max' ? 'Max Pooling' : 'Mean Pooling'}, Target: ${vectorTarget})`
-        : `基準対象: ${targetLabel} のベスト・ペア探索（結合方法: ${combineMethod === 'max' ? '最大値結合' : '平均値結合'}、対象: ${vectorTarget}）`,
+        ? `Base: ${targetLabel} best pair search (Metric: ${metricName}, Method: ${combineLabel}, Target: ${targetSkillsLabel})`
+        : `基準対象: ${targetLabel} のベスト・ペア探索（評価指標: ${metricName}、結合方法: ${combineLabel}、対象スキル: ${targetSkillsLabel}）`,
       details: {
         target: targetLabel,
         partner: partnerRecord ? formatLabel(partnerRecord) : (isEn ? 'Not selected' : '未選択'),
-        combineMethod: combineMethod === 'max' 
-          ? (isEn ? 'Max Pooling (Leverage strengths)' : '最大値結合 (各々の強み重視)') 
-          : (isEn ? 'Mean Pooling (Overall uplift)' : '平均値結合 (総合底上げ)'),
-        vectorTarget,
-        metric,
+        evaluationMetric: metricName,
+        combineMethod: combineLabel,
+        coverageCombine: isEn ? 'Coverage is always computed with Max Pooling' : 'カバー率は常に最大値結合で計算',
+        targetSkills: targetSkillsLabel,
+        selectedPair: currentPairItem ? {
+          label: currentPairItem.label,
+          coverage: round4(currentPairItem.coverage),
+          balance: round4(currentPairItem.balance),
+          baselineBalance: round4(currentPairItem.baseline_balance),
+          balanceImprovement: round4(currentPairItem.balance_improvement),
+          domainProximity: round4(currentPairItem.sim_a),
+        } : undefined,
         topPairs: rankingResults.slice(0, 5).map((r) => ({
           rank: r.rank,
           label: r.label,
-          pairScore: Number(r.pair_score.toFixed(4)),
-          improvement: Number(r.improvement.toFixed(4)),
+          coverage: round4(r.coverage),
+          balance: round4(r.balance),
+          balanceImprovement: round4(r.balance_improvement),
+          domainProximity: round4(r.sim_a),
         })),
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, partnerRecord, rankingResults, combineMethod, vectorTarget, metric, setAnalyticsContext, language, t]);
+  }, [targetRecord, partnerRecord, rankingResults, currentPairItem, scoreMetric, metricName, resolvedCombine, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -501,7 +525,7 @@ function BestPairContent() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {t('macro.bestPair.subtitle', '2組織が連携した際に最大のシナジー（理想ベクトルへの近接）を生み出すベストパートナーを探索')}
+              {t('macro.bestPair.subtitle', '基準組織に相手を1つ加えたとき、汎用スキルの不足を最も埋める（カバー率）、または理想ベクトルに最も近づく（バランス度）相手を探索')}
             </p>
           </div>
         </div>
@@ -573,34 +597,35 @@ function BestPairContent() {
 
         {/* 条件設定 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-          {/* 結合方法 */}
+          {/* 評価指標 */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+              <BarChart2 className="w-3.5 h-3.5 text-orange-500" /> {t('macro.metric.label', '評価指標:')}
+            </label>
+            <select
+              value={scoreMetric}
+              onChange={(e) => setScoreMetric(e.target.value as MacroScoreMetric)}
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
+            >
+              <option value="coverage">{t('macro.metric.optionCoverage', 'カバー率 (不足をどれだけ埋めたか)')}</option>
+              <option value="balance">{t('macro.metric.optionBalance', 'バランス度 (理想ベクトルへの近さ)')}</option>
+            </select>
+          </div>
+
+          {/* 結合方法（カバー率のときは最大値結合に固定） */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
               <Sliders className="w-3.5 h-3.5 text-orange-500" /> {t('macro.bestPair.combineMethod', '結合方法:')}
             </label>
             <select
-              value={combineMethod}
+              value={resolvedCombine}
               onChange={(e) => setCombineMethod(e.target.value as 'max' | 'mean')}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
+              disabled={scoreMetric === 'coverage'}
+              title={scoreMetric === 'coverage' ? t('macro.metric.maxFixed', 'カバー率では最大値結合に固定') : undefined}
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="max">{t('macro.bestPair.methodMax', '最大値結合 (各組織の強みを活かす)')}</option>
               <option value="mean">{t('macro.bestPair.methodMean', '平均値結合 (チーム全体の底上げ)')}</option>
-            </select>
-          </div>
-
-          {/* 対象スキル */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
-              <BarChart2 className="w-3.5 h-3.5 text-slate-500" /> {t('macro.bestPair.targetSkills', '対象スキル:')}
-            </label>
-            <select
-              value={vectorTarget}
-              onChange={(e) => setVectorTarget(e.target.value as VectorTarget)}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-orange-500 focus:outline-none"
-            >
-              <option value="all">{t('macro.bestPair.skillsAll', '全24スキル統合 (知識+汎用)')}</option>
-              <option value="knowledge">{t('macro.bestPair.skillsKnowledge', '知識関連スキルのみ (12項目)')}</option>
-              <option value="general">{t('macro.bestPair.skillsGeneral', '汎用スキルのみ (12項目)')}</option>
             </select>
           </div>
 
@@ -636,35 +661,48 @@ function BestPairContent() {
             </select>
           </div>
         </div>
+
+        <p className="text-2xs text-slate-500">
+          {t('macro.metric.targetGeneral', 'スコアの対象は汎用スキル12項目です（レーダーチャートは知識・汎用の両方を表示します）。')}
+        </p>
       </div>
 
       {/* スコア向上サマリーカード */}
       {currentPairItem && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-medium">{t('macro.bestPair.baselineScore', '基準組織の単独スコア')}</span>
-            <div className="text-xl font-bold text-slate-800 mt-1">
-              {(currentPairItem.baseline_score * 100).toFixed(1)}%
+          <div className={`p-4 rounded-xl border shadow-2xs ${scoreMetric === 'coverage' ? 'bg-orange-50/20 border-orange-200' : 'bg-white border-slate-200'}`}>
+            <span className={`text-xs font-bold ${scoreMetric === 'coverage' ? 'text-orange-700' : 'text-slate-500'}`}>{t('macro.metric.coverage', 'カバー率')}</span>
+            <div className={`text-xl font-bold mt-1 ${scoreMetric === 'coverage' ? 'text-orange-600' : 'text-slate-800'}`}>
+              {(currentPairItem.coverage * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-slate-400 mt-0.5 block">{t('macro.bestPair.baselineDesc', '理想ベクトル(均等高水準)への近さ')}</span>
+            <span className="text-2xs text-slate-500 mt-0.5 block">{coverageDesc}</span>
+            {scoreMetric === 'balance' && resolvedCombine === 'mean' && (
+              <span className="text-2xs text-slate-400 mt-0.5 block">{t('macro.metric.coverageAlwaysMax', 'カバー率は常に最大値結合で計算します')}</span>
+            )}
           </div>
 
-          <div className="p-4 bg-white rounded-xl border border-orange-200 shadow-2xs bg-orange-50/20">
-            <span className="text-xs text-orange-700 font-bold">{t('macro.bestPair.pairScore', 'ベストペア結合後スコア')}</span>
-            <div className="text-xl font-bold text-orange-600 mt-1">
-              {(currentPairItem.pair_score * 100).toFixed(1)}%
-            </div>
-            <span className="text-2xs text-orange-600/80 mt-0.5 block">{combineMethod === 'max' ? t('macro.bestPair.methodMax', '最大値結合') : t('macro.bestPair.methodMean', '平均値結合')}</span>
-          </div>
-
-          <div className="p-4 bg-white rounded-xl border border-emerald-200 shadow-2xs bg-emerald-50/20">
-            <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> {t('macro.bestPair.improvementScore', 'スコア向上度 (相乗効果)')}
+          <div className={`p-4 rounded-xl border shadow-2xs ${scoreMetric === 'balance' ? 'bg-orange-50/20 border-orange-200' : 'bg-white border-slate-200'}`}>
+            <span className={`text-xs font-bold flex items-center gap-1 ${scoreMetric === 'balance' ? 'text-orange-700' : 'text-slate-500'}`}>
+              <TrendingUp className="w-3.5 h-3.5" /> {t('macro.metric.balance', 'バランス度')}
             </span>
-            <div className="text-xl font-bold text-emerald-600 mt-1">
-              +{((currentPairItem.improvement) * 100).toFixed(1)} pt
+            <div className={`text-xl font-bold mt-1 ${scoreMetric === 'balance' ? 'text-orange-600' : 'text-slate-800'}`}>
+              {(currentPairItem.balance * 100).toFixed(1)}%
             </div>
-            <span className="text-2xs text-emerald-600/80 mt-0.5 block">{t('macro.bestPair.diffDesc', '単独時からの改善幅')}</span>
+            <span className="text-2xs text-slate-500 mt-0.5 block">{t('macro.metric.balanceDesc', '結合後の汎用スキルと理想ベクトル（均等）のコサイン類似度')}</span>
+            <span className="text-2xs text-slate-400 mt-0.5 block">
+              {t('macro.bestPair.balanceChange', '基準の単独 {base}% から {diff}（{method}）')
+                .replace('{base}', (currentPairItem.baseline_balance * 100).toFixed(1))
+                .replace('{diff}', signedPt(currentPairItem.balance_improvement, 1))
+                .replace('{method}', combineName)}
+            </span>
+          </div>
+
+          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-xs text-slate-500 font-bold">{t('macro.metric.simA', '専門の近さ')}</span>
+            <div className="text-xl font-bold text-slate-800 mt-1">
+              {currentPairItem.sim_a.toFixed(3)}
+            </div>
+            <span className="text-2xs text-slate-500 mt-0.5 block">{t('macro.metric.simADesc', '基準の知識スキルと、結合後（最大値）の知識スキルのコサイン類似度。順位には使いません')}</span>
           </div>
         </div>
       )}
@@ -675,7 +713,7 @@ function BestPairContent() {
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <RadarIcon className="w-5 h-5 text-orange-600" />
-              {t('macro.bestPair.chartTitle', 'ベストペア結合 レーダーチャート比較')}
+              {t('macro.bestPair.chartTitle', 'ベストペア結合 レーダーチャート比較')} ({metricName})
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {t('charts.radar.baseOrg', '基準')}: <span className="font-semibold text-teal-700">{formatLabel(targetRecord)}</span>
@@ -689,12 +727,12 @@ function BestPairContent() {
           <div className="flex items-center gap-2">
             <DualChartExportButton
               chart1={{
-                title: `${t('charts.radar.knowledgeTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                title: `${t('charts.radar.knowledgeTitle')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`,
                 indicators: knowledgeIndicators,
                 seriesData: knowledgeSeries,
               }}
               chart2={{
-                title: `${t('charts.radar.generalTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`,
+                title: `${t('charts.radar.generalTitle')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`,
                 indicators: generalIndicators,
                 seriesData: generalSeries,
               }}
@@ -709,7 +747,7 @@ function BestPairContent() {
           {/* 知識関連スキル (左) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`${t('charts.radar.knowledgeTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`}
+              title={`${t('charts.radar.knowledgeTitle')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`}
               indicators={knowledgeIndicators}
               seriesData={knowledgeSeries}
               height={440}
@@ -720,7 +758,7 @@ function BestPairContent() {
           {/* 汎用スキル (右) */}
           <div className="flex flex-col border border-slate-100 rounded-xl p-3 bg-slate-50/20 shadow-2xs">
             <RadarChart
-              title={`${t('charts.radar.generalTitle')} (${combineMethod === 'max' ? 'Max' : 'Mean'})`}
+              title={`${t('charts.radar.generalTitle')} (${resolvedCombine === 'max' ? 'Max' : 'Mean'})`}
               indicators={generalIndicators}
               seriesData={generalSeries}
               height={440}
@@ -735,8 +773,10 @@ function BestPairContent() {
         </div>
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
-          <span>💡 {t('macro.bestPair.combinedLineHint', '結合方法「{method}」による合成結果が緑の線で表示されます。').replace('{method}', combineMethod === 'max' ? t('macro.bestPair.methodMax', '最大値結合') : t('macro.bestPair.methodMean', '平均値結合'))}</span>
-          <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{combineMethod === 'max' ? 'Max' : 'Mean'}</strong></span>
+          <span>💡 {scoreMetric === 'coverage'
+            ? t('macro.bestPair.combinedLineHintCoverage', '緑の線は、カバー率の計算と同じく最大値結合のまま（正規化し直さない値）です。')
+            : t('macro.bestPair.combinedLineHint', '結合方法「{method}」による合成結果（正規化し直した値）が緑の線で表示されます。').replace('{method}', combineName)}</span>
+          <span>{t('macro.bestPair.combineMethod', '結合方式:')} <strong className="text-slate-600 font-semibold">{resolvedCombine === 'max' ? 'Max' : 'Mean'}</strong></span>
         </div>
       </div>
 
@@ -745,7 +785,7 @@ function BestPairContent() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-slate-800">
-              {t('macro.bestPair.pairRankingTitle', 'ベスト・ペア候補 ランキング (Top 20)')}
+              {t('macro.bestPair.pairRankingTitle', 'ベスト・ペア候補 ランキング (Top 20)')} - {metricName}
             </h3>
             <p className="text-xs text-slate-500">
               {t('macro.bestPair.rankingDesc', '行をクリックすると、上部のレーダーチャートに対比表示されます')}
@@ -762,8 +802,10 @@ function BestPairContent() {
               <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-600 text-xs font-semibold">
                 <th className="py-2.5 px-3 w-14 text-center">{t('macro.bestPair.tableRank', '順位')}</th>
                 <th className="py-2.5 px-3">{t('macro.bestPair.tableOrg', '大学・学部・学科名')}</th>
-                <th className="py-2.5 px-3 w-32 text-right">{t('macro.bestPair.tableScore', 'ペア結合スコア')}</th>
-                <th className="py-2.5 px-3 w-28 text-right">{t('macro.bestPair.tableDiff', '向上幅 (Δ)')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.metric.coverage', 'カバー率')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.metric.balance', 'バランス度')}</th>
+                <th className="py-2.5 px-3 w-28 text-right">{t('macro.bestPair.tableDiff', 'バランス度の向上幅 (Δ)')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.metric.simA', '専門の近さ')}</th>
                 <th className="py-2.5 px-3 w-24 text-center">{t('macro.bestPair.tableAction', 'アクション')}</th>
               </tr>
             </thead>
@@ -811,11 +853,17 @@ function BestPairContent() {
                         })()}
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 text-right font-bold text-orange-700">
-                      {(item.pair_score * 100).toFixed(2)}%
+                    <td className={`py-2.5 px-3 text-right ${scoreMetric === 'coverage' ? 'font-bold text-orange-700' : 'text-slate-600'}`}>
+                      {(item.coverage * 100).toFixed(2)}%
                     </td>
-                    <td className="py-2.5 px-3 text-right font-semibold text-emerald-600">
-                      +{(item.improvement * 100).toFixed(2)} pt
+                    <td className={`py-2.5 px-3 text-right ${scoreMetric === 'balance' ? 'font-bold text-orange-700' : 'text-slate-600'}`}>
+                      {(item.balance * 100).toFixed(2)}%
+                    </td>
+                    <td className={`py-2.5 px-3 text-right font-semibold ${item.balance_improvement >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {signedPt(item.balance_improvement, 2)}
+                    </td>
+                    <td className="py-2.5 px-3 text-right text-slate-600">
+                      {item.sim_a.toFixed(3)}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <button

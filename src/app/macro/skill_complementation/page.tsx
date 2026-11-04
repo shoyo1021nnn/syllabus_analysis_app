@@ -40,6 +40,7 @@ import { SearchableSelect } from '@/components/SearchableSelect';
 import { ALL_UNIVERSITIES, UnivFilterValue, filterByUniversity, filterForTarget, keepOrFirstId, univSelectProps } from '@/lib/univFilter';
 import AcademicUnitInfoButton from '@/components/AcademicUnitInfoButton';
 import { getDepartmentName, getFacultyName } from '@/lib/recordFields';
+import { dropExcludedFaculties } from '@/lib/excludedUnits';
 
 const MOCK_DEPARTMENTS: SkillVectorDepartment[] = [
   {
@@ -192,9 +193,10 @@ function SkillComplementationContent() {
           setIsUsingMock(true);
         } else {
           setDbError(null);
-          // 実験用レコード（gpt-5.6-terra等）を除外
-          const validData = (data as SkillVectorRecord[]).filter(
-            (d) => !d.university_name.includes('gpt-')
+          // 実験用レコード（gpt-5.6-terra等）と、学部の単位で比べない科目群を除外
+          const validData = dropExcludedFaculties(
+            (data as SkillVectorRecord[]).filter((d) => !d.university_name.includes('gpt-')),
+            level
           );
           setDataList(validData.length > 0 ? validData : data);
           setIsUsingMock(false);
@@ -344,11 +346,12 @@ function SkillComplementationContent() {
   const partnerKVec = useMemo(() => toPercent(partnerRecord?.knowledge_vector), [partnerRecord]);
   const partnerGVec = useMemo(() => toPercent(partnerRecord?.general_vector), [partnerRecord]);
 
-  // 合成ベクトル (最大値結合)
+  // 合成ベクトル (最大値結合)。カバー率のときは計算と同じく正規化し直さない値を描く
   const combinedGVec = useMemo(() => {
     if (!targetGVec.length || !partnerGVec.length) return [];
-    return toPercent(elementwiseMax(targetGVec, partnerGVec));
-  }, [targetGVec, partnerGVec]);
+    const combined = elementwiseMax(targetGVec, partnerGVec);
+    return approach === 'coverage' ? combined : toPercent(combined);
+  }, [targetGVec, partnerGVec, approach]);
 
   const knowledgeSeries: RadarSeriesItem[] = useMemo(() => {
     if (!targetRecord) return [];
@@ -398,19 +401,23 @@ function SkillComplementationContent() {
     return list;
   }, [targetRecord, partnerRecord, t]);
 
+  const approachName = t(`macro.complementation.approachNames.${approach}`,
+    approach === 'synergy' ? '専門一致・汎用相補 (バランス型)' :
+    approach === 'gap' ? '理想ギャップ補填特化' :
+    approach === 'ideal_max' ? '最大値結合 理想達成度' :
+    approach === 'ideal_mean' ? '平均値結合 理想達成度' :
+    approach === 'coverage' ? 'カバー率 (不足をどれだけ埋めたか)' : '汎用スキル相補 (非類似度重視)'
+  );
+  const unitName = t(`macro.metric.units.${level}`, level === 'faculty' ? '学部' : level === 'university' ? '大学' : '学科');
+  const coverageDesc = t('macro.metric.coverageDesc', '理想までの不足のうち、追加した{unit}が埋めた割合').replace('{unit}', unitName);
+
   // AIエージェントコンテキスト供給
   useEffect(() => {
     if (!targetRecord) return;
     const isEn = language === 'en';
     const targetLabel = formatLabel(targetRecord);
     const top1 = rankingResults[0];
-
-    const approachName = t(`macro.complementation.approachNames.${approach}`, 
-      approach === 'synergy' ? '専門一致・汎用相補 (バランス型)' :
-      approach === 'gap' ? '理想ギャップ補填特化' :
-      approach === 'ideal_max' ? '最大値結合 理想達成度' :
-      approach === 'ideal_mean' ? '平均値結合 理想達成度' : '汎用スキル相補 (非類似度重視)'
-    );
+    const selected = rankingResults.find((r) => r.id === selectedPartnerId) || top1;
 
     const presets: string[] = [];
     if (top1) {
@@ -445,8 +452,23 @@ function SkillComplementationContent() {
       details: {
         target: targetLabel,
         approach: approachName,
+        evaluationMetric: approachName,
+        // sort_score の計算に使う結合方法（表のカバー率と max の達成度は常に最大値結合）
+        combineMethod: approach === 'ideal_mean'
+          ? (isEn ? 'Mean Pooling' : '平均値結合')
+          : approach === 'gap' || approach === 'dissimilar_b'
+          ? (isEn ? 'No pooling' : '結合なし')
+          : (isEn ? 'Max Pooling' : '最大値結合'),
+        targetSkills: approach === 'synergy'
+          ? (isEn ? 'Generic skills (12 axes) plus Knowledge skills (12 axes) similarity' : '汎用スキル（12軸）＋知識スキル（12軸）の類似度')
+          : (isEn ? 'Generic skills (12 axes)' : '汎用スキル（12軸）'),
         metric,
         partner: partnerRecord ? formatLabel(partnerRecord) : (isEn ? 'Not selected' : '未選択'),
+        selectedPair: selected ? {
+          label: selected.label,
+          coverage: Number(selected.coverage.toFixed(4)),
+          balance: Number(selected.ideal_attainment_max.toFixed(4)),
+        } : undefined,
         topRankings: rankingResults.slice(0, 5).map((r) => ({
           rank: r.rank,
           label: r.label,
@@ -454,11 +476,13 @@ function SkillComplementationContent() {
           sim_B: Number(r.sim_B.toFixed(3)),
           gap_score: Number(r.gap_score.toFixed(3)),
           ideal_max: Number(r.ideal_attainment_max.toFixed(3)),
+          coverage: Number(r.coverage.toFixed(4)),
+          balance: Number(r.ideal_attainment_max.toFixed(4)),
         })),
       },
       presetQuestions: presets,
     });
-  }, [targetRecord, partnerRecord, rankingResults, approach, metric, setAnalyticsContext, language, t]);
+  }, [targetRecord, partnerRecord, rankingResults, selectedPartnerId, approach, approachName, metric, setAnalyticsContext, language, t]);
 
   return (
     <div className="w-full h-full flex flex-col p-6 space-y-5 overflow-y-auto bg-slate-50">
@@ -571,6 +595,7 @@ function SkillComplementationContent() {
               <option value="ideal_max">{t('macro.complementation.approachMax', '最大値結合 理想達成度')}</option>
               <option value="ideal_mean">{t('macro.complementation.approachMean', '平均値結合 理想達成度')}</option>
               <option value="dissimilar_b">{t('macro.complementation.approachDissimilar', '汎用スキル相補 (非類似度重視)')}</option>
+              <option value="coverage">{t('macro.complementation.approachCoverage', 'カバー率 (不足をどれだけ埋めたか)')}</option>
             </select>
           </div>
 
@@ -727,8 +752,8 @@ function SkillComplementationContent() {
         </div>
 
         <div className="text-2xs text-slate-400 bg-slate-50/80 px-3 py-2 rounded-lg border border-slate-100 flex items-center justify-between">
-          <span>💡 {t('macro.complementation.hoverHint', 'チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。')}</span>
-          <span>{t('macro.complementation.approach', '補完アプローチ:')} <strong className="text-slate-600 font-semibold">{approach === 'synergy' ? t('macro.complementation.approachSynergy', '専門一致・汎用相補') : t('macro.complementation.approachGap', '相補最適化')}</strong></span>
+          <span>💡 {t('macro.complementation.hoverHint', 'チャート上の各点にカーソルを合わせると、詳細なスキル比率（%）が表示されます。')}{approach === 'coverage' && ` ${t('macro.bestPair.combinedLineHintCoverage', '緑の線は、カバー率の計算と同じく最大値結合のまま（正規化し直さない値）です。')}`}</span>
+          <span>{t('macro.complementation.approach', '補完アプローチ:')} <strong className="text-slate-600 font-semibold">{approachName}</strong></span>
         </div>
       </div>
 
@@ -741,6 +766,9 @@ function SkillComplementationContent() {
             </h3>
             <p className="text-xs text-slate-500">
               {t('macro.complementation.rankingDesc', 'テーブル内の行をクリックすると、上部のレーダーチャートで直接対比できます')}
+            </p>
+            <p className="text-2xs text-slate-400 mt-0.5">
+              {t('macro.metric.coverage', 'カバー率')}: {coverageDesc}（{t('macro.metric.coverageAlwaysMax', 'カバー率は常に最大値結合で計算します')}）
             </p>
           </div>
           <span className="text-xs text-slate-400">
@@ -757,8 +785,9 @@ function SkillComplementationContent() {
                 <th className="py-2.5 px-3 w-28 text-right">{t('macro.complementation.tableScore', '総合スコア')}</th>
                 <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableSimA', '専門一致(A)')}</th>
                 <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableSimB', '汎用一致(B)')}</th>
-                <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableGap', 'ギャップ補填')}</th>
-                <th className="py-2.5 px-3 w-28 text-right">{t('macro.complementation.tableMax', '最大達成度')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableGap', 'ギャップとの類似度')}</th>
+                <th className="py-2.5 px-3 w-28 text-right">{t('macro.complementation.tableMax', 'バランス度 (最大値結合)')}</th>
+                <th className="py-2.5 px-3 w-24 text-right">{t('macro.complementation.tableCoverage', 'カバー率')}</th>
                 <th className="py-2.5 px-3 w-28 text-center">{t('macro.complementation.tableAction', 'アクション')}</th>
               </tr>
             </thead>
@@ -822,6 +851,9 @@ function SkillComplementationContent() {
                     </td>
                     <td className="py-2.5 px-3 text-right text-teal-700 font-semibold">
                       {(item.ideal_attainment_max * 100).toFixed(1)}%
+                    </td>
+                    <td className={`py-2.5 px-3 text-right font-semibold ${approach === 'coverage' ? 'text-orange-700' : 'text-slate-600'}`}>
+                      {(item.coverage * 100).toFixed(1)}%
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <button
