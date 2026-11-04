@@ -12,7 +12,7 @@ import {
   getRadarIndicators, 
   KNOWLEDGE_SKILLS, 
   GENERAL_SKILLS, 
-  normalizeL1,
+  applyNormalization,
   combineVectors
 } from '@/lib/vectorUtils';
 import RadarChart, { RadarSeriesItem } from '@/components/charts/RadarChart';
@@ -298,13 +298,13 @@ function RadarChartContent() {
     return `【${rec.university_name}】`;
   };
 
-  // L1正規化 (総和=100%) を必ず適用するヘルパー
+  // L1正規化を必ず適用するヘルパー (24次元は知識・汎用それぞれ総和100%)
   const toPercent = (vec: number[] = []) =>
-    normalizeL1(vec).map((v) => Number((v * 100).toFixed(2)));
+    applyNormalization(vec, 'l1').map((v) => Number((v * 100).toFixed(2)));
 
   // シリーズデータの生成
   // 分割表示: 知識12次元・汎用12次元をそれぞれL1正規化 (各総和100%)
-  // 統合表示: 24次元全体でL1正規化 (総和100%)
+  // 統合表示: 分割表示と同じ値を24軸に並べる (知識・汎用それぞれ総和100%)
   const primaryKVec = useMemo(() => toPercent(primaryRecord?.knowledge_vector), [primaryRecord]);
   const primaryGVec = useMemo(() => toPercent(primaryRecord?.general_vector), [primaryRecord]);
   const primaryAllVec = useMemo(

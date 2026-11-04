@@ -141,10 +141,21 @@ export function combineVectors(knowledge: number[], general: number[]): number[]
   return [...knowledge, ...general];
 }
 
-/** 指定の正規化を適用 */
+/**
+ * 知識・汎用を別々に正規化する（分析用リポジトリ normalization.py の normalize_by_group と同じ処理）。
+ * 24次元は先頭12軸（知識）と後ろ12軸（汎用）をそれぞれ正規化して連結する（L1 なら24軸の合計は2）。
+ * 12次元など、それ以外の長さはそのまま正規化する。合計が0の群は0のまま返す。
+ */
+export function normalizeByGroup(v: number[], normType: 'l1' | 'l2'): number[] {
+  const normalize = normType === 'l1' ? normalizeL1 : normalizeL2;
+  if (v.length !== ALL_SKILLS.length) return normalize(v);
+  const knowledgeDim = KNOWLEDGE_SKILLS.length;
+  return [...normalize(v.slice(0, knowledgeDim)), ...normalize(v.slice(knowledgeDim))];
+}
+
+/** 指定の正規化を適用（24次元は知識・汎用を別々に正規化する） */
 export function applyNormalization(v: number[], normType: NormalizationType): number[] {
-  if (normType === 'l1') return normalizeL1(v);
-  if (normType === 'l2') return normalizeL2(v);
+  if (normType === 'l1' || normType === 'l2') return normalizeByGroup(v, normType);
   return [...v];
 }
 
