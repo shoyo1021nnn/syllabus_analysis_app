@@ -132,3 +132,9 @@ docs/               nginx-rate-limit.md（学内 VM の Nginx limit_req 設定�
 
 - 形式は `type(scope): 日本語の説明`（例：`feat(radar): レーダーチャートの全画面表示を追加`）。type は feat / fix / refactor / docs / chore など。
 - 課題や機能ごとにコミットを分ける。
+- 次の変更は、作業ブランチを切らずに `main` に直接コミットして push してよい
+  - Markdown のドキュメント（CLAUDE.md、README、docs/ など）だけの変更
+- ただし、CLAUDE.md の「最重要ルール」「計算ロジックの要点」「コミット」など、Claude が守るルールを変えるときは、直接コミットする場合もコミットの前にユーザーに確認する（進捗や経緯の追記は確認不要）
+- コード・設定・DB・計算・依存関係に関わる変更は、作業ブランチを切って PR にする（マージはユーザーが行う）。ドキュメントと一緒に変えた場合も PR にする
+- 直接コミットの前に `git status` で対象のファイルだけが入っていることを確かめ、push の前に `git pull --rebase` する。force push はしない
+- `main` への push で Vercel が自動でビルドし直すが、ドキュメントだけの変更ならアプリの動作は変わらない。VM には `deploy.sh` を実行するまで反映されない
