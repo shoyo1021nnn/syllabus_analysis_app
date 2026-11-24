@@ -23,18 +23,33 @@ interface ClusterScatterPlotProps {
   exportFilename?: string;
 }
 
-// クラスタごとの洗練されたカラーパレット（ティール＆オレンジ基調）
+// クラスタごとのカラーパレット（ティール＆オレンジ基調、20 色）
+// k は最大 20 まで探索するため、20 クラスタまで色が重ならないようにしている。
+// 散布図の背景（白）上で、どの 2 色も CIEDE2000 の色差が 13 以上、
+// 隣り合う番号どうしは 26 以上離れるように選び、並べている。
+// 主に使う k=8〜10 の範囲（先頭 10 色）では色差 20 以上とし、P 型・D 型色覚の模擬でもなるべく離れる組み合わせにしている。
+// 凡例・ツールチップの色は各 series の itemStyle.color から自動で決まるため、この配列と一致する。
 const CLUSTER_COLORS = [
-  '#009688', // teal (ティール)
-  '#e0532b', // terracotta orange (テラコッタオレンジ)
-  '#0284c7', // sky
-  '#10b981', // emerald
-  '#d97706', // amber
-  '#7c3aed', // violet
-  '#db2777', // pink
-  '#0d9488', // dark teal
-  '#ea580c', // bright orange
-  '#475569', // slate
+  '#009688', // teal（ティール）
+  '#e0532b', // terracotta（テラコッタ）
+  '#4e342e', // dark brown（こげ茶）
+  '#1b5e20', // forest green（深緑）
+  '#f06292', // pink（ピンク）
+  '#880e4f', // wine（ワインレッド）
+  '#006064', // dark cyan（深いシアン）
+  '#283593', // indigo（藍）
+  '#ef8a00', // orange（オレンジ）
+  '#0288d1', // sky blue（空色）
+  '#827717', // olive（オリーブ）
+  '#ba68c8', // orchid（薄紫）
+  '#8e0000', // maroon（えんじ）
+  '#9c27b0', // purple（紫）
+  '#7cb342', // lime green（黄緑）
+  '#546e7a', // blue gray（青灰）
+  '#d81b60', // magenta（マゼンタ）
+  '#a1887f', // taupe（灰茶）
+  '#01579b', // navy blue（紺）
+  '#7b3f00', // chocolate（チョコレート）
 ];
 
 // 大学ごとのシンボル形状
