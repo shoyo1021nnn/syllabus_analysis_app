@@ -472,7 +472,7 @@ export const en = {
         clustering: {
           step: "Step 1",
           title: "K-Means Clustering",
-          desc: "Reduces skill distributions to 2D via PCA to understand nationwide groups and trends.",
+          desc: "Clusters departments at the target universities with K-means on 24-dimensional skill vectors and shows them on a 2D PCA projection to understand overall groups and trends. Non-department units (common courses, qualification programs) and former departments are excluded.",
           action: "View Scatter Plot",
         },
         similarity: {
@@ -542,7 +542,7 @@ export const en = {
     clustering: {
       pageTitle: "K-Means Clustering",
       heading: "K-Means Clustering & PCA Map",
-      subtitle: "Reduces 24-dimensional skill vectors to 2D via Principal Component Analysis (PCA) to visualize department distributions and skill groupings.",
+      subtitle: "K-means and silhouette scores are computed on 24-dimensional skill vectors (knowledge and generic 12 axes each L1-normalized, then concatenated); Principal Component Analysis (PCA) is used only to place departments on the 2D scatter plot. Non-department units (common courses, qualification programs) and former departments are excluded.",
       runLabel: "Clustering Run Result:",
       rankPrefix: "#",
       rankSuffix: "",

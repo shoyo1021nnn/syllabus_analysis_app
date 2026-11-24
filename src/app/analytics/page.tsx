@@ -33,8 +33,8 @@ export default function AnalyticsIndexPage() {
             name: isEn ? 'K-Means Clustering' : 'K-meansクラスタリング', 
             path: '/analytics/clustering', 
             purpose: isEn 
-              ? 'Reduces nationwide skill distribution to 2D via PCA to identify overall patterns and groupings' 
-              : '全国の学科のスキル分布をPCAで2次元に縮約・散布図表示し、全体傾向やグループ分けを把握' 
+              ? 'Clusters departments at the target universities with K-means on 24-dimensional skill vectors (PCA is used only for the 2D scatter plot) to identify overall patterns and groupings; non-department units and former departments are excluded' 
+              : '対象大学の学科を24次元のスキルベクトルでK-meansクラスタリングし（PCAは散布図の表示用）、全体傾向やグループ分けを把握。学科でない単位（共通科目・資格課程）と旧学科は対象外' 
           },
           { 
             name: isEn ? 'Similarity Ranking' : '類似度計算ランキング', 
@@ -173,7 +173,7 @@ export default function AnalyticsIndexPage() {
                 {t('analytics.hub.cards.clustering.title', 'K-meansクラスタリング')}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                {t('analytics.hub.cards.clustering.desc', '全国の学科のスキル分布をPCAで2次元に縮約・散布図表示し、全体傾向やグループ分けを把握します。')}
+                {t('analytics.hub.cards.clustering.desc', '対象大学の学科を24次元のスキルベクトルでK-meansクラスタリングし、主成分分析(PCA)で2次元に投影した散布図で全体傾向やグループ分けを把握します。共通科目・資格課程など学科でない単位と旧学科は対象に含めていません。')}
               </p>
             </div>
           </div>

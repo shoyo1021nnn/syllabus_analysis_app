@@ -248,7 +248,7 @@ export default function ClusteringPage() {
                 {t('analytics.clustering.heading', 'K-means クラスタリング & PCAマップ')}
               </h1>
               <p className="text-sm text-slate-500">
-                {t('analytics.clustering.subtitle', '24次元スキルベクトルを主成分分析(PCA)で2次元に縮約し、学科の分布とスキルグループを可視化します')}
+                {t('analytics.clustering.subtitle', 'K-meansとシルエットスコアは24次元スキルベクトル（知識12軸・汎用12軸をそれぞれL1正規化して連結）で計算し、主成分分析(PCA)は散布図の座標を作るためだけに使っています。共通科目・資格課程など学科でない単位と旧学科は対象に含めていません')}
               </p>
             </div>
           </div>
