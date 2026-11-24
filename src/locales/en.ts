@@ -472,7 +472,7 @@ export const en = {
         clustering: {
           step: "Step 1",
           title: "K-Means Clustering",
-          desc: "Clusters departments nationwide with K-means on 24-dimensional skill vectors and shows them on a 2D PCA projection to understand overall groups and trends. Non-department units (common courses, qualification programs) and former departments are excluded.",
+          desc: "Clusters departments at the target universities with K-means on 24-dimensional skill vectors and shows them on a 2D PCA projection to understand overall groups and trends. Non-department units (common courses, qualification programs) and former departments are excluded.",
           action: "View Scatter Plot",
         },
         similarity: {
